@@ -1,0 +1,555 @@
+openapi: 3.1.0
+info:
+  title: Context Chest API
+  version: 0.5.0
+  description: |
+    Sync & Connect API for Context Chest
+    
+    ## Authentication
+    All authenticated endpoints require a JWT token in the Authorization header:
+    ```
+    Authorization: Bearer <jwt_token>
+    ```
+    
+    ## Error Responses
+    All errors follow this format:
+    ```json
+    {
+      "code": "ERROR_CODE",
+      "message": "Human readable message",
+      "field": "field_name" // Optional, for validation errors
+    }
+    ```
+
+servers:
+  - url: /v1
+    description: API v1
+
+components:
+  securitySchemes:
+    sessionJwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from /auth/login or /auth/register
+    grantJwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT token obtained from /connect/token
+
+  schemas:
+    Error:
+      type: object
+      properties:
+        code:
+          type: string
+          enum:
+            - VALIDATION_ERROR
+            - INVALID_CREDENTIALS
+            - INVALID_CLIENT
+            - INVALID_CONSENT_CODE
+            - EXPIRED_CONSENT_CODE
+            - INVALID_CLIENT_SECRET
+            - INVALID_TOKEN
+            - BLOB_NOT_FOUND
+            - HASH_MISMATCH
+            - PAYLOAD_TOO_LARGE
+            - RATE_LIMIT_EXCEEDED
+        message:
+          type: string
+        field:
+          type: string
+      example:
+        code: VALIDATION_ERROR
+        message: Invalid email format
+        field: email
+
+    RegisterRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+      example:
+        email: user@example.com
+
+    RegisterFinishRequest:
+      type: object
+      required:
+        - email
+        - msg
+      properties:
+        email:
+          type: string
+          format: email
+        msg:
+          type: string
+      example:
+        email: user@example.com
+        msg: "base64_encoded_opaque_message"
+
+    LoginRequest:
+      type: object
+      required:
+        - email
+      properties:
+        email:
+          type: string
+          format: email
+      example:
+        email: user@example.com
+
+    LoginFinishRequest:
+      type: object
+      required:
+        - email
+        - msg
+      properties:
+        email:
+          type: string
+          format: email
+        msg:
+          type: string
+      example:
+        email: user@example.com
+        msg: "base64_encoded_opaque_message"
+
+    RefreshTokenRequest:
+      type: object
+      required:
+        - refresh_token
+      properties:
+        refresh_token:
+          type: string
+      example:
+        refresh_token: "jwt_refresh_token"
+
+    ConnectAuthorizeRequest:
+      type: object
+      required:
+        - client_id
+        - requested_scopes
+      properties:
+        client_id:
+          type: string
+        requested_scopes:
+          type: array
+          items:
+            type: string
+            enum:
+              - vault.read
+              - vault.write
+      example:
+        client_id: "sample_app"
+        requested_scopes: ["vault.read", "vault.write"]
+
+    ConnectTokenRequest:
+      type: object
+      required:
+        - consent_code
+        - client_secret
+      properties:
+        consent_code:
+          type: string
+        client_secret:
+          type: string
+      example:
+        consent_code: "random_consent_code"
+        client_secret: "client_secret_hash"
+
+    ConnectIntrospectResponse:
+      type: object
+      properties:
+        active:
+          type: boolean
+        scopes:
+          type: array
+          items:
+            type: string
+        exp:
+          type: integer
+          format: int64
+      example:
+        active: true
+        scopes: ["vault.read"]
+        exp: 1735689600
+
+paths:
+  /auth/register:
+    post:
+      summary: Start OPAQUE registration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '200':
+          description: Registration started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  registration_response:
+                    type: string
+                example:
+                  registration_response: "base64_encoded_response"
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/register/finish:
+    post:
+      summary: Complete OPAQUE registration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterFinishRequest'
+      responses:
+        '200':
+          description: Registration completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  refresh_token:
+                    type: string
+                example:
+                  token: "jwt_token"
+                  refresh_token: "jwt_refresh_token"
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login:
+    post:
+      summary: Start OPAQUE login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  credential_response:
+                    type: string
+                example:
+                  credential_response: "base64_encoded_response"
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/login/finish:
+    post:
+      summary: Complete OPAQUE login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginFinishRequest'
+      responses:
+        '200':
+          description: Login completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  refresh_token:
+                    type: string
+                example:
+                  token: "jwt_token"
+                  refresh_token: "jwt_refresh_token"
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/refresh:
+    post:
+      summary: Refresh JWT token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshTokenRequest'
+      responses:
+        '200':
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  refresh_token:
+                    type: string
+                example:
+                  token: "new_jwt_token"
+                  refresh_token: "new_jwt_refresh_token"
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /vault/blob:
+    put:
+      summary: Upload encrypted vault blob
+      security:
+        - sessionJwt: []
+      requestBody:
+        required: true
+        content:
+          application/octet-stream:
+            schema:
+              type: string
+              format: binary
+      responses:
+        '200':
+          description: Blob uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                example:
+                  success: true
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '413':
+          description: Payload too large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+          headers:
+            Retry-After:
+              schema:
+                type: integer
+              description: Seconds to wait before retrying
+
+    get:
+      summary: Download encrypted vault blob
+      security:
+        - sessionJwt: []
+      responses:
+        '200':
+          description: Blob downloaded successfully
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+          headers:
+            X-BLOB-SHA256:
+              schema:
+                type: string
+              description: SHA-256 hash of the blob
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Blob not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /connect/authorize:
+    post:
+      summary: Start Chest Connect flow
+      security:
+        - sessionJwt: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConnectAuthorizeRequest'
+      responses:
+        '200':
+          description: Authorization started
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  consent_code:
+                    type: string
+                example:
+                  consent_code: "random_consent_code"
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /connect/token:
+    post:
+      summary: Exchange consent code for grant token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConnectTokenRequest'
+      responses:
+        '200':
+          description: Token issued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  grant_token:
+                    type: string
+                example:
+                  grant_token: "jwt_grant_token"
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /connect/introspect:
+    post:
+      summary: Verify grant token
+      security:
+        - grantJwt: []
+      responses:
+        '200':
+          description: Token is valid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConnectIntrospectResponse'
+        '401':
+          description: Invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /health:
+    get:
+      summary: Health check endpoint
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                example:
+                  status: "ok"
+
+  /ready:
+    get:
+      summary: Readiness check endpoint
+      responses:
+        '200':
+          description: Service is ready
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ready]
+                  checks:
+                    type: object
+                    properties:
+                      database:
+                        type: boolean
+                      storage:
+                        type: boolean
+                example:
+                  status: "ready"
+                  checks:
+                    database: true
+                    storage: true
+        '503':
+          description: Service is not ready
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [not_ready]
+                  checks:
+                    type: object
+                    properties:
+                      database:
+                        type: boolean
+                      storage:
+                        type: boolean
+                example:
+                  status: "not_ready"
+                  checks:
+                    database: true
+                    storage: false 

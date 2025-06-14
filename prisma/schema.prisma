@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  opaqueRecord  Bytes
+  createdAt     DateTime @default(now()) @map("created_at")
+  blobs         Blob[]
+  grants        Grant[]
+  auditLogs     AuditLog[]
+
+  @@map("users")
+}
+
+model Blob {
+  userId      String   @map("user_id")
+  s3Key       String   @map("s3_key")
+  sha256      String
+  uploadedAt  DateTime @default(now()) @map("uploaded_at")
+  user        User     @relation(fields: [userId], references: [id])
+
+  @@id([userId])
+  @@map("blobs")
+}
+
+model Client {
+  clientId         String   @id @map("client_id")
+  name             String
+  redirectUri      String   @map("redirect_uri")
+  clientSecretHash String   @map("client_secret_hash")
+  grants           Grant[]
+
+  @@map("clients")
+}
+
+model Grant {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  clientId   String   @map("client_id")
+  scopes     String[]
+  expiresAt  DateTime @map("expires_at")
+  jwtId      String   @unique @map("jwt_id")
+  user       User     @relation(fields: [userId], references: [id])
+  client     Client   @relation(fields: [clientId], references: [clientId])
+
+  @@map("grants")
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  route     String
+  method    String
+  ip        String
+  status    Int
+  bytes     Int?
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([createdAt])
+  @@map("audit_logs")
+} 
