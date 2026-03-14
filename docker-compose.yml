@@ -59,8 +59,27 @@ services:
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
 
+  openviking:
+    image: openviking/openviking-server:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - openviking_data:/data
+    environment:
+      OV_STORAGE_BACKEND: local
+      OV_ROOT_API_KEY: ${OV_API_KEY:-dev-openviking-key}
+      OV_EMBEDDING_PROVIDER: openai
+      OV_EMBEDDING_MODEL: text-embedding-3-small
+      OV_EMBEDDING_API_KEY: ${OPENAI_API_KEY:-}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   postgres_data:
   minio_data:
   grafana_data:
-  prometheus_data: 
+  prometheus_data:
+  openviking_data:
