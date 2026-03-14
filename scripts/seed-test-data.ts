@@ -243,6 +243,17 @@ async function main() {
   console.log(`\nTest with curl:`);
   console.log(`  curl -s -H "Authorization: Bearer ${token}" ${API_URL}/v1/memory/recall -d '{"query":"editor","limit":5}' -H "Content-Type: application/json" | jq .`);
 
+  // Write dev credentials for PWA
+  const { writeFileSync } = await import('fs');
+  const devCreds = {
+    jwt: token,
+    masterKey: mk.toString('hex'),
+    userId: user.id,
+    apiUrl: API_URL,
+  };
+  writeFileSync('packages/pwa/dev-credentials.json', JSON.stringify(devCreds, null, 2));
+  console.log('\nWrote packages/pwa/dev-credentials.json for PWA dev login');
+
   await prisma.$disconnect();
 }
 

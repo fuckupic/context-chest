@@ -22,23 +22,22 @@ export function requirePermission(permission: Permission) {
   return async (request: FastifyRequest, reply: FastifyReply) => {
     try {
       await request.jwtVerify();
-    } catch {
-      reply.code(401).send({
+    } catch (err) {
+      console.error('[role-guard] jwtVerify failed:', (err as Error).message, 'auth header:', request.headers.authorization?.slice(0, 30));
+      return reply.code(401).send({
         code: 'UNAUTHORIZED',
         message: 'Invalid or missing token',
       });
-      return;
     }
 
     const decoded = request.user as Record<string, unknown>;
     const role = extractRoleFromToken(decoded);
 
     if (!grantService.hasPermission(role, permission)) {
-      reply.code(403).send({
+      return reply.code(403).send({
         code: 'FORBIDDEN',
         message: `Role '${role}' does not have '${permission}' permission`,
       });
-      return;
     }
 
     // Attach role and userId to request for downstream use

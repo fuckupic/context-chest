@@ -146,5 +146,27 @@ export function memoryRoutes(
         };
       }
     );
+
+    // List — direct Prisma query, no OpenViking needed
+    fastify.get(
+      '/list',
+      { preHandler: requirePermission('browse') },
+      async (request) => {
+        const userId = (request as unknown as Record<string, unknown>).userId as string;
+        const { page, limit } = request.query as { page?: string; limit?: string };
+
+        const result = await memoryService.list(
+          userId,
+          parseInt(page ?? '1'),
+          parseInt(limit ?? '100')
+        );
+
+        return {
+          success: true,
+          data: result.data,
+          meta: { total: result.total, page: parseInt(page ?? '1'), limit: parseInt(limit ?? '100') },
+        };
+      }
+    );
   };
 }

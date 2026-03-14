@@ -15,10 +15,24 @@ export function Login() {
 
   const DEV_MODE = !import.meta.env.PROD;
 
-  const handleDevLogin = () => {
-    const mk = generateMasterKey();
-    login('dev-token', mk);
-    navigate('/memories');
+  const handleDevLogin = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      // Load real credentials from seed script output
+      const res = await fetch('/dev-credentials.json');
+      if (!res.ok) throw new Error('Run the seed script first: npx ts-node --transpile-only scripts/seed-test-data.ts');
+      const creds = await res.json();
+      const mk = new Uint8Array(
+        (creds.masterKey as string).match(/.{2}/g)!.map((b: string) => parseInt(b, 16))
+      );
+      login(creds.jwt, mk);
+      navigate('/memories');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Dev login failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e: FormEvent) => {

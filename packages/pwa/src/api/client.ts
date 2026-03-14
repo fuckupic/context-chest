@@ -122,6 +122,12 @@ export class ApiClient {
     );
   }
 
+  async listMemories(page: number = 1, limit: number = 100) {
+    return this.request<{ success: boolean; data: Array<{ uri: string; sha256: string; sizeBytes: number; createdAt: string }>; meta: { total: number } }>(
+      'GET', `/v1/memory/list?page=${page}&limit=${limit}`
+    );
+  }
+
   async getContent(uri: string): Promise<ArrayBuffer> {
     const response = await fetch(`/v1/memory/content/${uri}`, {
       headers: { Authorization: `Bearer ${this.token}` },

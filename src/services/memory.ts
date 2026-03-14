@@ -116,4 +116,33 @@ export class MemoryService {
   ): Promise<unknown[]> {
     return this.context.list(userId, path, depth);
   }
+
+  async list(
+    userId: string,
+    page: number = 1,
+    limit: number = 100
+  ): Promise<{
+    data: Array<{ uri: string; sha256: string; sizeBytes: number; createdAt: Date }>;
+    total: number;
+  }> {
+    const [entries, total] = await Promise.all([
+      this.prisma.memoryEntry.findMany({
+        where: { userId },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.memoryEntry.count({ where: { userId } }),
+    ]);
+
+    return {
+      data: entries.map((e) => ({
+        uri: e.uri,
+        sha256: e.sha256,
+        sizeBytes: e.sizeBytes,
+        createdAt: e.createdAt,
+      })),
+      total,
+    };
+  }
 }

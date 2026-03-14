@@ -19,51 +19,44 @@ export function Memories() {
   const [searchResults, setSearchResults] = useState<TreeEntry[] | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const DEV_MODE = !import.meta.env.PROD;
-
-  const MOCK_TREE: TreeEntry[] = [
-    {
-      uri: 'preferences/', l0: '', type: 'directory', children: [
-        { uri: 'preferences/editor-theme', l0: 'User prefers dark mode in code editors', type: 'file' },
-        { uri: 'preferences/terminal', l0: 'Uses iTerm2 with Dracula theme', type: 'file' },
-        { uri: 'preferences/keybindings', l0: 'Custom vim-style keybindings in VS Code', type: 'file' },
-      ],
-    },
-    {
-      uri: 'projects/', l0: '', type: 'directory', children: [
-        {
-          uri: 'projects/context-chest/', l0: '', type: 'directory', children: [
-            { uri: 'projects/context-chest/architecture', l0: 'Fastify + OpenViking orchestration layer', type: 'file' },
-            { uri: 'projects/context-chest/stack', l0: 'TypeScript, Prisma, S3, PostgreSQL', type: 'file' },
-            { uri: 'projects/context-chest/encryption', l0: 'AES-GCM 256 with HKDF key derivation', type: 'file' },
-          ],
-        },
-      ],
-    },
-    {
-      uri: 'workflows/', l0: '', type: 'directory', children: [
-        { uri: 'workflows/git-conventions', l0: 'Conventional commits with feat/fix/refactor types', type: 'file' },
-        { uri: 'workflows/tdd', l0: 'Test-driven development with 80% coverage target', type: 'file' },
-      ],
-    },
-    {
-      uri: 'tools/', l0: '', type: 'directory', children: [
-        { uri: 'tools/debugging', l0: 'Systematic debugging methodology', type: 'file' },
-        { uri: 'tools/claude-code', l0: 'Claude Code CLI usage patterns and tips', type: 'file' },
-      ],
-    },
-  ];
-
   useEffect(() => {
-    if (DEV_MODE) {
-      setTree(MOCK_TREE);
+    if (!client) {
       setLoading(false);
       return;
     }
-    if (!client) return;
+
+    // List memories from Prisma (always available, doesn't need OpenViking)
     client
-      .browse('', 3)
-      .then((result) => setTree(result.data.tree))
+      .listMemories(1, 100)
+      .then((result) => {
+        const entries = result.data;
+
+        // Group URIs into directory tree
+        const dirs = new Map<string, TreeEntry[]>();
+        for (const e of entries) {
+          const parts = e.uri.split('/');
+          const dir = parts.length > 1 ? parts.slice(0, -1).join('/') : '';
+          const file: TreeEntry = { uri: e.uri, l0: '', type: 'file' };
+          if (!dirs.has(dir)) dirs.set(dir, []);
+          dirs.get(dir)!.push(file);
+        }
+
+        const treeEntries: TreeEntry[] = [];
+        for (const [dir, files] of dirs) {
+          if (dir) {
+            treeEntries.push({
+              uri: dir + '/',
+              l0: '',
+              type: 'directory',
+              children: files,
+            });
+          } else {
+            treeEntries.push(...files);
+          }
+        }
+
+        setTree(treeEntries);
+      })
       .catch(() => setTree([]))
       .finally(() => setLoading(false));
   }, [client]);
