@@ -1,0 +1,150 @@
+import { FastifyPluginAsync } from 'fastify';
+import { z } from 'zod';
+import { requirePermission } from '../plugins/role-guard';
+import { MemoryService } from '../services/memory';
+import { UsageService, UsageLimitError } from '../services/usage';
+
+const rememberSchema = z.object({
+  uri: z.string().min(1).max(500),
+  l0: z.string().min(1).max(500),
+  l1: z.string().min(1).max(10000),
+  encryptedL2: z.string().min(1).refine(
+    (s) => Buffer.byteLength(s, 'base64') <= 10 * 1024 * 1024,
+    'Encrypted L2 exceeds 10MB limit'
+  ),
+  sha256: z.string().regex(/^[a-f0-9]{64}$/),
+});
+
+const recallSchema = z.object({
+  query: z.string().min(1).max(1000),
+  limit: z.number().int().min(1).max(100).default(10),
+  offset: z.number().int().min(0).default(0),
+});
+
+export function memoryRoutes(
+  memoryService: MemoryService,
+  usageService: UsageService
+): FastifyPluginAsync {
+  return async (fastify) => {
+    // Remember
+    fastify.post(
+      '/remember',
+      { preHandler: requirePermission('remember') },
+      async (request, reply) => {
+        const userId = (request as unknown as Record<string, unknown>).userId as string;
+        const body = rememberSchema.parse(request.body);
+
+        try {
+          await usageService.checkMemoryLimit(userId, 1000);
+        } catch (err) {
+          if (err instanceof UsageLimitError) {
+            reply.code(429).send({ code: err.code, message: err.message });
+            return;
+          }
+          throw err;
+        }
+
+        const encryptedL2 = Buffer.from(body.encryptedL2, 'base64');
+        const result = await memoryService.remember(userId, {
+          uri: body.uri,
+          l0: body.l0,
+          l1: body.l1,
+          encryptedL2,
+          sha256: body.sha256,
+        });
+
+        await usageService.increment(userId, 'remember');
+        return { success: true, data: result };
+      }
+    );
+
+    // Recall
+    fastify.post(
+      '/recall',
+      { preHandler: requirePermission('recall') },
+      async (request) => {
+        const userId = (request as unknown as Record<string, unknown>).userId as string;
+        const body = recallSchema.parse(request.body);
+        const results = await memoryService.recall(userId, body);
+        await usageService.increment(userId, 'recall');
+        return {
+          success: true,
+          data: results.data,
+          meta: {
+            total: results.total,
+            page: Math.floor(body.offset / body.limit) + 1,
+            limit: body.limit,
+          },
+        };
+      }
+    );
+
+    // Content — uses wildcard because URIs contain slashes
+    fastify.get(
+      '/content/*',
+      { preHandler: requirePermission('content') },
+      async (request, reply) => {
+        const userId = (request as unknown as Record<string, unknown>).userId as string;
+        const uri = (request.params as Record<string, string>)['*'];
+
+        try {
+          const content = await memoryService.getContent(userId, uri);
+          await usageService.increment(userId, 'content_fetch');
+          reply.header('Content-Type', 'application/octet-stream');
+          return content;
+        } catch {
+          reply.code(404).send({ code: 'MEMORY_NOT_FOUND', message: 'Memory not found' });
+        }
+      }
+    );
+
+    // Forget — wildcard for slash-separated URIs
+    fastify.delete(
+      '/forget/*',
+      { preHandler: requirePermission('forget') },
+      async (request, reply) => {
+        const userId = (request as unknown as Record<string, unknown>).userId as string;
+        const uri = (request.params as Record<string, string>)['*'];
+
+        try {
+          await memoryService.forget(userId, uri);
+          reply.code(204).send();
+        } catch {
+          reply.code(404).send({ code: 'MEMORY_NOT_FOUND', message: 'Memory not found' });
+        }
+      }
+    );
+
+    // Browse
+    fastify.get(
+      '/browse',
+      { preHandler: requirePermission('browse') },
+      async (request) => {
+        const userId = (request as unknown as Record<string, unknown>).userId as string;
+        const { path, depth, page, limit } = request.query as {
+          path?: string;
+          depth?: string;
+          page?: string;
+          limit?: string;
+        };
+
+        const tree = await memoryService.browse(
+          userId,
+          path ?? '',
+          parseInt(depth ?? '2')
+        );
+
+        await usageService.increment(userId, 'browse');
+        return {
+          success: true,
+          data: { tree },
+          meta: {
+            total: (tree as unknown[]).length,
+            page: parseInt(page ?? '1'),
+            limit: parseInt(limit ?? '50'),
+          },
+        };
+      }
+    );
+  };
+}
