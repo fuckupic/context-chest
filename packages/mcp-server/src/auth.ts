@@ -2,9 +2,11 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 
-interface Credentials {
+export interface Credentials {
   jwt: string;
   wrappedMasterKey: string;
+  exportKey: string;
+  userId: string;
   apiUrl: string;
 }
 

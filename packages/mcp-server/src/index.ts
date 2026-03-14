@@ -43,49 +43,49 @@ async function generateL0(content: string): Promise<string> {
   return l0;
 }
 
-server.tool('context-chest:remember', 'Store a memory in your encrypted vault', rememberSchema.shape, async (params) => {
+server.tool('context-chest_remember', 'Store a memory in your encrypted vault', rememberSchema.shape, async (params) => {
   const ctx = ensureInitialized();
   const result = await handleRemember(params, ctx.client, ctx.masterKey, generateSummaries);
   return { content: [{ type: 'text' as const, text: result }] };
 });
 
-server.tool('context-chest:recall', 'Search your memories', recallSchema.shape, async (params) => {
+server.tool('context-chest_recall', 'Search your memories', recallSchema.shape, async (params) => {
   const ctx = ensureInitialized();
   const result = await handleRecall(params, ctx.client);
   return { content: [{ type: 'text' as const, text: result }] };
 });
 
-server.tool('context-chest:read', 'Read full content of a memory', readSchema.shape, async (params) => {
+server.tool('context-chest_read', 'Read full content of a memory', readSchema.shape, async (params) => {
   const ctx = ensureInitialized();
   const result = await handleRead(params, ctx.client, ctx.masterKey);
   return { content: [{ type: 'text' as const, text: result }] };
 });
 
-server.tool('context-chest:forget', 'Delete a memory', forgetSchema.shape, async (params) => {
+server.tool('context-chest_forget', 'Delete a memory', forgetSchema.shape, async (params) => {
   const ctx = ensureInitialized();
   const result = await handleForget(params, ctx.client);
   return { content: [{ type: 'text' as const, text: result }] };
 });
 
-server.tool('context-chest:browse', 'Browse your memory directory', browseSchema.shape, async (params) => {
+server.tool('context-chest_browse', 'Browse your memory directory', browseSchema.shape, async (params) => {
   const ctx = ensureInitialized();
   const result = await handleBrowse(params, ctx.client);
   return { content: [{ type: 'text' as const, text: result }] };
 });
 
-server.tool('context-chest:session-start', 'Start tracking this conversation', {}, async () => {
+server.tool('context-chest_session-start', 'Start tracking this conversation', {}, async () => {
   const ctx = ensureInitialized();
   const result = await handleSessionStart(ctx.client);
   return { content: [{ type: 'text' as const, text: result }] };
 });
 
-server.tool('context-chest:session-append', 'Add a message to current session', sessionAppendSchema.shape, async (params) => {
+server.tool('context-chest_session-append', 'Add a message to current session', sessionAppendSchema.shape, async (params) => {
   const ctx = ensureInitialized();
   const result = await handleSessionAppend(params, ctx.client, ctx.masterKey, generateL0);
   return { content: [{ type: 'text' as const, text: result }] };
 });
 
-server.tool('context-chest:session-save', 'Extract memories and close session', sessionSaveSchema.shape, async (params) => {
+server.tool('context-chest_session-save', 'Extract memories and close session', sessionSaveSchema.shape, async (params) => {
   const ctx = ensureInitialized();
   const result = await handleSessionSave(params, ctx.client, ctx.masterKey, generateSummaries);
   return { content: [{ type: 'text' as const, text: result }] };
@@ -100,16 +100,18 @@ async function main() {
       token: creds.jwt,
     });
 
-    if (creds.wrappedMasterKey) {
+    if (creds.wrappedMasterKey && creds.exportKey && creds.userId) {
       try {
         const wrappedMK = await client.getMasterKey();
-        const devExportKey = Buffer.alloc(32, 0x01);
-        const wrappingKey = deriveWrappingKey(devExportKey, 'dev-user');
+        const exportKeyBuf = Buffer.from(creds.exportKey, 'hex');
+        const wrappingKey = deriveWrappingKey(exportKeyBuf, creds.userId);
         masterKey = unwrapMasterKey(wrappedMK, wrappingKey);
-      } catch {
-        // MK not available
+      } catch (err) {
+        process.stderr.write(`[context-chest] MK unwrap failed: ${(err as Error).message}\n`);
       }
     }
+  } else {
+    process.stderr.write('[context-chest] No credentials or token expired. Run context-chest login first.\n');
   }
 
   const transport = new StdioServerTransport();
