@@ -19,7 +19,47 @@ export function Memories() {
   const [searchResults, setSearchResults] = useState<TreeEntry[] | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const DEV_MODE = !import.meta.env.PROD;
+
+  const MOCK_TREE: TreeEntry[] = [
+    {
+      uri: 'preferences/', l0: '', type: 'directory', children: [
+        { uri: 'preferences/editor-theme', l0: 'User prefers dark mode in code editors', type: 'file' },
+        { uri: 'preferences/terminal', l0: 'Uses iTerm2 with Dracula theme', type: 'file' },
+        { uri: 'preferences/keybindings', l0: 'Custom vim-style keybindings in VS Code', type: 'file' },
+      ],
+    },
+    {
+      uri: 'projects/', l0: '', type: 'directory', children: [
+        {
+          uri: 'projects/context-chest/', l0: '', type: 'directory', children: [
+            { uri: 'projects/context-chest/architecture', l0: 'Fastify + OpenViking orchestration layer', type: 'file' },
+            { uri: 'projects/context-chest/stack', l0: 'TypeScript, Prisma, S3, PostgreSQL', type: 'file' },
+            { uri: 'projects/context-chest/encryption', l0: 'AES-GCM 256 with HKDF key derivation', type: 'file' },
+          ],
+        },
+      ],
+    },
+    {
+      uri: 'workflows/', l0: '', type: 'directory', children: [
+        { uri: 'workflows/git-conventions', l0: 'Conventional commits with feat/fix/refactor types', type: 'file' },
+        { uri: 'workflows/tdd', l0: 'Test-driven development with 80% coverage target', type: 'file' },
+      ],
+    },
+    {
+      uri: 'tools/', l0: '', type: 'directory', children: [
+        { uri: 'tools/debugging', l0: 'Systematic debugging methodology', type: 'file' },
+        { uri: 'tools/claude-code', l0: 'Claude Code CLI usage patterns and tips', type: 'file' },
+      ],
+    },
+  ];
+
   useEffect(() => {
+    if (DEV_MODE) {
+      setTree(MOCK_TREE);
+      setLoading(false);
+      return;
+    }
     if (!client) return;
     client
       .browse('', 3)

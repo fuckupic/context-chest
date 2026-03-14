@@ -13,6 +13,14 @@ export function Login() {
   const { login } = useAuth();
   const navigate = useNavigate();
 
+  const DEV_MODE = !import.meta.env.PROD;
+
+  const handleDevLogin = () => {
+    const mk = generateMasterKey();
+    login('dev-token', mk);
+    navigate('/memories');
+  };
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -22,8 +30,6 @@ export function Login() {
       const api = new ApiClient('');
 
       if (mode === 'register') {
-        // Simplified OPAQUE flow for development
-        // TODO: Wire up full OpaqueClient when server is running
         const regResult = await api.register(email, btoa(password));
         const finishResult = await api.registerFinish(email, regResult.registrationResponse ?? btoa('record'));
         const token = finishResult.token;
@@ -38,7 +44,6 @@ export function Login() {
 
         login(token, mk);
       } else {
-        // Simplified OPAQUE login
         const loginResult = await api.login(email, btoa(password));
         const finishResult = await api.loginFinish(email, loginResult.credentialResponse ?? btoa('finalization'));
         const token = finishResult.token;
@@ -123,6 +128,16 @@ export function Login() {
               </>
             )}
           </p>
+
+          {DEV_MODE && (
+            <button
+              type="button"
+              onClick={handleDevLogin}
+              className="w-full py-2 bg-white/5 border border-white/10 text-vault-muted rounded-lg text-xs hover:bg-white/10 transition-colors"
+            >
+              Dev mode: Skip login
+            </button>
+          )}
         </form>
       </div>
     </div>
