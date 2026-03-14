@@ -136,9 +136,32 @@ export class SessionService {
       data: {
         status: 'closed',
         closedAt: new Date(),
+        memoriesExtracted: extractedMemories.length,
       },
     });
 
     return { memoriesExtracted: extractedMemories.length };
+  }
+
+  async list(
+    userId: string,
+    options: { status?: string; page: number; limit: number }
+  ) {
+    const where: Record<string, unknown> = { userId };
+    if (options.status === 'active' || options.status === 'closed') {
+      where.status = options.status;
+    }
+
+    const [sessions, total] = await Promise.all([
+      this.prisma.session.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (options.page - 1) * options.limit,
+        take: options.limit,
+      }),
+      this.prisma.session.count({ where }),
+    ]);
+
+    return { data: sessions, total };
   }
 }

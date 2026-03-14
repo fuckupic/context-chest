@@ -30,6 +30,34 @@ export function sessionRoutes(
   usageService: UsageService
 ): FastifyPluginAsync {
   return async (fastify) => {
+    // List sessions
+    fastify.get(
+      '/',
+      { preHandler: requirePermission('sessions') },
+      async (request) => {
+        const userId = (request as unknown as Record<string, unknown>).userId as string;
+        const { status, page, limit } = request.query as {
+          status?: string;
+          page?: string;
+          limit?: string;
+        };
+
+        const pageNum = parseInt(page ?? '1');
+        const limitNum = parseInt(limit ?? '50');
+        const result = await sessionService.list(userId, {
+          status,
+          page: pageNum,
+          limit: limitNum,
+        });
+
+        return {
+          success: true,
+          data: result.data,
+          meta: { total: result.total, page: pageNum, limit: limitNum },
+        };
+      }
+    );
+
     // Create session
     fastify.post(
       '/',
