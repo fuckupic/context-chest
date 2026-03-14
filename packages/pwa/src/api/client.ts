@@ -67,37 +67,31 @@ export class ApiClient {
     return response.json() as Promise<T>;
   }
 
-  // Auth (no token needed — called before auth)
-  async register(email: string, registrationRequest: string) {
-    return fetch('/v1/auth/register', {
+  // Auth — simple email + password
+  async registerSimple(email: string, password: string): Promise<{ token: string; userId: string; exportKey: string }> {
+    const res = await fetch('/v1/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, registrationRequest }),
-    }).then((r) => r.json());
+      body: JSON.stringify({ email, password }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ message: `HTTP ${res.status}` }));
+      throw new Error(err.message ?? err.code ?? `HTTP ${res.status}`);
+    }
+    return res.json();
   }
 
-  async registerFinish(email: string, record: string) {
-    return fetch('/v1/auth/register/finish', {
+  async loginSimple(email: string, password: string): Promise<{ token: string; userId: string; exportKey: string }> {
+    const res = await fetch('/v1/auth/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, record }),
-    }).then((r) => r.json());
-  }
-
-  async login(email: string, credentialRequest: string) {
-    return fetch('/v1/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, credentialRequest }),
-    }).then((r) => r.json());
-  }
-
-  async loginFinish(email: string, credentialFinalization: string) {
-    return fetch('/v1/auth/login/finish', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, credentialFinalization }),
-    }).then((r) => r.json());
+      body: JSON.stringify({ email, password }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ message: `HTTP ${res.status}` }));
+      throw new Error(err.message ?? err.code ?? `HTTP ${res.status}`);
+    }
+    return res.json();
   }
 
   async putMasterKey(encryptedMasterKey: string) {

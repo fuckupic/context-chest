@@ -30,7 +30,8 @@ enum UsageAction {
 model User {
   id                  String        @id @default(uuid())
   email               String        @unique
-  opaqueRecord        Bytes
+  opaqueRecord        Bytes?
+  passwordHash        String?       @map("password_hash")
   encryptedMasterKey  Bytes?        @map("encrypted_master_key")
   createdAt           DateTime      @default(now()) @map("created_at")
   blobs               Blob[]

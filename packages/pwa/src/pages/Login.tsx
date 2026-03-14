@@ -4,6 +4,10 @@ import { useAuth } from '../auth/context';
 import { ApiClient } from '../api/client';
 import { deriveWrappingKey, generateMasterKey, wrapMasterKey, unwrapMasterKey } from '../crypto';
 
+function hexToBytes(hex: string): Uint8Array {
+  return new Uint8Array(hex.match(/.{2}/g)!.map((b) => parseInt(b, 16)));
+}
+
 export function Login() {
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
@@ -12,28 +16,6 @@ export function Login() {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
-
-  const DEV_MODE = !import.meta.env.PROD;
-
-  const handleDevLogin = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      // Load real credentials from seed script output
-      const res = await fetch('/dev-credentials.json');
-      if (!res.ok) throw new Error('Run the seed script first: npx ts-node --transpile-only scripts/seed-test-data.ts');
-      const creds = await res.json();
-      const mk = new Uint8Array(
-        (creds.masterKey as string).match(/.{2}/g)!.map((b: string) => parseInt(b, 16))
-      );
-      login(creds.jwt, mk);
-      navigate('/memories');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Dev login failed');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -44,27 +26,29 @@ export function Login() {
       const api = new ApiClient('');
 
       if (mode === 'register') {
-        const regResult = await api.register(email, btoa(password));
-        const finishResult = await api.registerFinish(email, regResult.registrationResponse ?? btoa('record'));
-        const token = finishResult.token;
+        // Register: server returns JWT + exportKey
+        const result = await api.registerSimple(email, password);
+        const token = result.token;
         api.setToken(token);
 
+        // Generate master key, wrap with export key, store on server
         const mk = generateMasterKey();
-        const fakeExportKey = new TextEncoder().encode(password.padEnd(32, '0').slice(0, 32));
-        const wrappingKey = await deriveWrappingKey(fakeExportKey, email);
+        const exportKeyBytes = hexToBytes(result.exportKey);
+        const wrappingKey = await deriveWrappingKey(exportKeyBytes, result.userId);
         const wrappedMk = await wrapMasterKey(mk, wrappingKey);
         await api.putMasterKey(wrappedMk);
         localStorage.setItem('cc_wrapped_mk', wrappedMk);
 
         login(token, mk);
       } else {
-        const loginResult = await api.login(email, btoa(password));
-        const finishResult = await api.loginFinish(email, loginResult.credentialResponse ?? btoa('finalization'));
-        const token = finishResult.token;
+        // Login: server returns JWT + exportKey
+        const result = await api.loginSimple(email, password);
+        const token = result.token;
         api.setToken(token);
 
-        const fakeExportKey = new TextEncoder().encode(password.padEnd(32, '0').slice(0, 32));
-        const wrappingKey = await deriveWrappingKey(fakeExportKey, email);
+        // Derive wrapping key, fetch and unwrap master key
+        const exportKeyBytes = hexToBytes(result.exportKey);
+        const wrappingKey = await deriveWrappingKey(exportKeyBytes, result.userId);
         const wrappedMk = await api.getMasterKey();
         const mk = await unwrapMasterKey(wrappedMk, wrappingKey);
         localStorage.setItem('cc_wrapped_mk', wrappedMk);
@@ -142,16 +126,6 @@ export function Login() {
               </>
             )}
           </p>
-
-          {DEV_MODE && (
-            <button
-              type="button"
-              onClick={handleDevLogin}
-              className="w-full py-2 bg-white/5 border border-white/10 text-vault-muted rounded-lg text-xs hover:bg-white/10 transition-colors"
-            >
-              Dev mode: Skip login
-            </button>
-          )}
         </form>
       </div>
     </div>
