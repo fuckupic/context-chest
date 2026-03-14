@@ -1,48 +1,38 @@
 import fp from 'fastify-plugin';
 import { FastifyPluginAsync } from 'fastify';
-import { PrismaClient } from '@prisma/client';
+import { AuditService } from '../services/audit';
 
-const prisma = new PrismaClient();
+const auditService = new AuditService();
 
 const audit: FastifyPluginAsync = async (fastify) => {
   fastify.addHook('onResponse', async (request, reply) => {
-    // Skip health and ready checks
     if (request.url === '/health' || request.url === '/ready') {
       return;
     }
 
-    // Get user ID from JWT if available
     let userId: string | undefined;
     try {
       const decoded = request.user;
       if (decoded && decoded.sub) {
         userId = decoded.sub;
       }
-    } catch (error) {
+    } catch {
       // Not authenticated
     }
 
-    // Get IP address
-    const ip = request.ip;
-
-    // Get request size
-    const contentLength = request.headers['content-length'];
-    const bytes = contentLength ? parseInt(contentLength) : null;
-
-    // Create audit log entry
     if (userId) {
-      await prisma.auditLog.create({
-        data: {
-          userId,
-          route: request.url,
-          method: request.method,
-          ip,
-          status: reply.statusCode,
-          bytes,
-        },
+      const contentLength = request.headers['content-length'];
+      const bytes = contentLength ? parseInt(contentLength) : undefined;
+
+      await auditService.log(userId, {
+        route: request.url,
+        method: request.method,
+        ip: request.ip,
+        status: reply.statusCode,
+        bytes,
       });
     }
   });
 };
 
-export default fp(audit); 
+export default fp(audit);
