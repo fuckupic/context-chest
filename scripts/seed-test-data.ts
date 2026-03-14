@@ -8,6 +8,7 @@
 
 import { createHash, createHmac, randomBytes, createCipheriv, hkdfSync } from 'crypto';
 import { PrismaClient } from '@prisma/client';
+import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
 const DATABASE_URL = process.env.DATABASE_URL ?? 'postgresql://context_chest:context_chest_dev@localhost:5433/context_chest';
 const API_URL = process.env.API_URL ?? 'http://localhost:3002';
@@ -167,10 +168,14 @@ async function main() {
     },
   ];
 
-  // Store memories directly in Prisma + S3 (bypassing OpenViking which needs API path fixes)
-  console.log('\nStoring memories directly (Prisma + S3)...');
+  console.log('\nStoring memories (Prisma + S3)...');
 
-  const s3Endpoint = process.env.S3_ENDPOINT ?? 'http://localhost:9002';
+  const s3 = new S3Client({
+    endpoint: process.env.S3_ENDPOINT ?? 'http://localhost:9002',
+    region: 'us-east-1',
+    credentials: { accessKeyId: 'minioadmin', secretAccessKey: 'minioadmin' },
+    forcePathStyle: true,
+  });
 
   for (const mem of memories) {
     const plaintext = Buffer.from(mem.content, 'utf-8');
@@ -179,33 +184,13 @@ async function main() {
     const hash = sha256hex(encBuf);
     const s3Key = `${user.id}/memories/${mem.uri}.enc`;
 
-    // Upload to S3 via MinIO API
-    const s3Res = await fetch(`${s3Endpoint}/context-chest/${s3Key}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/octet-stream',
-        'Content-Length': String(encBuf.length),
-      },
-      body: encBuf,
-    });
+    await s3.send(new PutObjectCommand({
+      Bucket: 'context-chest',
+      Key: s3Key,
+      Body: encBuf,
+      ContentType: 'application/octet-stream',
+    }));
 
-    if (!s3Res.ok) {
-      // Try with auth
-      const authStr = Buffer.from('minioadmin:minioadmin').toString('base64');
-      const s3Res2 = await fetch(`${s3Endpoint}/context-chest/${s3Key}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/octet-stream',
-          Authorization: `Basic ${authStr}`,
-        },
-        body: encBuf,
-      });
-      if (!s3Res2.ok) {
-        console.log(`  S3 failed for ${mem.uri}: ${s3Res2.status}`);
-      }
-    }
-
-    // Create Prisma record
     await prisma.memoryEntry.create({
       data: {
         userId: user.id,

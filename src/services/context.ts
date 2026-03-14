@@ -39,94 +39,141 @@ export class ContextService {
     return `${this.userRoot(userId)}/${relativePath}`;
   }
 
-  private headers(): Record<string, string> {
+  private authHeaders(): Record<string, string> {
     return {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${this.apiKey}`,
+      'x-api-key': this.apiKey,
+      'X-OpenViking-Account': 'default',
+      'X-OpenViking-User': 'default',
     };
   }
 
-  private async request(path: string, body: Record<string, unknown>): Promise<unknown> {
+  private async postJson(path: string, body: Record<string, unknown>): Promise<unknown> {
     const response = await fetch(`${this.baseUrl}${path}`, {
       method: 'POST',
-      headers: this.headers(),
+      headers: { ...this.authHeaders(), 'Content-Type': 'application/json' },
       body: JSON.stringify(body),
     });
     if (!response.ok) {
-      throw new Error(`OpenViking error: ${response.status}`);
+      const text = await response.text().catch(() => '');
+      throw new Error(`OpenViking error: ${response.status} ${text.slice(0, 200)}`);
     }
     return response.json();
   }
 
+  private async getJson(path: string, params: Record<string, string> = {}): Promise<unknown> {
+    const qs = new URLSearchParams(params).toString();
+    const url = qs ? `${this.baseUrl}${path}?${qs}` : `${this.baseUrl}${path}`;
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: this.authHeaders(),
+    });
+    if (!response.ok) {
+      const text = await response.text().catch(() => '');
+      throw new Error(`OpenViking error: ${response.status} ${text.slice(0, 200)}`);
+    }
+    return response.json();
+  }
+
+  private async deleteRequest(path: string, params: Record<string, string> = {}): Promise<void> {
+    const qs = new URLSearchParams(params).toString();
+    const url = qs ? `${this.baseUrl}${path}?${qs}` : `${this.baseUrl}${path}`;
+    const response = await fetch(url, {
+      method: 'DELETE',
+      headers: this.authHeaders(),
+    });
+    if (!response.ok) {
+      const text = await response.text().catch(() => '');
+      throw new Error(`OpenViking error: ${response.status} ${text.slice(0, 200)}`);
+    }
+  }
+
+  // Write content as a resource to OpenViking
   async write(userId: string, relativePath: string, payload: WritePayload): Promise<void> {
-    await this.request('/api/v1/write', {
-      uri: this.fullUri(userId, relativePath),
-      owner_space: userId,
-      l0: payload.l0,
-      l1: payload.l1,
+    const uri = this.fullUri(userId, relativePath);
+    // Use the resources endpoint to add content
+    // OpenViking treats resources as files that get indexed
+    await this.postJson('/api/v1/resources', {
+      path: uri,
+      reason: payload.l0,
+      instruction: payload.l1,
+      wait: true,
     });
   }
 
+  // Search using OpenViking's find endpoint
   async find(
     userId: string,
     query: string,
     limit: number,
     offset: number = 0,
   ): Promise<{ results: SearchResult[]; total: number }> {
-    const data = (await this.request('/api/v1/find', {
+    const data = (await this.postJson('/api/v1/search/find', {
       query,
-      scope: this.userRoot(userId),
-      owner_space: userId,
+      target_uri: this.userRoot(userId),
       limit,
-      offset,
-    })) as { results: SearchResult[]; total: number };
-    return { results: data.results, total: data.total };
+    })) as { results?: Array<{ uri?: string; abstract?: string; overview?: string; score?: number }>; total?: number };
+
+    const results: SearchResult[] = (data.results ?? []).map((r) => ({
+      uri: (r.uri ?? '').replace(this.userRoot(userId) + '/', ''),
+      l0: r.abstract ?? '',
+      l1: r.overview ?? '',
+      score: r.score ?? 0,
+    }));
+
+    return { results: results.slice(offset), total: data.total ?? results.length };
   }
 
+  // Read content metadata
   async read(userId: string, relativePath: string): Promise<{ l0: string; l1: string }> {
-    const data = (await this.request('/api/v1/read', {
-      uri: this.fullUri(userId, relativePath),
-      owner_space: userId,
-    })) as { l0: string; l1: string };
-    return data;
+    const uri = this.fullUri(userId, relativePath);
+    const data = (await this.getJson('/api/v1/content/read', { uri })) as {
+      content?: string;
+      abstract?: string;
+      overview?: string;
+    };
+    return { l0: data.abstract ?? '', l1: data.overview ?? data.content ?? '' };
   }
 
+  // Delete a resource
   async delete(userId: string, relativePath: string): Promise<void> {
-    await this.request('/api/v1/delete', {
-      uri: this.fullUri(userId, relativePath),
-      owner_space: userId,
-    });
+    const uri = this.fullUri(userId, relativePath);
+    await this.deleteRequest('/api/v1/fs', { uri, recursive: 'true' });
   }
 
+  // List directory contents
   async list(userId: string, path: string, depth: number): Promise<DirectoryEntry[]> {
-    const data = (await this.request('/api/v1/ls', {
-      uri: this.fullUri(userId, path),
-      owner_space: userId,
-      depth,
-    })) as { entries: DirectoryEntry[] };
-    return data.entries;
+    const uri = this.fullUri(userId, path);
+    const data = (await this.getJson('/api/v1/fs/ls', {
+      uri,
+      recursive: depth > 1 ? 'true' : 'false',
+      simple: 'true',
+      limit: '100',
+    })) as { entries?: Array<{ uri?: string; name?: string; type?: string; abstract?: string }> };
+
+    return (data.entries ?? []).map((e) => ({
+      uri: (e.uri ?? e.name ?? '').replace(this.userRoot(userId) + '/', ''),
+      l0: e.abstract ?? '',
+      type: (e.type === 'directory' ? 'directory' : 'file') as 'file' | 'directory',
+    }));
   }
 
+  // Session operations
   async startSession(userId: string, sessionId: string): Promise<void> {
-    await this.request('/api/v1/session/create', {
+    await this.postJson('/api/v1/sessions', {
       session_id: sessionId,
-      owner_space: userId,
-      uri: `viking://user/${userId}/sessions/${sessionId}`,
     });
   }
 
   async appendSessionMessage(userId: string, sessionId: string, l0Summary: string): Promise<void> {
-    await this.request('/api/v1/session/append', {
-      session_id: sessionId,
-      owner_space: userId,
-      l0: l0Summary,
+    await this.postJson(`/api/v1/sessions/${sessionId}/messages`, {
+      role: 'user',
+      content: l0Summary,
     });
   }
 
   async closeSession(userId: string, sessionId: string): Promise<void> {
-    await this.request('/api/v1/session/close', {
-      session_id: sessionId,
-      owner_space: userId,
+    await this.postJson(`/api/v1/sessions/${sessionId}/commit`, {
+      wait: true,
     });
   }
 }
