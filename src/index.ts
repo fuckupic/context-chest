@@ -8,10 +8,18 @@ import { S3Client, HeadBucketCommand } from '@aws-sdk/client-s3';
 import rateLimit from './plugins/rate-limit';
 import validation from './plugins/validation';
 import audit from './plugins/audit';
-import { metrics } from './plugins/metrics';
+import metrics from './plugins/metrics';
 import { authRoutes } from './routes/auth';
 import { vaultRoutes } from './routes/vault';
 import { connectRoutes } from './routes/connect';
+import { memoryRoutes } from './routes/memory';
+import { sessionRoutes } from './routes/sessions';
+import { MemoryService } from './services/memory';
+import { SessionService } from './services/session';
+import { StorageService } from './services/storage';
+import { ContextService } from './services/context';
+import { UsageService } from './services/usage';
+import roleGuard from './plugins/role-guard';
 
 const prisma = new PrismaClient();
 const s3 = new S3Client({
@@ -23,6 +31,23 @@ const s3 = new S3Client({
   },
   forcePathStyle: true,
 });
+
+const storageService = new StorageService({
+  endpoint: process.env.S3_ENDPOINT!,
+  region: process.env.S3_REGION!,
+  accessKeyId: process.env.S3_ACCESS_KEY_ID!,
+  secretAccessKey: process.env.S3_SECRET_ACCESS_KEY!,
+  bucket: process.env.S3_BUCKET!,
+});
+
+const contextService = new ContextService({
+  baseUrl: process.env.OPENVIKING_URL ?? 'http://localhost:8000',
+  apiKey: process.env.OV_API_KEY ?? 'dev-openviking-key',
+});
+
+const memoryService = new MemoryService(prisma, storageService, contextService);
+const usageService = new UsageService(prisma);
+const sessionService = new SessionService(prisma, memoryService, storageService, contextService);
 
 const app = Fastify({
   logger: true,
@@ -70,6 +95,9 @@ app.register(metrics);
 app.register(authRoutes, { prefix: '/v1/auth' });
 app.register(vaultRoutes, { prefix: '/v1/vault' });
 app.register(connectRoutes, { prefix: '/v1/connect' });
+app.register(roleGuard);
+app.register(memoryRoutes(memoryService, usageService), { prefix: '/v1/memory' });
+app.register(sessionRoutes(sessionService, usageService), { prefix: '/v1/sessions' });
 
 // Health check
 app.get('/health', async () => {
@@ -86,7 +114,10 @@ app.get('/ready', async () => {
     await s3.send(new HeadBucketCommand({
       Bucket: process.env.S3_BUCKET!,
     }));
-    
+
+    // Check OpenViking
+    await fetch(`${process.env.OPENVIKING_URL ?? 'http://localhost:8000'}/health`);
+
     return { status: 'ok' };
   } catch (error) {
     app.log.error(error);
