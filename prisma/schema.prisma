@@ -40,6 +40,7 @@ model User {
   memories            MemoryEntry[]
   sessions            Session[]
   usageRecords        UsageRecord[]
+  agentConnections    AgentConnection[]
 
   @@map("users")
 }
@@ -140,4 +141,18 @@ model UsageRecord {
   @@unique([userId, action, period])
   @@index([userId, period])
   @@map("usage_records")
+}
+
+model AgentConnection {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  agentName  String   @map("agent_name")
+  firstSeenAt DateTime @default(now()) @map("first_seen_at")
+  lastSeenAt  DateTime @default(now()) @map("last_seen_at")
+  requestCount Int     @default(1) @map("request_count")
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, agentName])
+  @@index([userId, lastSeenAt])
+  @@map("agent_connections")
 }

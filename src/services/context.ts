@@ -143,12 +143,20 @@ export class ContextService {
   // List directory contents
   async list(userId: string, path: string, depth: number): Promise<DirectoryEntry[]> {
     const uri = this.fullUri(userId, path);
-    const data = (await this.getJson('/api/v1/fs/ls', {
-      uri,
-      recursive: depth > 1 ? 'true' : 'false',
-      simple: 'true',
-      limit: '100',
-    })) as { entries?: Array<{ uri?: string; name?: string; type?: string; abstract?: string }> };
+    let data: { entries?: Array<{ uri?: string; name?: string; type?: string; abstract?: string }> };
+    try {
+      data = (await this.getJson('/api/v1/fs/ls', {
+        uri,
+        recursive: depth > 1 ? 'true' : 'false',
+        simple: 'true',
+        limit: '100',
+      })) as typeof data;
+    } catch (err) {
+      if (err instanceof Error && err.message.includes('no such directory')) {
+        return [];
+      }
+      throw err;
+    }
 
     return (data.entries ?? []).map((e) => ({
       uri: (e.uri ?? e.name ?? '').replace(this.userRoot(userId) + '/', ''),

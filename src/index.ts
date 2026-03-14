@@ -20,6 +20,7 @@ import { StorageService } from './services/storage';
 import { ContextService } from './services/context';
 import { UsageService } from './services/usage';
 import roleGuard from './plugins/role-guard';
+import agentTracker from './plugins/agent-tracker';
 
 const prisma = new PrismaClient();
 const s3 = new S3Client({
@@ -61,7 +62,7 @@ app.register(cors, {
     /^chrome-extension:\/\/.*$/, // Chrome extensions
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-BLOB-SHA256'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-BLOB-SHA256', 'X-Agent-Name'],
   credentials: true,
   maxAge: 86400, // 24 hours
 });
@@ -89,6 +90,7 @@ app.register(swaggerUi, {
 app.register(rateLimit);
 app.register(validation);
 app.register(audit);
+app.register(agentTracker);
 app.register(metrics);
 
 // Register routes

@@ -174,6 +174,67 @@ export const connectRoutes: FastifyPluginAsync = async (fastify) => {
     };
   });
 
+  // List connected agents (tracked from API activity)
+  fastify.get('/agents', async (request, reply) => {
+    try {
+      await request.jwtVerify();
+    } catch {
+      reply.code(401).send({
+        code: 'UNAUTHORIZED',
+        message: 'Invalid or missing token',
+      });
+      return;
+    }
+
+    const userId = (request.user as Record<string, unknown>).sub as string;
+
+    const agents = await prisma.agentConnection.findMany({
+      where: { userId },
+      orderBy: { lastSeenAt: 'desc' },
+    });
+
+    return {
+      agents: agents.map((a) => ({
+        id: a.id,
+        agentName: a.agentName,
+        firstSeenAt: a.firstSeenAt,
+        lastSeenAt: a.lastSeenAt,
+        requestCount: a.requestCount,
+      })),
+    };
+  });
+
+  // Disconnect an agent
+  fastify.delete('/agents/:id', async (request, reply) => {
+    try {
+      await request.jwtVerify();
+    } catch {
+      reply.code(401).send({
+        code: 'UNAUTHORIZED',
+        message: 'Invalid or missing token',
+      });
+      return;
+    }
+
+    const userId = (request.user as Record<string, unknown>).sub as string;
+    const { id } = request.params as { id: string };
+
+    const agent = await prisma.agentConnection.findFirst({
+      where: { id, userId },
+    });
+
+    if (!agent) {
+      reply.code(404).send({
+        code: 'AGENT_NOT_FOUND',
+        message: 'Agent connection not found',
+      });
+      return;
+    }
+
+    await prisma.agentConnection.delete({ where: { id } });
+    reply.code(204).send();
+  });
+
   // Revoke a grant
   fastify.delete('/grants/:id', async (request, reply) => {
     try {

@@ -41,6 +41,7 @@ export class ContextChestClient {
     return {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${this.token}`,
+      'X-Agent-Name': 'Claude Code',
     };
   }
 
@@ -66,7 +67,7 @@ export class ContextChestClient {
   private async requestBinary(path: string): Promise<Buffer> {
     const response = await fetch(`${this.baseUrl}${path}`, {
       method: 'GET',
-      headers: { Authorization: `Bearer ${this.token}` },
+      headers: { Authorization: `Bearer ${this.token}`, 'X-Agent-Name': 'Claude Code' },
     });
 
     if (!response.ok) {

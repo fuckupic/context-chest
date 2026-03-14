@@ -22,6 +22,14 @@ interface GrantItem {
   expiresAt: string;
 }
 
+interface AgentItem {
+  id: string;
+  agentName: string;
+  firstSeenAt: string;
+  lastSeenAt: string;
+  requestCount: number;
+}
+
 interface SessionItem {
   id: string;
   status: string;
@@ -137,6 +145,15 @@ export class ApiClient {
 
   async revokeGrant(id: string) {
     return this.request<void>('DELETE', `/v1/connect/grants/${id}`);
+  }
+
+  // Agents
+  async listAgents() {
+    return this.request<{ agents: AgentItem[] }>('GET', '/v1/connect/agents');
+  }
+
+  async disconnectAgent(id: string) {
+    return this.request<void>('DELETE', `/v1/connect/agents/${id}`);
   }
 
   // Sessions
