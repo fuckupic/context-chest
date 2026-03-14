@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: context_chest_dev
       POSTGRES_DB: context_chest
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -60,17 +60,16 @@ services:
       - '--web.console.templates=/usr/share/prometheus/consoles'
 
   openviking:
-    image: openviking/openviking-server:latest
+    image: ghcr.io/volcengine/openviking:latest
     ports:
-      - "8000:8000"
+      - "8100:8000"
     volumes:
       - openviking_data:/data
+      - ./openviking.conf:/etc/openviking/ov.conf:ro
     environment:
+      OPENVIKING_CONFIG_FILE: /etc/openviking/ov.conf
       OV_STORAGE_BACKEND: local
       OV_ROOT_API_KEY: ${OV_API_KEY:-dev-openviking-key}
-      OV_EMBEDDING_PROVIDER: openai
-      OV_EMBEDDING_MODEL: text-embedding-3-small
-      OV_EMBEDDING_API_KEY: ${OPENAI_API_KEY:-}
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 10s

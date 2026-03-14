@@ -1,13 +1,20 @@
-import { OpaqueServer } from '@cloudflare/opaque-ts';
+let server: import('@cloudflare/opaque-ts').OpaqueServer | null = null;
 
-const server = new OpaqueServer();
+async function getServer() {
+  if (!server) {
+    const { OpaqueServer } = await import('@cloudflare/opaque-ts');
+    server = new OpaqueServer();
+  }
+  return server;
+}
 
 export async function opaqueRegisterStart(
   email: string,
   registrationRequest: Uint8Array
 ) {
+  const srv = await getServer();
   const { registrationResponse, serverState } =
-    await server.createRegistrationResponse({
+    await srv.createRegistrationResponse({
       registrationRequest,
       serverIdentity: email,
     });
@@ -26,8 +33,9 @@ export async function opaqueLoginStart(
   credentialRequest: Uint8Array,
   record: Uint8Array
 ) {
+  const srv = await getServer();
   const { credentialResponse, serverState } =
-    await server.createCredentialResponse({
+    await srv.createCredentialResponse({
       credentialRequest,
       serverIdentity: email,
       record,
@@ -39,7 +47,8 @@ export async function opaqueLoginFinish(
   serverState: Uint8Array,
   credentialFinalization: Uint8Array
 ) {
-  const { sessionKey, clientIdentity } = await server.finalize({
+  const srv = await getServer();
+  const { sessionKey, clientIdentity } = await srv.finalize({
     serverState,
     credentialFinalization,
   });
