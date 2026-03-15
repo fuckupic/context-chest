@@ -32,14 +32,23 @@ function ensureInitialized(): { client: ContextChestClient; masterKey: Buffer } 
   return { client, masterKey };
 }
 
-async function generateSummaries(content: string): Promise<{ l0: string; l1: string }> {
-  const l0 = content.slice(0, 100).replace(/\n/g, ' ').trim();
-  const l1 = content.slice(0, 2000).trim();
-  return { l0: parseL0Response(l0), l1: parseL1Response(l1) };
+async function generateSummaries(content: string, uri?: string): Promise<{ l0: string; l1: string }> {
+  // Generate safe, vague labels — never leak actual content
+  const path = uri ?? 'memory';
+  const segments = path.split('/').filter(Boolean);
+  const category = segments[0] ?? 'general';
+  const topic = segments.slice(1).join(' / ') || 'item';
+  const wordCount = content.split(/\s+/).length;
+
+  const l0 = parseL0Response(`${category}: ${topic}`);
+  const l1 = parseL1Response(
+    `Category: ${category}\nTopic: ${topic}\nSize: ~${wordCount} words\nType: encrypted memory`
+  );
+  return { l0, l1 };
 }
 
-async function generateL0(content: string): Promise<string> {
-  const { l0 } = await generateSummaries(content);
+async function generateL0(content: string, uri?: string): Promise<string> {
+  const { l0 } = await generateSummaries(content, uri);
   return l0;
 }
 

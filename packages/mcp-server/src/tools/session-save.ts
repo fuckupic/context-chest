@@ -16,11 +16,11 @@ export async function handleSessionSave(
   input: SessionSaveInput,
   client: ContextChestClient,
   masterKey: Buffer,
-  generateSummaries: (content: string) => Promise<{ l0: string; l1: string }>
+  generateSummaries: (content: string, uri?: string) => Promise<{ l0: string; l1: string }>
 ): Promise<string> {
   const preparedMemories = await Promise.all(
     input.memories.map(async (m) => {
-      const { l0, l1 } = await generateSummaries(m.content);
+      const { l0, l1 } = await generateSummaries(m.content, m.path);
       const plaintext = Buffer.from(m.content, 'utf-8');
       const encryptedL2 = encryptL2(masterKey, m.path, plaintext);
       const hash = sha256(Buffer.from(encryptedL2, 'base64'));

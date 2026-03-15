@@ -14,10 +14,10 @@ export async function handleRemember(
   input: RememberInput,
   client: ContextChestClient,
   masterKey: Buffer,
-  generateSummaries: (content: string) => Promise<{ l0: string; l1: string }>
+  generateSummaries: (content: string, uri?: string) => Promise<{ l0: string; l1: string }>
 ): Promise<string> {
-  const { l0, l1 } = await generateSummaries(input.content);
   const uri = input.path ?? `auto/${Date.now()}`;
+  const { l0, l1 } = await generateSummaries(input.content, uri);
   const plaintext = Buffer.from(input.content, 'utf-8');
   const encryptedL2 = encryptL2(masterKey, uri, plaintext);
   const hash = sha256(Buffer.from(encryptedL2, 'base64'));

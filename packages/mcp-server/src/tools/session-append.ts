@@ -14,9 +14,9 @@ export async function handleSessionAppend(
   input: SessionAppendInput,
   client: ContextChestClient,
   masterKey: Buffer,
-  generateL0: (content: string) => Promise<string>
+  generateL0: (content: string, uri?: string) => Promise<string>
 ): Promise<string> {
-  const l0Summary = await generateL0(input.content);
+  const l0Summary = await generateL0(input.content, `session/${input.sessionId}`);
   const plaintext = Buffer.from(input.content, 'utf-8');
   const encryptedContent = encryptL2(masterKey, `session-msg-${Date.now()}`, plaintext);
   const hash = sha256(Buffer.from(encryptedContent, 'base64'));
