@@ -108,7 +108,7 @@ export function Memories() {
           <MemoryDetail uri={selectedEntry.uri} l0={selectedEntry.l0} />
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-cc-muted">
-            <img src="/chest-white.png" alt="" className="w-16 h-16 mb-4 opacity-10" style={{ imageRendering: 'auto' }} />
+            <img src="/logo.png" alt="" className="w-16 h-16 mb-4 opacity-10" style={{ imageRendering: 'auto' }} />
             <p className="font-pixel text-xs tracking-wider">SELECT A MEMORY</p>
           </div>
         )}

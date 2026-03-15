@@ -33,7 +33,7 @@ export function Landing() {
       {/* Nav */}
       <nav className="relative z-10 flex items-center justify-between max-w-5xl mx-auto px-6 py-5">
         <div className="flex items-center gap-2.5">
-          <img src="/chest-white.png" alt="" className="w-6 h-6" style={{ imageRendering: 'auto' }} />
+          <img src="/logo.png" alt="" className="w-6 h-6" style={{ imageRendering: 'auto' }} />
           <span className="font-pixel text-base text-cc-white tracking-wide">Context Chest</span>
         </div>
         <button onClick={handleCTA} className="font-pixel text-xs text-cc-muted hover:text-cc-pink tracking-wider transition-colors">
@@ -47,7 +47,7 @@ export function Landing() {
           {/* Chest image */}
           <div className="opacity-0 animate-fade-in md:w-1/2 flex justify-center">
             <img
-              src="/chest-dithered.png"
+              src="/logo.png"
               alt="Context Chest"
               className="w-72 md:w-96"
               style={{ imageRendering: 'auto' }}

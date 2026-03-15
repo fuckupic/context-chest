@@ -67,7 +67,7 @@ export function Login() {
       <div className="relative z-10 w-full max-w-sm px-6">
         <div className="text-center mb-8">
           <Link to="/" className="inline-block mb-4">
-            <img src="/chest-white.png" alt="" className="w-12 h-12 mx-auto" style={{ imageRendering: 'auto' }} />
+            <img src="/logo.png" alt="" className="w-12 h-12 mx-auto" style={{ imageRendering: 'auto' }} />
           </Link>
           <h1 className="font-pixel text-2xl text-cc-white tracking-wide mb-1">
             {mode === 'login' ? 'SIGN IN' : 'CREATE VAULT'}

@@ -10,7 +10,7 @@ interface EmptyStateProps {
 export function EmptyState({ message, actionLabel, actionTo, children }: EmptyStateProps) {
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] text-center px-8">
-      <img src="/chest-white.png" alt="" className="w-16 h-16 mb-5 opacity-10" style={{ imageRendering: 'auto' }} />
+      <img src="/logo.png" alt="" className="w-16 h-16 mb-5 opacity-10" style={{ imageRendering: 'auto' }} />
       <p className="text-cc-muted text-sm mb-5 max-w-sm">{message}</p>
       {actionLabel && actionTo && (
         <Link

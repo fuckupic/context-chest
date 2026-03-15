@@ -19,7 +19,7 @@ export function Layout() {
         {/* Logo */}
         <div className="px-4 py-4 border-b-2 border-cc-border">
           <div className="flex items-center gap-2.5">
-            <img src="/chest-white.png" alt="" className="w-7 h-7" style={{ imageRendering: 'auto' }} />
+            <img src="/logo.png" alt="" className="w-7 h-7" style={{ imageRendering: 'auto' }} />
             <span className="font-pixel text-lg text-cc-white tracking-wide">Context Chest</span>
           </div>
         </div>
