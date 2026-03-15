@@ -147,7 +147,12 @@ async function login() {
 
 const command = process.argv[2];
 
-if (command === 'login') {
+if (command === 'migrate-v2') {
+  import('./migrate').then(({ migrateV2 }) => migrateV2()).catch((err: Error) => {
+    console.error(`  Error: ${err.message}`);
+    process.exit(1);
+  });
+} else if (command === 'login') {
   login().catch((err) => {
     console.error(`  Error: ${err.message}`);
     process.exit(1);
@@ -157,7 +162,8 @@ if (command === 'login') {
   Context Chest CLI
 
   Commands:
-    context-chest login    Authenticate and save credentials
+    context-chest login       Authenticate and save credentials
+    context-chest migrate-v2  Re-encrypt v0.1 memories for v0.2
 
   Usage:
     npm install -g context-chest-mcp
