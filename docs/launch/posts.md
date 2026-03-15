@@ -1,7 +1,7 @@
 # Context Chest Launch Posts
 
 ## Links
-- **PWA**: https://pwa-one-gold.vercel.app
+- **PWA**: https://contextchest.com
 - **API**: https://api-production-e2cd6.up.railway.app
 - **GitHub**: https://github.com/fuckupic/context-chest
 
@@ -27,7 +27,7 @@ Context Chest encrypts everything client-side (AES-256-GCM) before it leaves you
 
 8 tools: remember, recall, read, forget, browse, session tracking.
 
-Live demo: https://pwa-one-gold.vercel.app
+Live demo: https://contextchest.com
 GitHub: https://github.com/fuckupic/context-chest
 
 Built with: Fastify, Prisma, PostgreSQL, React. Open source, MIT.
@@ -49,7 +49,7 @@ Setup takes 30 seconds — just add the MCP config and you get 8 tools: remember
 Open source, self-hostable, MIT licensed.
 
 GitHub: https://github.com/fuckupic/context-chest
-Demo: https://pwa-one-gold.vercel.app
+Demo: https://contextchest.com
 
 ---
 
