@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "memory_entries" ADD COLUMN     "l0" TEXT NOT NULL DEFAULT '',
+ADD COLUMN     "l1" TEXT NOT NULL DEFAULT '';

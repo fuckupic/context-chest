@@ -8,7 +8,7 @@ services:
       POSTGRES_PASSWORD: context_chest_dev
       POSTGRES_DB: context_chest
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -20,8 +20,8 @@ services:
   minio:
     image: minio/minio
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "9002:9000"
+      - "9003:9001"
     environment:
       MINIO_ROOT_USER: minioadmin
       MINIO_ROOT_PASSWORD: minioadmin
@@ -59,8 +59,26 @@ services:
       - '--web.console.libraries=/usr/share/prometheus/console_libraries'
       - '--web.console.templates=/usr/share/prometheus/consoles'
 
+  openviking:
+    image: ghcr.io/volcengine/openviking:latest
+    ports:
+      - "8100:8000"
+    volumes:
+      - openviking_data:/data
+      - ./openviking.conf:/etc/openviking/ov.conf:ro
+    environment:
+      OPENVIKING_CONFIG_FILE: /etc/openviking/ov.conf
+      OV_STORAGE_BACKEND: local
+      OV_ROOT_API_KEY: ${OV_API_KEY:-dev-openviking-key}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   postgres_data:
   minio_data:
   grafana_data:
-  prometheus_data: 
+  prometheus_data:
+  openviking_data:

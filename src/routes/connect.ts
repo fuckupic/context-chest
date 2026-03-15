@@ -1,18 +1,38 @@
 import { FastifyPluginAsync } from 'fastify';
-import { PrismaClient } from '@prisma/client';
-import { createHash } from 'crypto';
-import { randomBytes } from 'crypto';
+import { PrismaClient, Role } from '@prisma/client';
+import { createHash, randomBytes } from 'crypto';
+import { GrantService } from '../services/grant';
 
 const prisma = new PrismaClient();
+const grantService = new GrantService();
 
 export const connectRoutes: FastifyPluginAsync = async (fastify) => {
   // Start authorization
   fastify.post('/authorize', async (request, reply) => {
-    const userId = request.user.sub;
-    const { client_id, requested_scopes } = request.body as {
+    try {
+      await request.jwtVerify();
+    } catch {
+      reply.code(401).send({
+        code: 'UNAUTHORIZED',
+        message: 'Invalid or missing token',
+      });
+      return;
+    }
+
+    const userId = (request.user as Record<string, unknown>).sub as string;
+    const { client_id, role } = request.body as {
       client_id: string;
-      requested_scopes: string[];
+      role: Role;
     };
+
+    const validRoles: Role[] = ['tool', 'assistant', 'admin'];
+    if (!validRoles.includes(role)) {
+      reply.code(400).send({
+        code: 'INVALID_ROLE',
+        message: `Role must be one of: ${validRoles.join(', ')}`,
+      });
+      return;
+    }
 
     const client = await prisma.client.findUnique({
       where: { clientId: client_id },
@@ -27,13 +47,13 @@ export const connectRoutes: FastifyPluginAsync = async (fastify) => {
     }
 
     const consentCode = randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
     await prisma.grant.create({
       data: {
         userId,
         clientId: client_id,
-        scopes: requested_scopes,
+        role,
         expiresAt,
         jwtId: consentCode,
       },
@@ -86,7 +106,7 @@ export const connectRoutes: FastifyPluginAsync = async (fastify) => {
       {
         sub: grant.userId,
         aud: grant.clientId,
-        scopes: grant.scopes,
+        role: grant.role,
       },
       {
         expiresIn: '30d',
@@ -94,23 +114,155 @@ export const connectRoutes: FastifyPluginAsync = async (fastify) => {
       }
     );
 
-    return { grant_token: token };
+    return {
+      grant_token: token,
+      role: grant.role,
+      scopes: grantService.deriveScopesFromRole(grant.role),
+    };
   });
 
   // Introspect token
   fastify.post('/introspect', async (request, reply) => {
     try {
-      const decoded = fastify.jwt.verify(request.headers.authorization!.split(' ')[1]);
+      const token = request.headers.authorization!.split(' ')[1];
+      const decoded = fastify.jwt.verify(token) as Record<string, unknown>;
+      const role = (decoded.role as Role) ?? 'tool';
+
       return {
         active: true,
-        scopes: decoded.scopes,
+        role,
+        permissions: grantService.permissionsForRole(role),
+        scopes: grantService.deriveScopesFromRole(role),
         exp: decoded.exp,
       };
-    } catch (error) {
+    } catch {
       reply.code(401).send({
         code: 'INVALID_TOKEN',
         message: 'Invalid or expired token',
       });
     }
   });
-}; 
+
+  // List grants for user
+  fastify.get('/grants', async (request, reply) => {
+    try {
+      await request.jwtVerify();
+    } catch {
+      reply.code(401).send({
+        code: 'UNAUTHORIZED',
+        message: 'Invalid or missing token',
+      });
+      return;
+    }
+
+    const userId = (request.user as Record<string, unknown>).sub as string;
+
+    const grants = await prisma.grant.findMany({
+      where: { userId, expiresAt: { gt: new Date() } },
+      include: { client: { select: { name: true } } },
+    });
+
+    return {
+      grants: grants.map((g) => ({
+        id: g.id,
+        clientName: g.client.name,
+        clientId: g.clientId,
+        role: g.role,
+        createdAt: g.createdAt,
+        expiresAt: g.expiresAt,
+      })),
+    };
+  });
+
+  // List connected agents (tracked from API activity)
+  fastify.get('/agents', async (request, reply) => {
+    try {
+      await request.jwtVerify();
+    } catch {
+      reply.code(401).send({
+        code: 'UNAUTHORIZED',
+        message: 'Invalid or missing token',
+      });
+      return;
+    }
+
+    const userId = (request.user as Record<string, unknown>).sub as string;
+
+    const agents = await prisma.agentConnection.findMany({
+      where: { userId },
+      orderBy: { lastSeenAt: 'desc' },
+    });
+
+    return {
+      agents: agents.map((a) => ({
+        id: a.id,
+        agentName: a.agentName,
+        firstSeenAt: a.firstSeenAt,
+        lastSeenAt: a.lastSeenAt,
+        requestCount: a.requestCount,
+      })),
+    };
+  });
+
+  // Disconnect an agent
+  fastify.delete('/agents/:id', async (request, reply) => {
+    try {
+      await request.jwtVerify();
+    } catch {
+      reply.code(401).send({
+        code: 'UNAUTHORIZED',
+        message: 'Invalid or missing token',
+      });
+      return;
+    }
+
+    const userId = (request.user as Record<string, unknown>).sub as string;
+    const { id } = request.params as { id: string };
+
+    const agent = await prisma.agentConnection.findFirst({
+      where: { id, userId },
+    });
+
+    if (!agent) {
+      reply.code(404).send({
+        code: 'AGENT_NOT_FOUND',
+        message: 'Agent connection not found',
+      });
+      return;
+    }
+
+    await prisma.agentConnection.delete({ where: { id } });
+    reply.code(204).send();
+  });
+
+  // Revoke a grant
+  fastify.delete('/grants/:id', async (request, reply) => {
+    try {
+      await request.jwtVerify();
+    } catch {
+      reply.code(401).send({
+        code: 'UNAUTHORIZED',
+        message: 'Invalid or missing token',
+      });
+      return;
+    }
+
+    const userId = (request.user as Record<string, unknown>).sub as string;
+    const { id } = request.params as { id: string };
+
+    const grant = await prisma.grant.findFirst({
+      where: { id, userId },
+    });
+
+    if (!grant) {
+      reply.code(404).send({
+        code: 'GRANT_NOT_FOUND',
+        message: 'Grant not found',
+      });
+      return;
+    }
+
+    await prisma.grant.delete({ where: { id } });
+    reply.code(204).send();
+  });
+};

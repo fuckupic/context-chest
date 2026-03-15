@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-arm64-openssl-3.0.x", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
@@ -7,14 +8,41 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  tool
+  assistant
+  admin
+}
+
+enum SessionStatus {
+  active
+  closed
+}
+
+enum UsageAction {
+  remember
+  recall
+  content_fetch
+  session_create
+  session_close
+  browse
+}
+
 model User {
-  id            String   @id @default(uuid())
-  email         String   @unique
-  opaqueRecord  Bytes
-  createdAt     DateTime @default(now()) @map("created_at")
-  blobs         Blob[]
-  grants        Grant[]
-  auditLogs     AuditLog[]
+  id                  String        @id @default(uuid())
+  email               String        @unique
+  opaqueRecord        Bytes?
+  passwordHash        String?       @map("password_hash")
+  encryptedMasterKey  Bytes?        @map("encrypted_master_key")
+  createdAt           DateTime      @default(now()) @map("created_at")
+  blobs               Blob[]
+  grants              Grant[]
+  auditLogs           AuditLog[]
+  memories            MemoryEntry[]
+  sessions            Session[]
+  usageRecords        UsageRecord[]
+  agentConnections    AgentConnection[]
+  refreshTokens       RefreshToken[]
 
   @@map("users")
 }
@@ -44,7 +72,8 @@ model Grant {
   id         String   @id @default(uuid())
   userId     String   @map("user_id")
   clientId   String   @map("client_id")
-  scopes     String[]
+  role       Role     @default(tool)
+  createdAt  DateTime @default(now()) @map("created_at")
   expiresAt  DateTime @map("expires_at")
   jwtId      String   @unique @map("jwt_id")
   user       User     @relation(fields: [userId], references: [id])
@@ -58,6 +87,9 @@ model AuditLog {
   userId    String   @map("user_id")
   route     String
   method    String
+  action    String?
+  uri       String?
+  clientId  String?  @map("client_id")
   ip        String
   status    Int
   bytes     Int?
@@ -66,4 +98,78 @@ model AuditLog {
 
   @@index([createdAt])
   @@map("audit_logs")
-} 
+}
+
+model MemoryEntry {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  uri       String
+  s3Key     String   @map("s3_key")
+  sha256    String
+  sizeBytes Int      @map("size_bytes")
+  l0        String   @default("")
+  l1        String   @default("") @db.Text
+  content   Bytes?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, uri])
+  @@index([userId, createdAt])
+  @@map("memory_entries")
+}
+
+model Session {
+  id           String        @id @default(uuid())
+  userId       String        @map("user_id")
+  clientId     String?       @map("client_id")
+  status       SessionStatus @default(active)
+  messageCount       Int           @default(0) @map("message_count")
+  memoriesExtracted  Int           @default(0) @map("memories_extracted")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  closedAt     DateTime?     @map("closed_at")
+  user         User          @relation(fields: [userId], references: [id])
+
+  @@index([userId, status])
+  @@map("sessions")
+}
+
+model UsageRecord {
+  id        String      @id @default(uuid())
+  userId    String      @map("user_id")
+  action    UsageAction
+  count     Int         @default(1)
+  period    String
+  createdAt DateTime    @default(now()) @map("created_at")
+  user      User        @relation(fields: [userId], references: [id])
+
+  @@unique([userId, action, period])
+  @@index([userId, period])
+  @@map("usage_records")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([token])
+  @@map("refresh_tokens")
+}
+
+model AgentConnection {
+  id         String   @id @default(uuid())
+  userId     String   @map("user_id")
+  agentName  String   @map("agent_name")
+  firstSeenAt DateTime @default(now()) @map("first_seen_at")
+  lastSeenAt  DateTime @default(now()) @map("last_seen_at")
+  requestCount Int     @default(1) @map("request_count")
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, agentName])
+  @@index([userId, lastSeenAt])
+  @@map("agent_connections")
+}

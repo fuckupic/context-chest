@@ -1,0 +1,101 @@
+@font-face {
+  font-family: 'Handjet';
+  src: url('/fonts/Handjet-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Handjet';
+  src: url('/fonts/Handjet-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Handjet';
+  src: url('/fonts/Handjet-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Handjet';
+  src: url('/fonts/Handjet-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Handjet';
+  src: url('/fonts/Handjet-ExtraBold.ttf') format('truetype');
+  font-weight: 800;
+  font-display: swap;
+}
+
+@tailwind base;
+
+@layer base {
+  .font-pixel {
+    font-weight: 700;
+  }
+}
+@tailwind components;
+@tailwind utilities;
+
+* {
+  image-rendering: pixelated;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background: #000;
+  color: #ccc;
+}
+
+/* Pixel-style scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #000;
+}
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border: 2px solid #000;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+::selection {
+  background: rgba(232, 69, 122, 0.3);
+  color: #fff;
+}
+
+/* Dither noise overlay */
+.dither-bg {
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAJElEQVQIW2NkYPj/n4EBCBgZGRkYGBgYmBgYGP4zMDAwAAMAJQgDAT5KjbgAAAAASUVORK5CYII=");
+  background-repeat: repeat;
+  opacity: 0.03;
+}
+
+/* Pixel border util */
+.pixel-border {
+  border: 2px solid #222;
+  box-shadow:
+    2px 2px 0 0 #222,
+    -2px -2px 0 0 #111;
+}
+
+.pixel-border-pink {
+  border: 2px solid rgba(232, 69, 122, 0.3);
+  box-shadow:
+    2px 2px 0 0 rgba(232, 69, 122, 0.15);
+}
+
+/* Stagger animations */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+.stagger-5 { animation-delay: 0.25s; }
+.stagger-6 { animation-delay: 0.3s; }

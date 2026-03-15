@@ -1,0 +1,240 @@
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../auth/context';
+
+const SETUP_CODE = `{
+  "mcpServers": {
+    "context-chest": {
+      "command": "npx",
+      "args": ["@context-chest/mcp-server"]
+    }
+  }
+}`;
+
+const FEATURES = [
+  { title: 'ENCRYPTED', desc: 'AES-256-GCM on your machine. Server never sees plaintext.' },
+  { title: '8 TOOLS', desc: 'Remember, recall, read, forget, browse, sessions.' },
+  { title: 'ANY AGENT', desc: 'Claude Code, Cursor, any MCP tool. One vault.' },
+  { title: 'ORGANIZED', desc: 'Path-based storage. Browse like a filesystem.' },
+  { title: 'SEARCHABLE', desc: 'Instant text recall across all memories.' },
+  { title: 'OPEN SOURCE', desc: 'MIT licensed. Self-host or use our cloud.' },
+];
+
+export function Landing() {
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
+
+  const handleCTA = () => navigate(isAuthenticated ? '/memories' : '/login');
+
+  return (
+    <div className="min-h-screen bg-cc-black relative">
+      {/* Dither overlay */}
+      <div className="fixed inset-0 dither-bg pointer-events-none" />
+
+      {/* Nav */}
+      <nav className="relative z-10 flex items-center justify-between max-w-5xl mx-auto px-6 py-5">
+        <div className="flex items-center gap-2.5">
+          <img src="/logo.png" alt="" className="w-6 h-6" style={{ imageRendering: 'auto' }} />
+          <span className="font-pixel text-base text-cc-white tracking-wide">Context Chest</span>
+        </div>
+        <button onClick={handleCTA} className="font-pixel text-xs text-cc-muted hover:text-cc-pink tracking-wider transition-colors">
+          {isAuthenticated ? 'DASHBOARD' : 'SIGN IN'}
+        </button>
+      </nav>
+
+      {/* Hero */}
+      <section className="relative z-10 max-w-5xl mx-auto px-6 pt-16 pb-20">
+        <div className="flex flex-col md:flex-row items-center gap-12">
+          {/* Chest image with memory pills */}
+          <div className="opacity-0 animate-fade-in md:w-1/2 flex justify-center">
+            <div className="relative py-6 px-4">
+              {/* Floating memories — real things people tell AI */}
+              <span className="absolute top-[12%] left-[8%] z-20 px-3 py-1.5 bg-cc-white text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[-5deg] shadow-[3px_3px_0_0_rgba(232,69,122,0.5)]">Q3 REVENUE: $2.4M</span>
+              <span className="absolute top-[6%] right-[5%] z-20 px-3 py-1.5 bg-cc-pink text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-pink rotate-[3deg] shadow-[3px_3px_0_0_rgba(255,255,255,0.2)]">SK-PROJ-████████</span>
+
+              <span className="absolute top-[35%] left-[12%] z-20 px-3 py-1.5 bg-cc-dark text-cc-white font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[-2deg] shadow-[3px_3px_0_0_#222]">CLIENT NDA TERMS</span>
+              <span className="absolute top-[30%] right-[6%] z-20 px-3 py-1.5 bg-cc-white text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[4deg] shadow-[3px_3px_0_0_rgba(232,69,122,0.5)]">AWS_SECRET_████</span>
+              <span className="absolute top-[48%] left-[25%] z-20 px-3 py-1.5 bg-cc-pink text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-pink rotate-[1deg] shadow-[3px_3px_0_0_rgba(255,255,255,0.2)]">INVESTOR DECK</span>
+
+              <span className="absolute top-[62%] right-[10%] z-20 px-3 py-1.5 bg-cc-dark text-cc-white font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[-3deg] shadow-[3px_3px_0_0_#222]">PROD DB PASSWORD</span>
+              <span className="absolute top-[72%] left-[6%] z-20 px-3 py-1.5 bg-cc-white text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[5deg] shadow-[3px_3px_0_0_rgba(232,69,122,0.5)]">HIRING PLAN 2026</span>
+              <span className="absolute top-[78%] right-[18%] z-20 px-3 py-1.5 bg-cc-dark text-cc-white font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[-4deg] shadow-[3px_3px_0_0_#222]">PRODUCT ROADMAP</span>
+              <span className="absolute top-[88%] left-[20%] z-20 px-3 py-1.5 bg-cc-pink text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-pink rotate-[2deg] shadow-[3px_3px_0_0_rgba(255,255,255,0.2)]">████ ENCRYPTED</span>
+
+              <img
+                src="/logo.png"
+                alt="Context Chest"
+                className="w-72 md:w-96 relative"
+                style={{ imageRendering: 'auto' }}
+              />
+            </div>
+          </div>
+
+          {/* Text */}
+          <div className="md:w-1/2">
+            <h1 className="opacity-0 animate-fade-up font-pixel text-5xl md:text-6xl text-cc-white leading-none mb-6 tracking-wide">
+              AI processes.<br />
+              Memory <span className="text-cc-pink">persists.</span><br />
+              Encrypt it.
+            </h1>
+            <p className="opacity-0 animate-fade-up stagger-1 text-cc-sub text-sm leading-relaxed mb-8 max-w-sm">
+              Your AI sees your secrets temporarily. But a permanent, searchable
+              database of everything you've ever shared? That's a different risk.
+              Context Chest encrypts your AI's memory so even a full breach
+              reveals nothing. Self-host it. Own your keys.
+            </p>
+            <div className="opacity-0 animate-fade-up stagger-2 flex gap-3">
+              <button
+                onClick={handleCTA}
+                className="px-6 py-2.5 bg-cc-pink text-cc-black font-pixel text-sm tracking-wider hover:bg-cc-pink-dim transition-colors"
+              >
+                {isAuthenticated ? 'OPEN DASHBOARD' : 'GET STARTED'}
+              </button>
+              <a
+                href="https://github.com/fuckupic/context-chest"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-6 py-2.5 border-2 border-cc-border text-cc-muted font-pixel text-sm tracking-wider hover:border-cc-pink hover:text-cc-pink transition-colors"
+              >
+                GITHUB
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Divider */}
+      <div className="max-w-5xl mx-auto px-6">
+        <div className="border-t-2 border-cc-border border-dashed" />
+      </div>
+
+      {/* Setup */}
+      <section className="relative z-10 max-w-3xl mx-auto px-6 py-16">
+        <p className="font-pixel text-xs text-cc-muted tracking-[0.3em] mb-4 text-center">30 SECOND SETUP</p>
+        <div className="border-2 border-cc-border bg-cc-dark">
+          <div className="flex items-center gap-2 px-3 py-2 border-b-2 border-cc-border">
+            <span className="font-pixel text-[10px] text-cc-muted tracking-wider">.mcp.json</span>
+          </div>
+          <pre className="p-4 text-sm font-mono text-cc-pink overflow-x-auto leading-relaxed">{SETUP_CODE}</pre>
+        </div>
+        <p className="text-center text-xs text-cc-muted mt-3">
+          Add to Claude Code or Cursor config. That's it.
+        </p>
+      </section>
+
+      {/* Divider */}
+      <div className="max-w-5xl mx-auto px-6">
+        <div className="border-t-2 border-cc-border border-dashed" />
+      </div>
+
+      {/* Features */}
+      <section className="relative z-10 max-w-5xl mx-auto px-6 py-16">
+        <h2 className="font-pixel text-3xl text-cc-white text-center mb-12 tracking-wide">
+          WHAT'S IN THE <span className="text-cc-pink">CHEST</span>
+        </h2>
+        <div className="grid md:grid-cols-3 gap-px bg-cc-border">
+          {FEATURES.map((f) => (
+            <div key={f.title} className="bg-cc-black p-6 hover:bg-cc-surface transition-colors group">
+              <h3 className="font-pixel text-base text-cc-white mb-2 tracking-wider group-hover:text-cc-pink transition-colors">
+                {f.title}
+              </h3>
+              <p className="text-xs text-cc-muted leading-relaxed">{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Divider */}
+      <div className="max-w-5xl mx-auto px-6">
+        <div className="border-t-2 border-cc-border border-dashed" />
+      </div>
+
+      {/* Use cases */}
+      <section className="relative z-10 max-w-5xl mx-auto px-6 py-16">
+        <h2 className="font-pixel text-3xl text-cc-white text-center mb-12 tracking-wide">
+          WHO IT'S <span className="text-cc-pink">FOR</span>
+        </h2>
+        <div className="grid md:grid-cols-2 gap-4">
+          {[
+            {
+              who: 'DEVELOPERS',
+              what: 'Your AI remembers your stack, conventions, and past decisions. No more re-explaining your architecture every session.',
+              example: '"Remember: we use Fastify, not Express, and deploy to Fly.io"',
+            },
+            {
+              who: 'FOUNDERS & PMs',
+              what: 'You paste revenue numbers, hiring plans, and strategy into AI daily. Context Chest encrypts it before it leaves your machine.',
+              example: '"Remember: Q3 revenue $2.4M, targeting break-even by Q1 2027"',
+            },
+            {
+              who: 'FREELANCERS',
+              what: 'Juggle 5 client projects. Your AI switches context instantly. Client A\'s secrets never leak into client B\'s session.',
+              example: '"Remember: Acme Corp uses PostgreSQL, Widget Inc uses MongoDB"',
+            },
+            {
+              who: 'REGULATED INDUSTRIES',
+              what: 'Healthcare, finance, legal. AES-256-GCM, keys on your machine, server sees only ciphertext. Your compliance team can breathe.',
+              example: '"Remember: patient data schema uses field-level encryption"',
+            },
+          ].map((uc) => (
+            <div key={uc.who} className="border-2 border-cc-border bg-cc-dark p-5 hover:border-cc-pink-border transition-colors group">
+              <h3 className="font-pixel text-sm text-cc-white tracking-wider mb-2 group-hover:text-cc-pink transition-colors">{uc.who}</h3>
+              <p className="text-xs text-cc-sub leading-relaxed mb-3">{uc.what}</p>
+              <p className="text-[11px] text-cc-pink font-mono italic">{uc.example}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Divider */}
+      <div className="max-w-5xl mx-auto px-6">
+        <div className="border-t-2 border-cc-border border-dashed" />
+      </div>
+
+      {/* How it works */}
+      <section className="relative z-10 max-w-3xl mx-auto px-6 py-16">
+        <h2 className="font-pixel text-3xl text-cc-white text-center mb-12 tracking-wide">
+          HOW IT <span className="text-cc-pink">WORKS</span>
+        </h2>
+        <div className="space-y-6">
+          {[
+            { n: '01', title: 'AI PROCESSES TEMPORARILY', desc: 'Your AI provider sees your data during a session. That\'s the deal you already made.' },
+            { n: '02', title: 'MEMORY PERSISTS FOREVER', desc: 'But a permanent database of all your secrets is a bigger target. Context Chest encrypts it client-side with AES-256-GCM.' },
+            { n: '03', title: 'BREACH REVEALS NOTHING', desc: 'Even if the server is compromised, attackers get ciphertext. Your keys stay on your machine. Self-host for full control.' },
+          ].map((item) => (
+            <div key={item.n} className="flex gap-5 items-start border-2 border-cc-border p-4 hover:border-cc-pink-border transition-colors">
+              <span className="font-pixel text-2xl text-cc-pink shrink-0">{item.n}</span>
+              <div>
+                <h3 className="font-pixel text-sm text-cc-white tracking-wider mb-1">{item.title}</h3>
+                <p className="text-xs text-cc-muted leading-relaxed">{item.desc}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="relative z-10 max-w-3xl mx-auto px-6 py-20 text-center">
+        <h2 className="font-pixel text-4xl md:text-5xl text-cc-white mb-4 tracking-wide">
+          YOUR AI REMEMBERS.<br /><span className="text-cc-pink">NOBODY ELSE CAN READ IT.</span>
+        </h2>
+        <p className="text-cc-muted text-sm mb-8">Open source. Self-hostable. Your keys, your data.</p>
+        <button
+          onClick={handleCTA}
+          className="px-8 py-3 bg-cc-pink text-cc-black font-pixel text-sm tracking-wider hover:bg-cc-pink-dim transition-colors"
+        >
+          {isAuthenticated ? 'OPEN DASHBOARD' : 'GET STARTED FREE'}
+        </button>
+      </section>
+
+      {/* Footer */}
+      <footer className="relative z-10 border-t-2 border-cc-border py-6 text-center">
+        <p className="font-pixel text-[10px] text-cc-muted tracking-wider">
+          CONTEXT CHEST &middot; MIT LICENSE &middot;{' '}
+          <a href="https://github.com/fuckupic/context-chest" className="text-cc-pink hover:underline" target="_blank" rel="noopener noreferrer">
+            GITHUB
+          </a>
+        </p>
+      </footer>
+    </div>
+  );
+}
