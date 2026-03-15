@@ -38,10 +38,10 @@ describe('SessionService', () => {
       });
       mockContext.startSession = jest.fn().mockResolvedValue(undefined);
 
-      const result = await service.create('user-1', 'client-1');
+      const result = await service.create('user-1', 'chest-1', 'client-1');
 
       expect(mockPrisma.session.create).toHaveBeenCalledWith({
-        data: expect.objectContaining({ userId: 'user-1', clientId: 'client-1' }),
+        data: expect.objectContaining({ userId: 'user-1', chestId: 'chest-1', clientId: 'client-1' }),
       });
       expect(mockContext.startSession).toHaveBeenCalledWith('user-1', 'sess-1');
       expect(result.id).toBe('sess-1');
@@ -103,7 +103,7 @@ describe('SessionService', () => {
       mockContext.closeSession = jest.fn().mockResolvedValue(undefined);
       mockPrisma.session.update.mockResolvedValue({});
 
-      const result = await service.close('user-1', 'sess-1', [
+      const result = await service.close('user-1', 'sess-1', 'chest-1', 'My Chest', [
         {
           uri: 'extracted/mem1',
           l0: 'Summary',
@@ -114,6 +114,11 @@ describe('SessionService', () => {
       ]);
 
       expect(mockMemory.remember).toHaveBeenCalledTimes(1);
+      expect(mockMemory.remember).toHaveBeenCalledWith('user-1', expect.objectContaining({
+        uri: 'extracted/mem1',
+        chestId: 'chest-1',
+        chestName: 'My Chest',
+      }));
       expect(mockContext.closeSession).toHaveBeenCalledWith('user-1', 'sess-1');
       expect(mockPrisma.session.update).toHaveBeenCalledWith(
         expect.objectContaining({ data: expect.objectContaining({ status: 'closed' }) })
@@ -136,7 +141,7 @@ describe('SessionService', () => {
         sha256: 'h',
       }));
 
-      await expect(service.close('user-1', 'sess-1', memories)).rejects.toThrow(
+      await expect(service.close('user-1', 'sess-1', 'chest-1', 'My Chest', memories)).rejects.toThrow(
         'Maximum 50 memories per session close'
       );
     });
