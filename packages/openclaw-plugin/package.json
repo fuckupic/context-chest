@@ -1,0 +1,20 @@
+{
+  "name": "context-chest-openclaw",
+  "version": "0.1.0",
+  "description": "Context Chest plugin for OpenClaw — encrypted persistent memory across AI agents",
+  "main": "dist/index.js",
+  "license": "MIT",
+  "keywords": ["openclaw", "plugin", "memory", "encrypted", "context-chest"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fuckupic/context-chest.git",
+    "directory": "packages/openclaw-plugin"
+  },
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}

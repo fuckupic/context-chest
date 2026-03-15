@@ -13,7 +13,7 @@ const SETUP_CODE = `{
 const FEATURES = [
   { title: 'ENCRYPTED', desc: 'AES-256-GCM on your machine. Server never sees plaintext.' },
   { title: '8 TOOLS', desc: 'Remember, recall, read, forget, browse, sessions.' },
-  { title: 'ANY AGENT', desc: 'Claude Code, Cursor, any MCP tool. One vault.' },
+  { title: 'ANY AGENT', desc: 'Claude Code, Cursor, OpenClaw, any MCP or API client. One vault.' },
   { title: 'ORGANIZED', desc: 'Path-based storage. Browse like a filesystem.' },
   { title: 'SEARCHABLE', desc: 'Instant text recall across all memories.' },
   { title: 'OPEN SOURCE', desc: 'MIT licensed. Self-host or use our cloud.' },

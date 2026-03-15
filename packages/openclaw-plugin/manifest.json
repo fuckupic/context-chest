@@ -1,0 +1,34 @@
+{
+  "id": "context-chest",
+  "name": "Context Chest",
+  "description": "Encrypted persistent memory for AI agents. Remember, recall, and browse memories across sessions with client-side AES-256-GCM encryption.",
+  "version": "0.1.0",
+  "kind": "memory",
+  "configSchema": {
+    "type": "object",
+    "properties": {
+      "apiUrl": {
+        "type": "string",
+        "description": "Context Chest API URL",
+        "default": "https://api-production-e2cd6.up.railway.app"
+      },
+      "apiToken": {
+        "type": "string",
+        "description": "JWT token from 'npx context-chest-mcp login'"
+      }
+    },
+    "required": ["apiToken"],
+    "additionalProperties": false
+  },
+  "uiHints": {
+    "apiToken": {
+      "label": "API Token",
+      "placeholder": "eyJhbG...",
+      "sensitive": true
+    },
+    "apiUrl": {
+      "label": "API URL",
+      "placeholder": "https://api-production-e2cd6.up.railway.app"
+    }
+  }
+}
