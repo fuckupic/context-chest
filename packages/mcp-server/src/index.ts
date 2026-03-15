@@ -18,7 +18,7 @@ import { sessionSaveSchema, handleSessionSave } from './tools/session-save';
 
 const server = new McpServer({
   name: 'context-chest',
-  version: '0.1.0',
+  version: '0.2.0',
 });
 
 let client: ContextChestClient | null = null;
