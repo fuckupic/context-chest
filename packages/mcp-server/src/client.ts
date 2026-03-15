@@ -13,6 +13,7 @@ interface RememberInput {
   l1: string;
   encryptedL2: string;
   sha256: string;
+  chest?: string;
 }
 
 interface RecallResult {
@@ -169,8 +170,9 @@ export class ContextChestClient {
   }
 
   async remember(input: RememberInput) {
+    const qs = input.chest ? `?chest=${encodeURIComponent(input.chest)}` : '';
     return this.request<{ success: boolean; data: { uri: string; createdAt: string } }>(
-      'POST', '/v1/memory/remember', input
+      'POST', `/v1/memory/remember${qs}`, { uri: input.uri, l0: input.l0, l1: input.l1, encryptedL2: input.encryptedL2, sha256: input.sha256 }
     );
   }
 
@@ -237,7 +239,14 @@ export class ContextChestClient {
     return this.request<{ success: boolean }>('PUT', `/v1/memory/content/${uri}`, { encryptedL2, sha256, encryptionVersion });
   }
 
-  async autoSort(l0: string, l1: string) {
-    return this.request<{ success: boolean; data: { uri: string } }>('POST', '/v1/memory/auto-sort', { l0, l1 });
+  async autoSort(l0: string, l1: string, chest?: string) {
+    const qs = chest ? `?chest=${encodeURIComponent(chest)}` : '';
+    return this.request<{ success: boolean; data: { uri: string } }>('POST', `/v1/memory/auto-sort${qs}`, { l0, l1 });
+  }
+
+  async autoChest(l0: string, l1: string) {
+    return this.request<{ success: boolean; data: { chestName: string; chestId: string; isNew: boolean } }>(
+      'POST', '/v1/memory/auto-chest', { l0, l1 }
+    );
   }
 }
