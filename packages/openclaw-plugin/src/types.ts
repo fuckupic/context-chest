@@ -3,7 +3,7 @@ export interface ToolDefinition {
   name: string;
   description: string;
   parameters: Record<string, unknown>;
-  execute: (id: string, params: Record<string, unknown>) => Promise<{ content: Array<{ type: string; text: string }> }>;
+  execute: (id: string, params: never) => Promise<{ content: Array<{ type: string; text: string }> }>;
 }
 
 export interface PluginAPI {
