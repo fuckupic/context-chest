@@ -72,15 +72,15 @@ export function Landing() {
           {/* Text */}
           <div className="md:w-1/2">
             <h1 className="opacity-0 animate-fade-up font-pixel text-5xl md:text-6xl text-cc-white leading-none mb-6 tracking-wide">
-              Your secrets.<br />
-              Your AI.<br />
-              <span className="text-cc-pink">Nobody else.</span>
+              AI processes.<br />
+              Memory <span className="text-cc-pink">persists.</span><br />
+              Encrypt it.
             </h1>
             <p className="opacity-0 animate-fade-up stagger-1 text-cc-sub text-sm leading-relaxed mb-8 max-w-sm">
-              API keys, revenue numbers, hiring plans, production credentials —
-              you share sensitive context with AI every day. Context Chest
-              encrypts it all before it leaves your machine. The server never
-              sees plaintext. Not even us.
+              Your AI sees your secrets temporarily. But a permanent, searchable
+              database of everything you've ever shared? That's a different risk.
+              Context Chest encrypts your AI's memory so even a full breach
+              reveals nothing. Self-host it. Own your keys.
             </p>
             <div className="opacity-0 animate-fade-up stagger-2 flex gap-3">
               <button
@@ -197,9 +197,9 @@ export function Landing() {
         </h2>
         <div className="space-y-6">
           {[
-            { n: '01', title: 'ENCRYPT LOCALLY', desc: 'Your agent encrypts content with your key before it leaves your machine.' },
-            { n: '02', title: 'SAFE METADATA', desc: 'Only category labels and word counts are stored for search. No content ever leaks.' },
-            { n: '03', title: 'ACCESS ANYWHERE', desc: 'Any MCP tool connects to the same vault. Memories sync across agents.' },
+            { n: '01', title: 'AI PROCESSES TEMPORARILY', desc: 'Your AI provider sees your data during a session. That\'s the deal you already made.' },
+            { n: '02', title: 'MEMORY PERSISTS FOREVER', desc: 'But a permanent database of all your secrets is a bigger target. Context Chest encrypts it client-side with AES-256-GCM.' },
+            { n: '03', title: 'BREACH REVEALS NOTHING', desc: 'Even if the server is compromised, attackers get ciphertext. Your keys stay on your machine. Self-host for full control.' },
           ].map((item) => (
             <div key={item.n} className="flex gap-5 items-start border-2 border-cc-border p-4 hover:border-cc-pink-border transition-colors">
               <span className="font-pixel text-2xl text-cc-pink shrink-0">{item.n}</span>
@@ -215,9 +215,9 @@ export function Landing() {
       {/* CTA */}
       <section className="relative z-10 max-w-3xl mx-auto px-6 py-20 text-center">
         <h2 className="font-pixel text-4xl md:text-5xl text-cc-white mb-4 tracking-wide">
-          GIVE YOUR AI<br />A <span className="text-cc-pink">MEMORY</span>
+          YOUR AI REMEMBERS.<br /><span className="text-cc-pink">NOBODY ELSE CAN READ IT.</span>
         </h2>
-        <p className="text-cc-muted text-sm mb-8">Free. Open source. Your data stays yours.</p>
+        <p className="text-cc-muted text-sm mb-8">Open source. Self-hostable. Your keys, your data.</p>
         <button
           onClick={handleCTA}
           className="px-8 py-3 bg-cc-pink text-cc-black font-pixel text-sm tracking-wider hover:bg-cc-pink-dim transition-colors"
