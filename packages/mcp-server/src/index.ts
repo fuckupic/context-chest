@@ -24,13 +24,13 @@ const server = new McpServer({
 let client: ContextChestClient | null = null;
 let masterKey: Buffer | null = null;
 
-function ensureInitialized(): { client: ContextChestClient; masterKey: Buffer } {
+function ensureInitialized(): { client: ContextChestClient; masterKey: Buffer; chestName: string } {
   if (!client || !masterKey) {
     throw new Error(
       'Not authenticated. Run `context-chest login` first, or set credentials in ~/.context-chest/credentials.json'
     );
   }
-  return { client, masterKey };
+  return { client, masterKey, chestName: client.getChestName() };
 }
 
 async function generateSummaries(content: string, uri?: string): Promise<{ l0: string; l1: string }> {
@@ -55,7 +55,7 @@ async function generateL0(content: string, uri?: string): Promise<string> {
 
 server.tool('context-chest_remember', 'Store a memory in your encrypted vault', rememberSchema.shape, async (params) => {
   const ctx = ensureInitialized();
-  const result = await handleRemember(params, ctx.client, ctx.masterKey, generateSummaries);
+  const result = await handleRemember(params, ctx.client, ctx.masterKey, ctx.chestName, generateSummaries);
   return { content: [{ type: 'text' as const, text: result }] };
 });
 
@@ -67,7 +67,7 @@ server.tool('context-chest_recall', 'Search your memories', recallSchema.shape, 
 
 server.tool('context-chest_read', 'Read full content of a memory', readSchema.shape, async (params) => {
   const ctx = ensureInitialized();
-  const result = await handleRead(params, ctx.client, ctx.masterKey);
+  const result = await handleRead(params, ctx.client, ctx.masterKey, ctx.chestName);
   return { content: [{ type: 'text' as const, text: result }] };
 });
 
@@ -91,17 +91,17 @@ server.tool('context-chest_session-start', 'Start tracking this conversation', {
 
 server.tool('context-chest_session-append', 'Add a message to current session', sessionAppendSchema.shape, async (params) => {
   const ctx = ensureInitialized();
-  const result = await handleSessionAppend(params, ctx.client, ctx.masterKey, generateL0);
+  const result = await handleSessionAppend(params, ctx.client, ctx.masterKey, ctx.chestName, generateL0);
   return { content: [{ type: 'text' as const, text: result }] };
 });
 
 server.tool('context-chest_session-save', 'Extract memories and close session', sessionSaveSchema.shape, async (params) => {
   const ctx = ensureInitialized();
-  const result = await handleSessionSave(params, ctx.client, ctx.masterKey, generateSummaries);
+  const result = await handleSessionSave(params, ctx.client, ctx.masterKey, ctx.chestName, generateSummaries);
   return { content: [{ type: 'text' as const, text: result }] };
 });
 
-async function refreshAndInit(apiUrl: string, refreshToken: string, creds: ReturnType<typeof loadCredentials>): Promise<boolean> {
+async function refreshAndInit(apiUrl: string, refreshToken: string, creds: ReturnType<typeof loadCredentials>, chestName: string): Promise<boolean> {
   try {
     const response = await fetch(`${apiUrl}/v1/auth/refresh`, {
       method: 'POST',
@@ -129,6 +129,7 @@ async function refreshAndInit(apiUrl: string, refreshToken: string, creds: Retur
       baseUrl: apiUrl,
       token: data.token,
       refreshToken: data.refreshToken,
+      chestName,
     });
 
     process.stderr.write('[context-chest] Token refreshed on startup\n');
@@ -140,6 +141,10 @@ async function refreshAndInit(apiUrl: string, refreshToken: string, creds: Retur
 }
 
 async function main() {
+  const chestFlag = process.argv.find(arg => arg.startsWith('--chest='));
+  const chestName = chestFlag ? chestFlag.split('=')[1] : 'default';
+  process.stderr.write(`[context-chest] Chest: ${chestName}\n`);
+
   const creds = loadCredentials();
 
   if (creds) {
@@ -149,10 +154,11 @@ async function main() {
         baseUrl: creds.apiUrl || DEFAULT_API_URL,
         token: creds.jwt,
         refreshToken: creds.refreshToken,
+        chestName,
       });
     } else if (creds.refreshToken) {
       // JWT expired but we have a refresh token — try to refresh
-      const ok = await refreshAndInit(creds.apiUrl || DEFAULT_API_URL, creds.refreshToken, creds);
+      const ok = await refreshAndInit(creds.apiUrl || DEFAULT_API_URL, creds.refreshToken, creds, chestName);
       if (!ok) {
         process.stderr.write('[context-chest] Could not refresh token. Run context-chest login.\n');
       }
@@ -202,9 +208,9 @@ async function main() {
   await server.connect(transport);
 }
 
-// If called with "login" argument, run CLI instead of MCP server
-if (process.argv.includes('login')) {
-  require('./cli');
+// If called with "login" or "migrate-v2" argument, run CLI instead of MCP server
+if (process.argv.includes('login') || process.argv.includes('migrate-v2')) {
+  import('./cli').catch(console.error);
 } else {
   main().catch(console.error);
 }
