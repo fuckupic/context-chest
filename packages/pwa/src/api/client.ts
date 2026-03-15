@@ -52,7 +52,9 @@ interface ChestItem {
   name: string;
   description: string | null;
   isPublic: boolean;
+  isAutoCreated: boolean;
   createdAt: string;
+  _count?: { memories: number };
 }
 
 interface ChestPermissionItem {

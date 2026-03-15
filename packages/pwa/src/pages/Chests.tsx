@@ -72,7 +72,12 @@ export function Chests() {
             <div>
               <span className="font-mono text-sm text-cc-white">{chest.name}</span>
               {chest.isPublic && <span className="ml-2 font-pixel text-[9px] text-cc-muted tracking-wider">PUBLIC</span>}
-              {chest.description && <p className="text-xs text-cc-muted font-mono mt-0.5">{chest.description}</p>}
+              {chest.isAutoCreated && (
+                <span className="ml-2 font-pixel text-[9px] text-cc-pink tracking-wider border border-cc-pink px-1">AUTO</span>
+              )}
+              <p className="text-xs text-cc-muted font-mono mt-0.5">
+                {chest._count?.memories ?? 0} memories{chest.description ? ` — ${chest.description}` : ''}
+              </p>
             </div>
             <div className="flex items-center gap-3">
               {chest.name !== 'default' && !chest.isPublic && (

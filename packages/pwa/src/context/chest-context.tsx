@@ -6,6 +6,8 @@ interface ChestItem {
   name: string;
   description: string | null;
   isPublic: boolean;
+  isAutoCreated: boolean;
+  _count?: { memories: number };
 }
 
 interface ChestContextValue {
