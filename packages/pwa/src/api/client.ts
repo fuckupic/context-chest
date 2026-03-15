@@ -47,6 +47,8 @@ interface BrowseEntry {
   children?: BrowseEntry[];
 }
 
+const API_BASE = import.meta.env.VITE_API_URL ?? '';
+
 export class ApiClient {
   private token: string;
 
@@ -59,7 +61,7 @@ export class ApiClient {
   }
 
   private async request<T>(method: string, path: string, body?: unknown): Promise<T> {
-    const response = await fetch(path, {
+    const response = await fetch(`${API_BASE}${path}`, {
       method,
       headers: {
         'Content-Type': 'application/json',
@@ -77,7 +79,7 @@ export class ApiClient {
 
   // Auth — simple email + password
   async registerSimple(email: string, password: string): Promise<{ token: string; userId: string; exportKey: string }> {
-    const res = await fetch('/v1/auth/register', {
+    const res = await fetch(`${API_BASE}/v1/auth/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -90,7 +92,7 @@ export class ApiClient {
   }
 
   async loginSimple(email: string, password: string): Promise<{ token: string; userId: string; exportKey: string }> {
-    const res = await fetch('/v1/auth/login', {
+    const res = await fetch(`${API_BASE}/v1/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -131,7 +133,7 @@ export class ApiClient {
   }
 
   async getContent(uri: string): Promise<ArrayBuffer> {
-    const response = await fetch(`/v1/memory/content/${uri}`, {
+    const response = await fetch(`${API_BASE}/v1/memory/content/${uri}`, {
       headers: { Authorization: `Bearer ${this.token}` },
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
