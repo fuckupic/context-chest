@@ -1,19 +1,19 @@
 # Context Chest
 
-## Memory
+## CRITICAL: Memory Protocol
 
-At the start of every conversation:
-- Use `context-chest_browse` to see what's in the vault
-- Use `context-chest_recall` with relevant keywords to load project context
+Before responding to ANY user message, you MUST:
+1. Check if you have vault context loaded in this conversation
+2. If not (or if context was recently compacted), call `context-chest_browse` first
+3. Then call `context-chest_recall` with keywords relevant to the user's current request
 
-Before ending a session where significant decisions were made:
-- Use `context-chest_remember` to store key decisions, architecture changes, and bug fixes
-- Use descriptive paths like `decisions/auth-approach` or `bugs/browse-empty-directory`
+This is non-negotiable. Never start working without checking the vault first.
 
-Before context is compacted (when the conversation gets long):
-- Store any important context that might be lost with `context-chest_remember`
+Before ending ANY session or when the conversation is getting long:
+- Store key decisions with `context-chest_remember` using descriptive paths
+- Example: `decisions/chose-stripe-over-paddle`, `bugs/browse-empty-fix`, `architecture/encryption-model`
 
 ## Project
 
 This is Context Chest — an encrypted memory vault for AI agents.
-See the vault for architecture details, past decisions, and conventions.
+Check the vault for architecture details, past decisions, and conventions.
