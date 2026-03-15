@@ -9,7 +9,7 @@ Context Chest is an open-source MCP server that lets AI agents remember things a
 Install the MCP server and add it to your agent's config:
 
 ```bash
-npm install -g @context-chest/mcp-server
+npm install -g context-chest-mcp
 context-chest login
 ```
 

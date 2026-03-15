@@ -11,7 +11,7 @@ const MCP_CONFIG = `{
   "mcpServers": {
     "context-chest": {
       "command": "npx",
-      "args": ["@context-chest/mcp-server"]
+      "args": ["context-chest-mcp"]
     }
   }
 }`;

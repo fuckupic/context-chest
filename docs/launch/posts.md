@@ -22,7 +22,7 @@ Context Chest encrypts everything client-side (AES-256-GCM) before it leaves you
 30-second setup — add this to your Claude Code or Cursor config:
 
 ```
-{ "mcpServers": { "context-chest": { "command": "npx", "args": ["@context-chest/mcp-server"] } } }
+{ "mcpServers": { "context-chest": { "command": "npx", "args": ["context-chest-mcp"] } } }
 ```
 
 8 tools: remember, recall, read, forget, browse, session tracking.
@@ -90,7 +90,7 @@ Self-host it for full control.
 **Post 4:**
 Setup in 30 seconds:
 
-{ "mcpServers": { "context-chest": { "command": "npx", "args": ["@context-chest/mcp-server"] } } }
+{ "mcpServers": { "context-chest": { "command": "npx", "args": ["context-chest-mcp"] } } }
 
 8 tools: remember, recall, read, forget, browse, sessions.
 

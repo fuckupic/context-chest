@@ -1,4 +1,4 @@
-# @context-chest/mcp-server
+# context-chest-mcp
 
 MCP server that gives AI agents encrypted, persistent memory.
 
@@ -11,7 +11,7 @@ Add to your Claude Code or Cursor MCP config:
   "mcpServers": {
     "context-chest": {
       "command": "npx",
-      "args": ["@context-chest/mcp-server"]
+      "args": ["context-chest-mcp"]
     }
   }
 }

@@ -5,6 +5,7 @@ import { ContextChestClient } from './client';
 import { loadCredentials, saveCredentials, isTokenExpired } from './auth';
 import { unwrapMasterKey, deriveWrappingKey } from './crypto';
 import { parseL0Response, parseL1Response } from './summarizer';
+import { DEFAULT_API_URL } from './config';
 
 import { rememberSchema, handleRemember } from './tools/remember';
 import { recallSchema, handleRecall } from './tools/recall';
@@ -145,13 +146,13 @@ async function main() {
     if (!isTokenExpired(creds.jwt)) {
       // Token is still valid
       client = new ContextChestClient({
-        baseUrl: creds.apiUrl,
+        baseUrl: creds.apiUrl || DEFAULT_API_URL,
         token: creds.jwt,
         refreshToken: creds.refreshToken,
       });
     } else if (creds.refreshToken) {
       // JWT expired but we have a refresh token — try to refresh
-      const ok = await refreshAndInit(creds.apiUrl, creds.refreshToken, creds);
+      const ok = await refreshAndInit(creds.apiUrl || DEFAULT_API_URL, creds.refreshToken, creds);
       if (!ok) {
         process.stderr.write('[context-chest] Could not refresh token. Run context-chest login.\n');
       }
