@@ -25,7 +25,7 @@ describe('MemoryService', () => {
     jest.clearAllMocks();
     mockStorage = new StorageService({} as never) as jest.Mocked<StorageService>;
     mockContext = new ContextService({} as never) as jest.Mocked<ContextService>;
-    service = new MemoryService(mockPrisma as never, mockStorage, mockContext);
+    service = new MemoryService(mockPrisma as never, mockStorage as never, mockContext);
   });
 
   describe('remember', () => {

@@ -31,7 +31,7 @@ interface BrowseEntry {
 export class MemoryService {
   constructor(
     private readonly prisma: PrismaClient,
-    private readonly storage: StorageService,
+    private readonly storage: StorageService | null,
     private readonly context: ContextService
   ) {}
 
@@ -45,8 +45,10 @@ export class MemoryService {
   ): Promise<{ uri: string; createdAt: Date }> {
     const key = this.s3Key(userId, input.uri);
 
-    // Step 1: S3
-    await this.storage.upload(key, input.encryptedL2, input.sha256);
+    // Step 1: S3 (if available)
+    if (this.storage) {
+      await this.storage.upload(key, input.encryptedL2, input.sha256);
+    }
 
     // Step 2: OpenViking (best-effort — don't block on failure)
     await this.context.write(userId, input.uri, {
@@ -54,7 +56,7 @@ export class MemoryService {
       l1: input.l1,
     }).catch(() => {});
 
-    // Step 3: Prisma (rollback S3 on failure)
+    // Step 3: Prisma
     try {
       const entry = await this.prisma.memoryEntry.upsert({
         where: { userId_uri: { userId, uri: input.uri } },
@@ -66,6 +68,7 @@ export class MemoryService {
           sizeBytes: input.encryptedL2.length,
           l0: input.l0,
           l1: input.l1,
+          content: input.encryptedL2,
         },
         update: {
           s3Key: key,
@@ -73,12 +76,15 @@ export class MemoryService {
           sizeBytes: input.encryptedL2.length,
           l0: input.l0,
           l1: input.l1,
+          content: input.encryptedL2,
         },
       });
 
       return { uri: entry.uri, createdAt: entry.createdAt };
     } catch (error) {
-      await this.storage.delete(key);
+      if (this.storage) {
+        await this.storage.delete(key).catch(() => {});
+      }
       throw error;
     }
   }
@@ -140,7 +146,14 @@ export class MemoryService {
       throw new Error('Memory not found');
     }
 
-    return this.storage.download(entry.s3Key);
+    // Try Postgres first, fall back to S3
+    if (entry.content) {
+      return Buffer.from(entry.content);
+    }
+    if (this.storage) {
+      return this.storage.download(entry.s3Key);
+    }
+    throw new Error('Content not available');
   }
 
   async forget(userId: string, uri: string): Promise<void> {
@@ -154,7 +167,9 @@ export class MemoryService {
 
     // OpenViking delete may fail if the resource was never indexed — continue anyway
     await this.context.delete(userId, uri).catch(() => {});
-    await this.storage.delete(entry.s3Key).catch(() => {});
+    if (this.storage) {
+      await this.storage.delete(entry.s3Key).catch(() => {});
+    }
     await this.prisma.memoryEntry.delete({ where: { id: entry.id } });
   }
 
