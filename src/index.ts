@@ -21,7 +21,6 @@ import { ContextService } from './services/context';
 import { UsageService } from './services/usage';
 import { ChestService } from './services/chest';
 import { chestRoutes } from './routes/chests';
-import { createChestGuard } from './plugins/chest-guard';
 import roleGuard from './plugins/role-guard';
 import agentTracker from './plugins/agent-tracker';
 
@@ -102,10 +101,9 @@ app.register(authRoutes, { prefix: '/v1/auth' });
 app.register(vaultRoutes, { prefix: '/v1/vault' });
 app.register(connectRoutes, { prefix: '/v1/connect' });
 app.register(roleGuard);
-app.register(createChestGuard(chestService));
 app.register(chestRoutes(chestService), { prefix: '/v1/chests' });
-app.register(memoryRoutes(memoryService, usageService), { prefix: '/v1/memory' });
-app.register(sessionRoutes(sessionService, usageService), { prefix: '/v1/sessions' });
+app.register(memoryRoutes(memoryService, usageService, chestService), { prefix: '/v1/memory' });
+app.register(sessionRoutes(sessionService, usageService, chestService), { prefix: '/v1/sessions' });
 
 // Admin stats (protected by secret)
 app.get('/admin/stats', async (request, reply) => {

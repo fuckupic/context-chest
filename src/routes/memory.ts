@@ -1,6 +1,8 @@
 import { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
 import { requirePermission } from '../plugins/role-guard';
+import { requireChest } from '../plugins/chest-guard';
+import { ChestService } from '../services/chest';
 import { MemoryService } from '../services/memory';
 import { UsageService, UsageLimitError } from '../services/usage';
 
@@ -23,13 +25,15 @@ const recallSchema = z.object({
 
 export function memoryRoutes(
   memoryService: MemoryService,
-  usageService: UsageService
+  usageService: UsageService,
+  chestService: ChestService
 ): FastifyPluginAsync {
+  const chestGuard = requireChest(chestService);
   return async (fastify) => {
     // Remember
     fastify.post(
       '/remember',
-      { preHandler: requirePermission('remember') },
+      { preHandler: [requirePermission('remember'), chestGuard] },
       async (request, reply) => {
         const userId = (request as unknown as Record<string, unknown>).userId as string;
         const chestId = (request as unknown as Record<string, unknown>).chestId as string;
@@ -65,7 +69,7 @@ export function memoryRoutes(
     // Recall
     fastify.post(
       '/recall',
-      { preHandler: requirePermission('recall') },
+      { preHandler: [requirePermission('recall'), chestGuard] },
       async (request) => {
         const userId = (request as unknown as Record<string, unknown>).userId as string;
         const chestId = (request as unknown as Record<string, unknown>).chestId as string;
@@ -88,7 +92,7 @@ export function memoryRoutes(
     // Content — uses wildcard because URIs contain slashes
     fastify.get(
       '/content/*',
-      { preHandler: requirePermission('content') },
+      { preHandler: [requirePermission('content'), chestGuard] },
       async (request, reply) => {
         const userId = (request as unknown as Record<string, unknown>).userId as string;
         const chestId = (request as unknown as Record<string, unknown>).chestId as string;
@@ -108,7 +112,7 @@ export function memoryRoutes(
     // Forget — wildcard for slash-separated URIs
     fastify.delete(
       '/forget/*',
-      { preHandler: requirePermission('forget') },
+      { preHandler: [requirePermission('forget'), chestGuard] },
       async (request, reply) => {
         const userId = (request as unknown as Record<string, unknown>).userId as string;
         const chestId = (request as unknown as Record<string, unknown>).chestId as string;
@@ -127,7 +131,7 @@ export function memoryRoutes(
     // Browse
     fastify.get(
       '/browse',
-      { preHandler: requirePermission('browse') },
+      { preHandler: [requirePermission('browse'), chestGuard] },
       async (request) => {
         const userId = (request as unknown as Record<string, unknown>).userId as string;
         const chestId = (request as unknown as Record<string, unknown>).chestId as string;
@@ -161,7 +165,7 @@ export function memoryRoutes(
     // List — direct Prisma query, no OpenViking needed
     fastify.get(
       '/list',
-      { preHandler: requirePermission('browse') },
+      { preHandler: [requirePermission('browse'), chestGuard] },
       async (request) => {
         const userId = (request as unknown as Record<string, unknown>).userId as string;
         const chestId = (request as unknown as Record<string, unknown>).chestId as string;
@@ -185,7 +189,7 @@ export function memoryRoutes(
     // Auto-sort
     fastify.post(
       '/auto-sort',
-      { preHandler: requirePermission('remember') },
+      { preHandler: [requirePermission('remember'), chestGuard] },
       async (request) => {
         const userId = (request as unknown as Record<string, unknown>).userId as string;
         const chestName = (request as unknown as Record<string, unknown>).chestName as string;
@@ -198,7 +202,7 @@ export function memoryRoutes(
     // Update content (migration)
     fastify.put(
       '/content/*',
-      { preHandler: requirePermission('remember') },
+      { preHandler: [requirePermission('remember'), chestGuard] },
       async (request, reply) => {
         const userId = (request as unknown as Record<string, unknown>).userId as string;
         const chestId = (request as unknown as Record<string, unknown>).chestId as string;

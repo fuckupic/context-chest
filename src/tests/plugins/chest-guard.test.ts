@@ -1,4 +1,4 @@
-import { createChestGuard } from '../../plugins/chest-guard';
+import { requireChest } from '../../plugins/chest-guard';
 import { ChestService } from '../../services/chest';
 
 const mockChest = {
@@ -26,13 +26,13 @@ describe('chest-guard', () => {
     jest.clearAllMocks();
   });
 
-  it('should export createChestGuard as a function', () => {
-    expect(typeof createChestGuard).toBe('function');
+  it('should export requireChest as a function', () => {
+    expect(typeof requireChest).toBe('function');
   });
 
-  it('should return a fastify plugin function', () => {
-    const plugin = createChestGuard(mockChestService);
-    expect(typeof plugin).toBe('function');
+  it('should return a preHandler function', () => {
+    const handler = requireChest(mockChestService);
+    expect(typeof handler).toBe('function');
   });
 
   describe('chest resolution logic', () => {

@@ -1,6 +1,8 @@
 import { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
 import { requirePermission } from '../plugins/role-guard';
+import { requireChest } from '../plugins/chest-guard';
+import { ChestService } from '../services/chest';
 import { SessionService } from '../services/session';
 import { UsageService } from '../services/usage';
 
@@ -27,13 +29,15 @@ const closeSchema = z.object({
 
 export function sessionRoutes(
   sessionService: SessionService,
-  usageService: UsageService
+  usageService: UsageService,
+  chestService: ChestService
 ): FastifyPluginAsync {
+  const chestGuard = requireChest(chestService);
   return async (fastify) => {
     // List sessions
     fastify.get(
       '/',
-      { preHandler: requirePermission('sessions') },
+      { preHandler: [requirePermission('sessions'), chestGuard] },
       async (request) => {
         const userId = (request as unknown as Record<string, unknown>).userId as string;
         const chestId = (request as unknown as Record<string, unknown>).chestId as string;
@@ -63,7 +67,7 @@ export function sessionRoutes(
     // Create session
     fastify.post(
       '/',
-      { preHandler: requirePermission('sessions') },
+      { preHandler: [requirePermission('sessions'), chestGuard] },
       async (request) => {
         const userId = (request as unknown as Record<string, unknown>).userId as string;
         const chestId = (request as unknown as Record<string, unknown>).chestId as string;
@@ -79,7 +83,7 @@ export function sessionRoutes(
     // Append message
     fastify.post(
       '/:id/messages',
-      { preHandler: requirePermission('sessions') },
+      { preHandler: [requirePermission('sessions'), chestGuard] },
       async (request, reply) => {
         const userId = (request as unknown as Record<string, unknown>).userId as string;
         const { id } = request.params as { id: string };
@@ -104,7 +108,7 @@ export function sessionRoutes(
     // Close session
     fastify.post(
       '/:id/close',
-      { preHandler: requirePermission('sessions') },
+      { preHandler: [requirePermission('sessions'), chestGuard] },
       async (request, reply) => {
         const userId = (request as unknown as Record<string, unknown>).userId as string;
         const chestId = (request as unknown as Record<string, unknown>).chestId as string;
@@ -132,7 +136,7 @@ export function sessionRoutes(
     // Get session
     fastify.get(
       '/:id',
-      { preHandler: requirePermission('sessions') },
+      { preHandler: [requirePermission('sessions'), chestGuard] },
       async (request, reply) => {
         const userId = (request as unknown as Record<string, unknown>).userId as string;
         const { id } = request.params as { id: string };
