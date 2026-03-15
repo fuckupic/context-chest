@@ -15,8 +15,10 @@ Users get multiple isolated chests per project. OpenViking auto-categorizes memo
 - `userId` (FK → User)
 - `name` (string, unique per user)
 - `description` (optional string)
+- `isPublic` (boolean, default false) — when true, all agents can access without explicit permission rows
 - `createdAt` (timestamp)
 - Constraint: `@@unique([userId, name])`
+- Chest names are immutable after creation (renaming would require re-encrypting all memories due to HKDF salt dependency)
 
 **ChestPermission** — per-agent access control on a chest:
 - `id` (UUID, PK)
@@ -30,13 +32,33 @@ Users get multiple isolated chests per project. OpenViking auto-categorizes memo
 
 **MemoryEntry** gains:
 - `chestId` (FK → Chest, required after migration)
+- `encryptionVersion` (integer, default 1) — tracks which key derivation scheme was used. `1` = v0.1 (`uri` as salt), `2` = v0.2 (`chestName + "/" + uri` as salt). Enables safe partial migration and correct decryption.
+- Unique constraint changes from `@@unique([userId, uri])` to `@@unique([userId, chestId, uri])` — allows same URI in different chests
+
+**Session** gains:
+- `chestId` (FK → Chest, nullable, defaults to user's "default" chest) — sessions are scoped to a chest
+
+### S3 Key Namespace
+
+S3 key format changes from `${userId}/memories/${uri}.enc` to `${userId}/chests/${chestId}/memories/${uri}.enc`. The migration backfills by moving existing S3 objects to the new prefix under the default chest's ID.
 
 ### Migration Strategy
 
+**Phase 1 — Schema (server-side, Prisma migration):**
 1. Create `chests` and `chest_permissions` tables
 2. Insert a "default" chest for each distinct `user_id` in `memory_entries`
-3. Backfill `chest_id` on all existing entries to their user's default chest
-4. Alter `chest_id` to NOT NULL
+3. Backfill `chest_id` on all `memory_entries` to their user's default chest
+4. Backfill `chest_id` on all `sessions` to their user's default chest
+5. Alter `chest_id` to NOT NULL on both tables
+
+**Phase 2 — S3 (server-side, migration script):**
+6. Move S3 objects from `${userId}/memories/${uri}.enc` to `${userId}/chests/${chestId}/memories/${uri}.enc`
+
+**Phase 3 — Re-encryption (client-side, `context-chest migrate-v2` CLI):**
+7. Decrypt each memory with old salt (`uri`), re-encrypt with new salt (`"default/" + uri`), upload with `encryptionVersion: 2`
+8. Re-index in OpenViking under new per-chest path
+
+Note: S3 keys use `chestId` (UUID, stable for storage) while HKDF salt uses `chestName` (human-readable, meaningful for crypto context). This is intentional — UUIDs prevent path collisions in storage, while names provide semantic meaning in key derivation.
 
 ---
 
@@ -68,8 +90,9 @@ Session endpoints also accept `?chest=` — sessions are scoped to a chest, and 
 1. Read `X-Agent-Name` header (already sent by MCP client)
 2. Read chest from `?chest=` param or `X-Chest` header (default: "default")
 3. Look up `ChestPermission` for chest + agent
-4. No permission row → deny (except "default" chest which allows all for backwards compat)
-5. Write endpoints (remember, forget) check `canWrite`; read endpoints check `canRead`
+4. If `chest.isPublic` = true → allow (for "global-prefs" style chests accessible to all agents)
+5. No permission row → deny (except "default" chest which allows all for backwards compat)
+6. Write endpoints (remember, forget) check `canWrite`; read endpoints check `canRead`
 
 ### New Migration Endpoint
 
@@ -81,14 +104,28 @@ Session endpoints also accept `?chest=` — sessions are scoped to a chest, and 
 
 ### Per-Chest Key Derivation
 
+Uses Node.js `hkdfSync(hash, ikm, salt, info, keylen)`:
+
 ```
-Current (v0.1):  HKDF(masterKey, uri,                    'context-chest-l2', 32)
-New (v0.2):      HKDF(masterKey, chestName + "/" + uri,   'context-chest-l2', 32)
+Current (v0.1):  hkdfSync('sha256', masterKey, uri,                    'context-chest-l2', 32)
+New (v0.2):      hkdfSync('sha256', masterKey, chestName + "/" + uri,   'context-chest-l2', 32)
+                                                ^^^^^^^^^^^^^^^^^^^^^^
+                                                salt parameter changes
 ```
 
-Different chest = different derived key = different ciphertext for identical content. Compromising one chest's keys reveals nothing about another.
+The **salt** parameter changes from `uri` to `chestName + "/" + uri`. The info string (`'context-chest-l2'`) is unchanged.
+
+Different chest = different salt = different derived key = different ciphertext for identical content. Compromising one chest's keys reveals nothing about another.
 
 Master key wrapping (`wrapMasterKey`/`unwrapMasterKey`) is unchanged.
+
+### Encryption Version Tracking
+
+`MemoryEntry.encryptionVersion` determines which derivation to use at decrypt time:
+- `1` (v0.1): salt = `uri`
+- `2` (v0.2): salt = `chestName + "/" + uri`
+
+The MCP server and PWA read this field and apply the correct scheme. This makes partial migrations safe — if `migrate-v2` fails midway, memories with `encryptionVersion=1` still decrypt correctly with the old scheme.
 
 ### Re-Encryption Migration
 
@@ -100,9 +137,10 @@ All v0.1 memories must be re-encrypted with the new salt `"default/" + uri`.
 2. Fetch all memories via `GET /v1/memory/list`
 3. For each memory: download encrypted L2 via `GET /v1/memory/content/*`
 4. Decrypt with old scheme: `HKDF(masterKey, uri, 'context-chest-l2', 32)`
-5. Re-encrypt with new scheme: `HKDF(masterKey, "default/" + uri, 'context-chest-l2', 32)`
-6. Upload via `PUT /v1/memory/content/*` with new SHA-256
-7. Report progress and failures
+5. Re-encrypt with new scheme: salt = `"default/" + uri`
+6. Upload via `PUT /v1/memory/content/*` with new SHA-256 and `encryptionVersion: 2`
+7. Re-index in OpenViking under new per-chest path (`viking://user/${userId}/chests/default/memories/${uri}`)
+8. Report progress (count, failures, skipped)
 
 ---
 
@@ -141,8 +179,8 @@ New command `context-chest migrate-v2` added to `cli.ts` alongside existing `con
 
 ### Chest Management Page (`/chests`)
 
-- Create chest form (name + optional description)
-- List of chests with edit/delete actions
+- Create chest form (name + optional description + public toggle)
+- List of chests with edit description/delete actions (name is immutable)
 - "default" chest shown but delete disabled
 - Nav link in sidebar between "Agents" and "Settings"
 
@@ -167,7 +205,7 @@ PWA crypto utils gain `chestName` parameter, same derivation change as MCP serve
 
 ### Trigger
 
-`POST /v1/memory/remember` called with `autoSort: true` (or without a `uri`).
+`POST /v1/memory/remember` called with `autoSort: true`. This replaces the existing fallback behavior (which generates `auto/${Date.now()}` paths) — when `autoSort` is true and OpenViking is available, the server generates a semantic path; when OpenViking is unavailable, falls back to the existing timestamp-based path.
 
 ### Flow
 
