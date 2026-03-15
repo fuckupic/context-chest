@@ -41,6 +41,15 @@ export function Settings() {
           </div>
         </div>
 
+        <a
+          href="https://www.feedsea.com/submit/feedback/ad2ca0f3-23df-4362-8e95-5778ca3a85ac"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="block w-full py-2.5 border-2 border-cc-border bg-cc-dark text-cc-pink font-pixel text-xs tracking-wider hover:bg-cc-pink-glow hover:border-cc-pink-border transition-colors text-center"
+        >
+          SEND FEEDBACK
+        </a>
+
         <button
           onClick={() => { logout(); navigate('/login'); }}
           className="w-full py-2.5 border-2 border-cc-border bg-cc-dark text-cc-muted font-pixel text-xs tracking-wider hover:text-red-400 hover:border-red-400/30 transition-colors"

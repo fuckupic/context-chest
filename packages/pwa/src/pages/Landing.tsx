@@ -440,6 +440,10 @@ export function Landing() {
           <a href="https://github.com/fuckupic/context-chest" className="text-cc-pink hover:underline" target="_blank" rel="noopener noreferrer">
             GITHUB
           </a>
+          {' '}&middot;{' '}
+          <a href="https://www.feedsea.com/submit/feedback/ad2ca0f3-23df-4362-8e95-5778ca3a85ac" className="text-cc-pink hover:underline" target="_blank" rel="noopener noreferrer">
+            FEEDBACK
+          </a>
         </p>
       </footer>
     </div>
