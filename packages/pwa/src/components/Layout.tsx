@@ -44,16 +44,6 @@ export function Layout() {
           })}
         </nav>
 
-        {/* Feedback */}
-        <a
-          href="https://www.feedsea.com/submit/feedback/ad2ca0f3-23df-4362-8e95-5778ca3a85ac"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="block px-4 py-2 font-pixel text-sm tracking-wider text-cc-muted hover:text-cc-pink border-l-2 border-transparent hover:bg-cc-surface transition-colors"
-        >
-          FEEDBACK
-        </a>
-
         {/* Footer */}
         <div className="px-4 py-3 border-t-2 border-cc-border flex items-center justify-between">
           <span className="font-pixel text-[10px] text-cc-muted tracking-wider">V0.1.0</span>

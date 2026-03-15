@@ -5,7 +5,6 @@ import { ContextChestClient } from './client';
 import { loadCredentials, saveCredentials, isTokenExpired } from './auth';
 import { unwrapMasterKey, deriveWrappingKey } from './crypto';
 import { parseL0Response, parseL1Response } from './summarizer';
-import { DEFAULT_API_URL } from './config';
 
 import { rememberSchema, handleRemember } from './tools/remember';
 import { recallSchema, handleRecall } from './tools/recall';
@@ -146,13 +145,13 @@ async function main() {
     if (!isTokenExpired(creds.jwt)) {
       // Token is still valid
       client = new ContextChestClient({
-        baseUrl: creds.apiUrl || DEFAULT_API_URL,
+        baseUrl: creds.apiUrl,
         token: creds.jwt,
         refreshToken: creds.refreshToken,
       });
     } else if (creds.refreshToken) {
       // JWT expired but we have a refresh token — try to refresh
-      const ok = await refreshAndInit(creds.apiUrl || DEFAULT_API_URL, creds.refreshToken, creds);
+      const ok = await refreshAndInit(creds.apiUrl, creds.refreshToken, creds);
       if (!ok) {
         process.stderr.write('[context-chest] Could not refresh token. Run context-chest login.\n');
       }
@@ -175,36 +174,8 @@ async function main() {
     process.stderr.write('[context-chest] No credentials found. Run context-chest login first.\n');
   }
 
-  // Surface vault contents on startup so the AI has context immediately
-  if (client) {
-    try {
-      const browseRes = await client.browse('', 2);
-      const tree = (browseRes as { data: { tree: Array<{ uri: string; type: string; children?: Array<{ uri: string }> }> } }).data.tree;
-      if (tree.length > 0) {
-        const entries: string[] = [];
-        for (const node of tree) {
-          if (node.type === 'directory' && node.children) {
-            for (const child of node.children) {
-              entries.push(child.uri);
-            }
-          } else {
-            entries.push(node.uri);
-          }
-        }
-        process.stderr.write(`[context-chest] Vault loaded: ${entries.join(', ')}\n`);
-      }
-    } catch {
-      // Non-critical — don't block startup
-    }
-  }
-
   const transport = new StdioServerTransport();
   await server.connect(transport);
 }
 
-// If called with "login" argument, run CLI instead of MCP server
-if (process.argv.includes('login')) {
-  require('./cli');
-} else {
-  main().catch(console.error);
-}
+main().catch(console.error);
