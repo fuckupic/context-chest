@@ -15,41 +15,38 @@ function timeAgo(dateStr: string): string {
   if (minutes < 60) return `${minutes}m ago`;
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `${hours}h ago`;
-  const days = Math.floor(hours / 24);
-  return `${days}d ago`;
+  return `${Math.floor(hours / 24)}d ago`;
 }
 
 function isOnline(lastSeenAt: string): boolean {
   return Date.now() - new Date(lastSeenAt).getTime() < 5 * 60 * 1000;
 }
 
-export function AgentCard({ id, agentName, firstSeenAt, lastSeenAt, requestCount, onDisconnect, disconnecting }: AgentCardProps) {
+export function AgentCard({ id, agentName, lastSeenAt, requestCount, firstSeenAt, onDisconnect, disconnecting }: AgentCardProps) {
   const online = isOnline(lastSeenAt);
 
   return (
-    <div className="bg-vault-mantle rounded-lg border border-vault-border p-4 flex items-center justify-between hover:border-vault-pink-border transition-colors">
+    <div className="border-2 border-cc-border bg-cc-dark p-4 flex items-center justify-between hover:border-cc-pink-border transition-colors">
       <div className="flex items-center gap-3">
-        <div className={`w-8 h-8 rounded flex items-center justify-center text-[11px] font-mono font-medium ${
-          online ? 'bg-vault-pink-glow text-vault-pink border border-vault-pink-border' : 'bg-vault-surface text-vault-muted border border-vault-border'
-        }`}>
-          {agentName.slice(0, 2).toUpperCase()}
-        </div>
+        <div className={`w-2 h-2 ${online ? 'bg-green-400' : 'bg-cc-muted'}`} />
         <div>
           <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-[13px] font-medium text-vault-text">{agentName}</span>
-            <span className={`w-1.5 h-1.5 rounded-full ${online ? 'bg-emerald-400' : 'bg-vault-muted'}`} />
+            <span className="font-pixel text-sm text-cc-white tracking-wider">{agentName.toUpperCase()}</span>
+            <span className={`font-pixel text-[10px] tracking-wider ${online ? 'text-green-400' : 'text-cc-muted'}`}>
+              {online ? 'ONLINE' : 'OFFLINE'}
+            </span>
           </div>
-          <p className="text-vault-muted text-[11px]">
-            Last seen {timeAgo(lastSeenAt)} &middot; {requestCount.toLocaleString()} requests &middot; Since {new Date(firstSeenAt).toLocaleDateString()}
+          <p className="text-cc-muted text-[11px]">
+            Last seen {timeAgo(lastSeenAt)} &middot; {requestCount} req &middot; Since {new Date(firstSeenAt).toLocaleDateString()}
           </p>
         </div>
       </div>
       <button
         onClick={() => onDisconnect(id)}
         disabled={disconnecting}
-        className="px-2.5 py-1 bg-vault-surface border border-vault-border rounded text-[11px] text-vault-muted hover:text-red-400 hover:border-red-400/30 transition-colors disabled:opacity-50"
+        className="px-2.5 py-1 border-2 border-cc-border font-pixel text-[10px] text-cc-muted tracking-wider hover:text-red-400 hover:border-red-400/30 transition-colors disabled:opacity-50"
       >
-        {disconnecting ? '...' : 'Remove'}
+        {disconnecting ? '...' : 'REMOVE'}
       </button>
     </div>
   );

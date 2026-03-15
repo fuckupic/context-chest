@@ -1,64 +1,66 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=DM+Serif+Display:ital@0;1&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Handjet:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+* {
+  image-rendering: pixelated;
+}
+
 body {
-  font-family: 'IBM Plex Sans', system-ui, sans-serif;
+  font-family: 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
-  background: #1e1e2e;
-  color: #cdd6f4;
+  background: #000;
+  color: #ccc;
 }
 
-code, .font-mono {
-  font-family: 'IBM Plex Mono', 'JetBrains Mono', monospace;
-}
-
-/* Scrollbar — Obsidian style */
+/* Pixel-style scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: #000;
 }
 ::-webkit-scrollbar-thumb {
-  background: #45475a;
-  border-radius: 3px;
+  background: #333;
+  border: 2px solid #000;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #585b70;
+  background: #555;
 }
 
-/* Selection */
 ::selection {
-  background: rgba(244, 114, 182, 0.25);
-  color: #cdd6f4;
+  background: rgba(255, 62, 142, 0.3);
+  color: #fff;
 }
 
-/* Landing page helpers */
-.noise-overlay {
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+/* Dither noise overlay */
+.dither-bg {
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAJElEQVQIW2NkYPj/n4EBCBgZGRkYGBgYmBgYGP4zMDAwAAMAJQgDAT5KjbgAAAAASUVORK5CYII=");
   background-repeat: repeat;
+  opacity: 0.03;
 }
 
-.gradient-mesh {
-  background:
-    radial-gradient(ellipse at 20% 0%, rgba(244, 114, 182, 0.06) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 100%, rgba(244, 114, 182, 0.03) 0%, transparent 50%),
-    #1e1e2e;
+/* Pixel border util */
+.pixel-border {
+  border: 2px solid #222;
+  box-shadow:
+    2px 2px 0 0 #222,
+    -2px -2px 0 0 #111;
 }
 
-.vault-line {
-  background: linear-gradient(90deg, transparent, rgba(244, 114, 182, 0.2), transparent);
-  height: 1px;
+.pixel-border-pink {
+  border: 2px solid rgba(255, 62, 142, 0.3);
+  box-shadow:
+    2px 2px 0 0 rgba(255, 62, 142, 0.15);
 }
 
-.stagger-1 { animation-delay: 0.1s; }
-.stagger-2 { animation-delay: 0.2s; }
-.stagger-3 { animation-delay: 0.3s; }
-.stagger-4 { animation-delay: 0.4s; }
-.stagger-5 { animation-delay: 0.5s; }
-.stagger-6 { animation-delay: 0.6s; }
-.stagger-7 { animation-delay: 0.7s; }
+/* Stagger animations */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+.stagger-5 { animation-delay: 0.25s; }
+.stagger-6 { animation-delay: 0.3s; }

@@ -61,71 +61,69 @@ export function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-vault-crust">
-      <div className="w-full max-w-sm">
+    <div className="min-h-screen flex items-center justify-center bg-cc-black relative">
+      <div className="fixed inset-0 dither-bg pointer-events-none" />
+
+      <div className="relative z-10 w-full max-w-sm px-6">
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-2 mb-3">
-            <div className="w-8 h-8 rounded-lg bg-vault-pink flex items-center justify-center text-vault-crust font-bold text-xs">
-              CC
-            </div>
+          <Link to="/" className="inline-block mb-4">
+            <img src="/chest-white.png" alt="" className="w-12 h-12 mx-auto" style={{ imageRendering: 'auto' }} />
           </Link>
-          <h1 className="text-xl font-medium text-vault-text mb-1">
-            {mode === 'login' ? 'Welcome back' : 'Create your vault'}
+          <h1 className="font-pixel text-2xl text-cc-white tracking-wide mb-1">
+            {mode === 'login' ? 'SIGN IN' : 'CREATE VAULT'}
           </h1>
-          <p className="text-vault-muted text-[13px]">
-            {mode === 'login' ? 'Sign in to your encrypted vault' : 'Set up end-to-end encryption'}
+          <p className="text-cc-muted text-xs">
+            {mode === 'login' ? 'Access your encrypted memories' : 'Set up end-to-end encryption'}
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-vault-mantle rounded-xl border border-vault-border p-5 space-y-3">
+        <form onSubmit={handleSubmit} className="border-2 border-cc-border bg-cc-dark p-5 space-y-4">
           <div>
-            <label className="block text-[11px] text-vault-muted mb-1 uppercase tracking-wider">Email</label>
+            <label className="block font-pixel text-[10px] text-cc-muted tracking-wider mb-1.5">EMAIL</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full bg-vault-surface border border-vault-border rounded-lg px-3 py-2 text-[13px] text-vault-text focus:outline-none focus:border-vault-pink/50 transition-colors"
+              className="w-full bg-cc-black border-2 border-cc-border px-3 py-2 text-sm text-cc-white focus:outline-none focus:border-cc-pink transition-colors"
             />
           </div>
           <div>
-            <label className="block text-[11px] text-vault-muted mb-1 uppercase tracking-wider">Password</label>
+            <label className="block font-pixel text-[10px] text-cc-muted tracking-wider mb-1.5">PASSWORD</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={8}
-              className="w-full bg-vault-surface border border-vault-border rounded-lg px-3 py-2 text-[13px] text-vault-text focus:outline-none focus:border-vault-pink/50 transition-colors"
+              className="w-full bg-cc-black border-2 border-cc-border px-3 py-2 text-sm text-cc-white focus:outline-none focus:border-cc-pink transition-colors"
             />
           </div>
 
           {error && (
-            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-2.5 text-red-400 text-[12px]">
-              {error}
-            </div>
+            <div className="border-2 border-red-500/30 bg-red-500/5 p-2.5 text-red-400 text-xs">{error}</div>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 bg-vault-pink text-vault-crust rounded-lg text-[13px] font-medium hover:bg-vault-pink-hover transition-colors disabled:opacity-50"
+            className="w-full py-2.5 bg-cc-pink text-cc-black font-pixel text-sm tracking-wider hover:bg-cc-pink-dim transition-colors disabled:opacity-50"
           >
-            {loading ? 'Please wait...' : mode === 'login' ? 'Sign in' : 'Create account'}
+            {loading ? 'PLEASE WAIT...' : mode === 'login' ? 'ENTER' : 'CREATE'}
           </button>
 
-          <p className="text-center text-vault-muted text-[12px] pt-1">
+          <p className="text-center text-cc-muted text-xs">
             {mode === 'login' ? (
               <>
                 No account?{' '}
-                <button type="button" onClick={() => setMode('register')} className="text-vault-pink hover:underline">
+                <button type="button" onClick={() => setMode('register')} className="text-cc-pink hover:underline">
                   Create one
                 </button>
               </>
             ) : (
               <>
                 Have an account?{' '}
-                <button type="button" onClick={() => setMode('login')} className="text-vault-pink hover:underline">
+                <button type="button" onClick={() => setMode('login')} className="text-cc-pink hover:underline">
                   Sign in
                 </button>
               </>

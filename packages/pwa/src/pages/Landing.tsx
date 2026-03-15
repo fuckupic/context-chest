@@ -1,39 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/context';
 
-const FEATURES = [
-  {
-    icon: '🔐',
-    title: 'Client-Side Encryption',
-    desc: 'AES-256-GCM encryption happens on your machine. The server never sees plaintext. Your memories are yours alone.',
-  },
-  {
-    icon: '🧠',
-    title: '8 MCP Tools',
-    desc: 'Remember, recall, read, forget, browse, and full session tracking. Your AI agent gets persistent memory in one install.',
-  },
-  {
-    icon: '🔄',
-    title: 'Works Everywhere',
-    desc: 'Claude Code, Cursor, any MCP-compatible tool. One vault, every agent. Memories sync across all your AI workflows.',
-  },
-  {
-    icon: '📂',
-    title: 'Organized by Path',
-    desc: 'Store memories at semantic paths like preferences/editor or project/architecture. Browse them like a filesystem.',
-  },
-  {
-    icon: '🔍',
-    title: 'Instant Recall',
-    desc: 'Text search across all your memories. Optional vector search with OpenViking for semantic matching.',
-  },
-  {
-    icon: '🤖',
-    title: 'Agent Tracking',
-    desc: 'See which AI agents are connected, when they last called, and how many requests they have made. Full visibility.',
-  },
-];
-
 const SETUP_CODE = `{
   "mcpServers": {
     "context-chest": {
@@ -43,201 +10,170 @@ const SETUP_CODE = `{
   }
 }`;
 
-function FeatureCard({ icon, title, desc, index }: { icon: string; title: string; desc: string; index: number }) {
-  return (
-    <div
-      className={`opacity-0 animate-fade-up stagger-${index + 1} group relative border border-vault-border rounded-xl p-6 hover:border-vault-pink-dim transition-colors duration-500`}
-    >
-      <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-vault-pink/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-      <div className="relative">
-        <span className="text-2xl">{icon}</span>
-        <h3 className="font-display text-lg text-white mt-3 mb-2">{title}</h3>
-        <p className="text-sm text-vault-muted leading-relaxed">{desc}</p>
-      </div>
-    </div>
-  );
-}
+const FEATURES = [
+  { title: 'ENCRYPTED', desc: 'AES-256-GCM on your machine. Server never sees plaintext.' },
+  { title: '8 TOOLS', desc: 'Remember, recall, read, forget, browse, sessions.' },
+  { title: 'ANY AGENT', desc: 'Claude Code, Cursor, any MCP tool. One vault.' },
+  { title: 'ORGANIZED', desc: 'Path-based storage. Browse like a filesystem.' },
+  { title: 'SEARCHABLE', desc: 'Instant text recall across all memories.' },
+  { title: 'OPEN SOURCE', desc: 'MIT licensed. Self-host or use our cloud.' },
+];
 
 export function Landing() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
 
-  const handleCTA = () => {
-    navigate(isAuthenticated ? '/memories' : '/login');
-  };
+  const handleCTA = () => navigate(isAuthenticated ? '/memories' : '/login');
 
   return (
-    <div className="min-h-screen gradient-mesh noise-overlay relative overflow-hidden">
-      {/* Ambient glow */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-vault-pink/5 rounded-full blur-[120px] animate-glow-pulse pointer-events-none" />
+    <div className="min-h-screen bg-cc-black relative">
+      {/* Dither overlay */}
+      <div className="fixed inset-0 dither-bg pointer-events-none" />
 
       {/* Nav */}
-      <nav className="relative z-10 flex items-center justify-between max-w-6xl mx-auto px-6 py-6">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-vault-pink to-vault-pink-dim flex items-center justify-center text-vault-crust font-bold text-sm">
-            CC
-          </div>
-          <span className="font-display text-lg text-white">Context Chest</span>
+      <nav className="relative z-10 flex items-center justify-between max-w-5xl mx-auto px-6 py-5">
+        <div className="flex items-center gap-2.5">
+          <img src="/chest-white.png" alt="" className="w-6 h-6" style={{ imageRendering: 'auto' }} />
+          <span className="font-pixel text-base text-cc-white tracking-wide">Context Chest</span>
         </div>
-        <button
-          onClick={handleCTA}
-          className="text-sm text-vault-muted hover:text-white transition-colors"
-        >
-          {isAuthenticated ? 'Dashboard' : 'Sign in'}
+        <button onClick={handleCTA} className="font-pixel text-xs text-cc-muted hover:text-cc-pink tracking-wider transition-colors">
+          {isAuthenticated ? 'DASHBOARD' : 'SIGN IN'}
         </button>
       </nav>
 
       {/* Hero */}
-      <section className="relative z-10 max-w-4xl mx-auto px-6 pt-20 pb-16 text-center">
-        <div className="opacity-0 animate-fade-up">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-vault-pink/20 bg-vault-pink/5 text-vault-pink text-xs font-mono mb-8">
-            <span className="w-1.5 h-1.5 rounded-full bg-vault-pink animate-pulse" />
-            Open Source &middot; End-to-End Encrypted
+      <section className="relative z-10 max-w-5xl mx-auto px-6 pt-16 pb-20">
+        <div className="flex flex-col md:flex-row items-center gap-12">
+          {/* Chest image */}
+          <div className="opacity-0 animate-fade-in md:w-1/2 flex justify-center">
+            <img
+              src="/chest-dithered.png"
+              alt="Context Chest"
+              className="w-72 md:w-96"
+              style={{ imageRendering: 'auto' }}
+            />
+          </div>
+
+          {/* Text */}
+          <div className="md:w-1/2">
+            <h1 className="opacity-0 animate-fade-up font-pixel text-5xl md:text-6xl text-cc-white leading-none mb-6 tracking-wide">
+              Your AI<br />
+              forgets<br />
+              <span className="text-cc-pink">everything.</span>
+            </h1>
+            <p className="opacity-0 animate-fade-up stagger-1 text-cc-sub text-sm leading-relaxed mb-8 max-w-sm">
+              Context Chest gives AI agents persistent, encrypted memory.
+              Preferences, project context, decisions — remembered across
+              every session. Encrypted so only you can read them.
+            </p>
+            <div className="opacity-0 animate-fade-up stagger-2 flex gap-3">
+              <button
+                onClick={handleCTA}
+                className="px-6 py-2.5 bg-cc-pink text-cc-black font-pixel text-sm tracking-wider hover:bg-cc-pink-dim transition-colors"
+              >
+                {isAuthenticated ? 'OPEN DASHBOARD' : 'GET STARTED'}
+              </button>
+              <a
+                href="https://github.com/fuckupic/context-chest"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-6 py-2.5 border-2 border-cc-border text-cc-muted font-pixel text-sm tracking-wider hover:border-cc-pink hover:text-cc-pink transition-colors"
+              >
+                GITHUB
+              </a>
+            </div>
           </div>
         </div>
-
-        <h1 className="opacity-0 animate-fade-up stagger-1 font-display text-5xl md:text-7xl text-white leading-[1.1] mb-6">
-          Your AI forgets<br />
-          <span className="text-vault-pink italic">everything.</span>
-        </h1>
-
-        <p className="opacity-0 animate-fade-up stagger-2 text-lg md:text-xl text-vault-muted max-w-2xl mx-auto mb-10 leading-relaxed font-light">
-          Context Chest gives AI agents persistent, encrypted memory.
-          Preferences, project context, decisions &mdash; remembered across
-          every session, encrypted so only you can read them.
-        </p>
-
-        <div className="opacity-0 animate-fade-up stagger-3 flex flex-col sm:flex-row items-center justify-center gap-4">
-          <button
-            onClick={handleCTA}
-            className="px-8 py-3 bg-vault-pink text-vault-crust font-semibold rounded-lg hover:bg-vault-pink/90 transition-colors text-sm tracking-wide"
-          >
-            {isAuthenticated ? 'Open Dashboard' : 'Get Started Free'}
-          </button>
-          <a
-            href="https://github.com/fuckupic/context-chest"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-8 py-3 border border-vault-border text-vault-muted rounded-lg hover:border-vault-pink-dim hover:text-white transition-colors text-sm"
-          >
-            View on GitHub
-          </a>
-        </div>
       </section>
+
+      {/* Divider */}
+      <div className="max-w-5xl mx-auto px-6">
+        <div className="border-t-2 border-cc-border border-dashed" />
+      </div>
 
       {/* Setup */}
-      <section className="relative z-10 max-w-3xl mx-auto px-6 pb-20">
-        <div className="opacity-0 animate-fade-up stagger-4">
-          <p className="text-center text-xs text-vault-muted font-mono uppercase tracking-widest mb-4">
-            30-second setup
-          </p>
-          <div className="relative rounded-xl border border-vault-border bg-vault-mantle/50 overflow-hidden">
-            <div className="flex items-center gap-2 px-4 py-3 border-b border-vault-border">
-              <div className="w-2.5 h-2.5 rounded-full bg-vault-accent/60" />
-              <div className="w-2.5 h-2.5 rounded-full bg-vault-pink/60" />
-              <div className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
-              <span className="text-xs text-vault-muted ml-2 font-mono">.mcp.json</span>
-            </div>
-            <pre className="p-5 text-sm font-mono text-vault-pink/80 overflow-x-auto leading-relaxed">
-              {SETUP_CODE}
-            </pre>
+      <section className="relative z-10 max-w-3xl mx-auto px-6 py-16">
+        <p className="font-pixel text-xs text-cc-muted tracking-[0.3em] mb-4 text-center">30 SECOND SETUP</p>
+        <div className="border-2 border-cc-border bg-cc-dark">
+          <div className="flex items-center gap-2 px-3 py-2 border-b-2 border-cc-border">
+            <span className="font-pixel text-[10px] text-cc-muted tracking-wider">.mcp.json</span>
           </div>
-          <p className="text-center text-xs text-vault-muted mt-3">
-            Add to your Claude Code or Cursor config. That&apos;s it.
-          </p>
+          <pre className="p-4 text-sm font-mono text-cc-pink overflow-x-auto leading-relaxed">{SETUP_CODE}</pre>
         </div>
+        <p className="text-center text-xs text-cc-muted mt-3">
+          Add to Claude Code or Cursor config. That's it.
+        </p>
       </section>
 
-      <div className="vault-line max-w-4xl mx-auto" />
+      {/* Divider */}
+      <div className="max-w-5xl mx-auto px-6">
+        <div className="border-t-2 border-cc-border border-dashed" />
+      </div>
 
       {/* Features */}
-      <section className="relative z-10 max-w-5xl mx-auto px-6 py-20">
-        <div className="text-center mb-14">
-          <h2 className="opacity-0 animate-fade-up font-display text-3xl md:text-4xl text-white mb-4">
-            Everything your agent needs<br />to <span className="text-vault-pink italic">remember</span>
-          </h2>
-          <p className="opacity-0 animate-fade-up stagger-1 text-vault-muted max-w-xl mx-auto">
-            A complete memory layer for any MCP-compatible AI tool.
-          </p>
-        </div>
-
-        <div className="grid md:grid-cols-3 gap-5">
-          {FEATURES.map((f, i) => (
-            <FeatureCard key={f.title} {...f} index={i} />
+      <section className="relative z-10 max-w-5xl mx-auto px-6 py-16">
+        <h2 className="font-pixel text-3xl text-cc-white text-center mb-12 tracking-wide">
+          WHAT'S IN THE <span className="text-cc-pink">CHEST</span>
+        </h2>
+        <div className="grid md:grid-cols-3 gap-px bg-cc-border">
+          {FEATURES.map((f) => (
+            <div key={f.title} className="bg-cc-black p-6 hover:bg-cc-surface transition-colors group">
+              <h3 className="font-pixel text-base text-cc-white mb-2 tracking-wider group-hover:text-cc-pink transition-colors">
+                {f.title}
+              </h3>
+              <p className="text-xs text-cc-muted leading-relaxed">{f.desc}</p>
+            </div>
           ))}
         </div>
       </section>
 
-      <div className="vault-line max-w-4xl mx-auto" />
+      {/* Divider */}
+      <div className="max-w-5xl mx-auto px-6">
+        <div className="border-t-2 border-cc-border border-dashed" />
+      </div>
 
       {/* How it works */}
-      <section className="relative z-10 max-w-4xl mx-auto px-6 py-20">
-        <h2 className="opacity-0 animate-fade-up font-display text-3xl md:text-4xl text-white text-center mb-14">
-          How it <span className="text-vault-pink italic">works</span>
+      <section className="relative z-10 max-w-3xl mx-auto px-6 py-16">
+        <h2 className="font-pixel text-3xl text-cc-white text-center mb-12 tracking-wide">
+          HOW IT <span className="text-cc-pink">WORKS</span>
         </h2>
-
-        <div className="space-y-8">
+        <div className="space-y-6">
           {[
-            {
-              step: '01',
-              title: 'Agent encrypts locally',
-              desc: 'When your AI agent stores a memory, it encrypts the content with your key before it leaves your machine. The server only sees ciphertext.',
-            },
-            {
-              step: '02',
-              title: 'Summaries enable search',
-              desc: 'Unencrypted summaries (L0/L1) are stored alongside the encrypted content, enabling browse and recall without exposing the full memory.',
-            },
-            {
-              step: '03',
-              title: 'Any agent can access',
-              desc: 'Claude Code, Cursor, or any MCP tool connects to the same vault. Your AI agents share context seamlessly, encrypted end-to-end.',
-            },
-          ].map((item, i) => (
-            <div key={item.step} className={`opacity-0 animate-slide-right stagger-${i + 1} flex gap-6 items-start`}>
-              <span className="font-mono text-vault-pink/40 text-3xl font-bold shrink-0 w-12">
-                {item.step}
-              </span>
+            { n: '01', title: 'ENCRYPT LOCALLY', desc: 'Your agent encrypts content with your key before it leaves your machine.' },
+            { n: '02', title: 'STORE SUMMARIES', desc: 'Unencrypted summaries enable search. Full content stays encrypted.' },
+            { n: '03', title: 'ACCESS ANYWHERE', desc: 'Any MCP tool connects to the same vault. Memories sync across agents.' },
+          ].map((item) => (
+            <div key={item.n} className="flex gap-5 items-start border-2 border-cc-border p-4 hover:border-cc-pink-border transition-colors">
+              <span className="font-pixel text-2xl text-cc-pink shrink-0">{item.n}</span>
               <div>
-                <h3 className="font-display text-xl text-white mb-1">{item.title}</h3>
-                <p className="text-vault-muted text-sm leading-relaxed">{item.desc}</p>
+                <h3 className="font-pixel text-sm text-cc-white tracking-wider mb-1">{item.title}</h3>
+                <p className="text-xs text-cc-muted leading-relaxed">{item.desc}</p>
               </div>
             </div>
           ))}
         </div>
       </section>
 
-      <div className="vault-line max-w-4xl mx-auto" />
-
       {/* CTA */}
-      <section className="relative z-10 max-w-3xl mx-auto px-6 py-24 text-center">
-        <h2 className="opacity-0 animate-fade-up font-display text-3xl md:text-5xl text-white mb-4">
-          Give your AI a <span className="text-vault-pink italic">memory</span>
+      <section className="relative z-10 max-w-3xl mx-auto px-6 py-20 text-center">
+        <h2 className="font-pixel text-4xl md:text-5xl text-cc-white mb-4 tracking-wide">
+          GIVE YOUR AI<br />A <span className="text-cc-pink">MEMORY</span>
         </h2>
-        <p className="opacity-0 animate-fade-up stagger-1 text-vault-muted mb-8 text-lg">
-          Free to use. Open source. Your data stays yours.
-        </p>
-        <div className="opacity-0 animate-fade-up stagger-2">
-          <button
-            onClick={handleCTA}
-            className="px-10 py-4 bg-vault-pink text-vault-crust font-semibold rounded-lg hover:bg-vault-pink/90 transition-colors tracking-wide"
-          >
-            {isAuthenticated ? 'Open Dashboard' : 'Get Started Free'}
-          </button>
-        </div>
+        <p className="text-cc-muted text-sm mb-8">Free. Open source. Your data stays yours.</p>
+        <button
+          onClick={handleCTA}
+          className="px-8 py-3 bg-cc-pink text-cc-black font-pixel text-sm tracking-wider hover:bg-cc-pink-dim transition-colors"
+        >
+          {isAuthenticated ? 'OPEN DASHBOARD' : 'GET STARTED FREE'}
+        </button>
       </section>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-vault-border py-8 text-center">
-        <p className="text-xs text-vault-muted">
-          Context Chest &middot; Open Source &middot;{' '}
-          <a
-            href="https://github.com/fuckupic/context-chest"
-            className="text-vault-pink/60 hover:text-vault-pink transition-colors"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            GitHub
+      <footer className="relative z-10 border-t-2 border-cc-border py-6 text-center">
+        <p className="font-pixel text-[10px] text-cc-muted tracking-wider">
+          CONTEXT CHEST &middot; MIT LICENSE &middot;{' '}
+          <a href="https://github.com/fuckupic/context-chest" className="text-cc-pink hover:underline" target="_blank" rel="noopener noreferrer">
+            GITHUB
           </a>
         </p>
       </footer>

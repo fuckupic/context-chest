@@ -5,7 +5,6 @@ import { decryptL2FromBytes } from '../crypto';
 interface MemoryDetailProps {
   uri: string;
   l0: string;
-  l1?: string;
 }
 
 export function MemoryDetail({ uri, l0 }: MemoryDetailProps) {
@@ -35,46 +34,42 @@ export function MemoryDetail({ uri, l0 }: MemoryDetailProps) {
 
   return (
     <div className="h-full flex flex-col">
-      {/* Header */}
-      <div className="px-5 py-3 border-b border-vault-border flex items-center gap-2 shrink-0 bg-vault-mantle/30">
-        {dirPath && (
-          <span className="text-[11px] text-vault-muted font-mono">{dirPath}/</span>
-        )}
-        <span className="text-[13px] text-vault-text font-medium">{fileName}</span>
+      <div className="px-4 py-3 border-b-2 border-cc-border flex items-center gap-2 shrink-0 bg-cc-dark">
+        {dirPath && <span className="font-mono text-[10px] text-cc-muted">{dirPath}/</span>}
+        <span className="font-pixel text-sm text-cc-white tracking-wider">{fileName.toUpperCase()}</span>
         <div className="flex-1" />
         <button
           onClick={handleDecrypt}
           disabled={decrypting}
-          className="px-3 py-1 bg-vault-surface border border-vault-border rounded text-[11px] text-vault-subtext hover:text-vault-pink hover:border-vault-pink-border transition-colors disabled:opacity-50"
+          className="px-3 py-1 border-2 border-cc-border font-pixel text-[10px] text-cc-muted tracking-wider hover:text-cc-pink hover:border-cc-pink-border transition-colors disabled:opacity-50"
         >
-          {decrypting ? 'Decrypting...' : decryptedContent ? 'Re-decrypt' : 'Decrypt'}
+          {decrypting ? 'DECRYPTING...' : decryptedContent ? 'RE-DECRYPT' : 'DECRYPT'}
         </button>
       </div>
 
-      {/* Content */}
       <div className="flex-1 overflow-auto p-5 space-y-4">
         {l0 && (
           <div>
-            <p className="text-[10px] text-vault-muted uppercase tracking-wider mb-1 font-medium">Summary</p>
-            <p className="text-[13px] text-vault-subtext">{l0}</p>
+            <p className="font-pixel text-[10px] text-cc-muted tracking-wider mb-1">SUMMARY</p>
+            <p className="text-sm text-cc-sub">{l0}</p>
           </div>
         )}
 
         {error && (
-          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-red-400 text-[12px]">{error}</div>
+          <div className="border-2 border-red-500/30 bg-red-500/5 p-3 text-red-400 text-xs">{error}</div>
         )}
 
         {decryptedContent && (
           <div>
-            <p className="text-[10px] text-vault-muted uppercase tracking-wider mb-1 font-medium">Content</p>
-            <div className="bg-vault-crust rounded-lg p-4 text-[13px] text-vault-text whitespace-pre-wrap font-mono leading-relaxed border border-vault-border">
+            <p className="font-pixel text-[10px] text-cc-muted tracking-wider mb-1">CONTENT</p>
+            <div className="bg-cc-dark border-2 border-cc-border p-4 text-sm text-cc-text whitespace-pre-wrap font-mono leading-relaxed">
               {decryptedContent}
             </div>
           </div>
         )}
 
         {!decryptedContent && !error && !decrypting && (
-          <p className="text-[12px] text-vault-muted italic">Click Decrypt to view the full content.</p>
+          <p className="text-xs text-cc-muted italic">Click Decrypt to view content.</p>
         )}
       </div>
     </div>
