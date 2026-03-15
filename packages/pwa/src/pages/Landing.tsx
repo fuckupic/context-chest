@@ -46,18 +46,26 @@ export function Landing() {
         <div className="flex flex-col md:flex-row items-center gap-12">
           {/* Chest image with memory pills */}
           <div className="opacity-0 animate-fade-in md:w-1/2 flex justify-center">
-            <div className="relative py-12 px-8">
-              {/* Floating pixel pills */}
-              <span className="absolute top-0 left-0 px-3 py-1.5 bg-cc-white text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[-6deg] shadow-[3px_3px_0_0_rgba(232,69,122,0.5)]">I PREFER DARK MODE</span>
-              <span className="absolute top-6 right-0 px-3 py-1.5 bg-cc-pink text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-pink rotate-[3deg] shadow-[3px_3px_0_0_rgba(255,255,255,0.2)]">USE TAILWIND</span>
-              <span className="absolute top-[35%] -left-12 px-3 py-1.5 bg-cc-white text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[-2deg] shadow-[3px_3px_0_0_rgba(232,69,122,0.5)]">API KEY IN .ENV</span>
-              <span className="absolute top-[30%] -right-10 px-3 py-1.5 bg-cc-dark text-cc-white font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[5deg] shadow-[3px_3px_0_0_#222]">DEPLOY TO FLY.IO</span>
-              <span className="absolute bottom-12 -left-6 px-3 py-1.5 bg-cc-dark text-cc-white font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[4deg] shadow-[3px_3px_0_0_#222]">USES TYPESCRIPT</span>
-              <span className="absolute bottom-2 right-4 px-3 py-1.5 bg-cc-pink text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-pink rotate-[-3deg] shadow-[3px_3px_0_0_rgba(255,255,255,0.2)]">POSTGRESQL</span>
+            <div className="relative py-6 px-4">
+              {/* Top area */}
+              <span className="absolute top-[15%] left-[10%] z-20 px-3 py-1.5 bg-cc-white text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[-5deg] shadow-[3px_3px_0_0_rgba(232,69,122,0.5)]">DARK MODE ON</span>
+              <span className="absolute top-[8%] right-[5%] z-20 px-3 py-1.5 bg-cc-pink text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-pink rotate-[3deg] shadow-[3px_3px_0_0_rgba(255,255,255,0.2)]">USE TAILWIND</span>
+
+              {/* Middle area - over the chest opening */}
+              <span className="absolute top-[38%] left-[15%] z-20 px-3 py-1.5 bg-cc-dark text-cc-white font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[-2deg] shadow-[3px_3px_0_0_#222]">FASTIFY + PRISMA</span>
+              <span className="absolute top-[32%] right-[8%] z-20 px-3 py-1.5 bg-cc-white text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[4deg] shadow-[3px_3px_0_0_rgba(232,69,122,0.5)]">API KEY IN .ENV</span>
+              <span className="absolute top-[48%] left-[30%] z-20 px-3 py-1.5 bg-cc-pink text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-pink rotate-[1deg] shadow-[3px_3px_0_0_rgba(255,255,255,0.2)]">DEPLOY TO FLY.IO</span>
+
+              {/* Lower area */}
+              <span className="absolute top-[60%] right-[12%] z-20 px-3 py-1.5 bg-cc-dark text-cc-white font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[-3deg] shadow-[3px_3px_0_0_#222]">USES TYPESCRIPT</span>
+              <span className="absolute top-[72%] left-[8%] z-20 px-3 py-1.5 bg-cc-white text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[5deg] shadow-[3px_3px_0_0_rgba(232,69,122,0.5)]">POSTGRESQL</span>
+              <span className="absolute top-[70%] right-[20%] z-20 px-3 py-1.5 bg-cc-pink text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-pink rotate-[-4deg] shadow-[3px_3px_0_0_rgba(255,255,255,0.2)]">MIT LICENSE</span>
+              <span className="absolute top-[85%] left-[25%] z-20 px-3 py-1.5 bg-cc-dark text-cc-white font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[2deg] shadow-[3px_3px_0_0_#222]">AES-256 ENCRYPTED</span>
+
               <img
                 src="/logo.png"
                 alt="Context Chest"
-                className="w-72 md:w-96 relative z-10"
+                className="w-72 md:w-96 relative"
                 style={{ imageRendering: 'auto' }}
               />
             </div>
