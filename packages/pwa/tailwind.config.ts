@@ -22,8 +22,8 @@ const config: Config = {
         },
       },
       fontFamily: {
-        pixel: ['"Handjet"', 'monospace'],
-        body: ['"Inter"', 'system-ui', 'sans-serif'],
+        pixel: ['Handjet', 'monospace'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
         mono: ['"JetBrains Mono"', 'monospace'],
       },
       animation: {
