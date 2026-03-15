@@ -175,6 +175,29 @@ async function main() {
     process.stderr.write('[context-chest] No credentials found. Run context-chest login first.\n');
   }
 
+  // Surface vault contents on startup so the AI has context immediately
+  if (client) {
+    try {
+      const browseRes = await client.browse('', 2);
+      const tree = (browseRes as { data: { tree: Array<{ uri: string; type: string; children?: Array<{ uri: string }> }> } }).data.tree;
+      if (tree.length > 0) {
+        const entries: string[] = [];
+        for (const node of tree) {
+          if (node.type === 'directory' && node.children) {
+            for (const child of node.children) {
+              entries.push(child.uri);
+            }
+          } else {
+            entries.push(node.uri);
+          }
+        }
+        process.stderr.write(`[context-chest] Vault loaded: ${entries.join(', ')}\n`);
+      }
+    } catch {
+      // Non-critical — don't block startup
+    }
+  }
+
   const transport = new StdioServerTransport();
   await server.connect(transport);
 }

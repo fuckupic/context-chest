@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__context-chest__context-chest_remember",
+      "mcp__context-chest__context-chest_recall",
+      "mcp__context-chest__context-chest_read",
+      "mcp__context-chest__context-chest_forget",
+      "mcp__context-chest__context-chest_browse",
+      "mcp__context-chest__context-chest_session-start",
+      "mcp__context-chest__context-chest_session-append",
+      "mcp__context-chest__context-chest_session-save"
+    ]
+  }
+}
