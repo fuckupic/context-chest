@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../auth/context';
 import { Layout } from '../components/Layout';
+import { Landing } from '../pages/Landing';
 import { Login } from '../pages/Login';
 import { Memories } from '../pages/Memories';
 import { Agents } from '../pages/Agents';
@@ -17,6 +18,7 @@ export function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route
           element={
@@ -25,7 +27,6 @@ export function AppRouter() {
             </AuthGuard>
           }
         >
-          <Route path="/" element={<Navigate to="/memories" replace />} />
           <Route path="/memories" element={<Memories />} />
           <Route path="/agents" element={<Agents />} />
           <Route path="/sessions" element={<Sessions />} />

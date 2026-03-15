@@ -1,20 +1,40 @@
 {
   "name": "@context-chest/mcp-server",
   "version": "0.1.0",
-  "description": "MCP server for encrypted AI agent memory via Context Chest",
+  "description": "MCP server for encrypted AI agent memory — remember, recall, browse across sessions",
   "main": "dist/index.js",
   "bin": {
     "context-chest-mcp": "dist/index.js"
   },
+  "files": [
+    "dist/**/*.js",
+    "dist/**/*.d.ts",
+    "README.md"
+  ],
+  "keywords": [
+    "mcp",
+    "ai-memory",
+    "claude",
+    "cursor",
+    "encrypted",
+    "context",
+    "model-context-protocol"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/fuckupic/context-chest.git",
+    "directory": "packages/mcp-server"
+  },
+  "license": "MIT",
   "scripts": {
     "build": "tsc",
     "dev": "ts-node src/index.ts",
     "test": "jest --no-coverage",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.1",
-    "@cloudflare/opaque-ts": "^0.7.5",
     "zod": "^3.22.4"
   },
   "devDependencies": {

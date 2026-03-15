@@ -1,92 +1,115 @@
-# Context Chest - Sync & Connect API
+# Context Chest
 
-Context Chest is a secure vault synchronization and connection API that allows users to backup their encrypted vaults and enables external applications to securely connect through OAuth2-like flows.
+**Encrypted memory for AI agents.** Give your coding agents persistent, searchable memory that only you can read.
+
+Context Chest is an open-source MCP server that lets AI agents remember things across sessions -- project conventions, decisions, debugging notes, anything worth keeping. All content is encrypted client-side with AES-256-GCM before it ever leaves your machine. The server never sees plaintext.
+
+## Quick Start
+
+Install the MCP server and add it to your agent's config:
+
+```bash
+npm install -g @context-chest/mcp-server
+context-chest login
+```
+
+Then add to your MCP config (`claude_desktop_config.json`, `.cursor/mcp.json`, etc.):
+
+```json
+{
+  "mcpServers": {
+    "context-chest": {
+      "command": "context-chest-mcp",
+      "args": []
+    }
+  }
+}
+```
+
+That's it. Your agent now has 8 tools for persistent, encrypted memory.
+
+## Tools
+
+| Tool | Description |
+|------|-------------|
+| `remember` | Store a memory with a path and tags |
+| `recall` | Search memories by keyword or semantic query |
+| `read` | Decrypt and return the full content of a memory |
+| `forget` | Delete a memory |
+| `browse` | List memories in a directory-like structure |
+| `session-start` | Begin tracking the current conversation |
+| `session-append` | Add a message to the active session |
+| `session-save` | Extract memories from the session and close it |
 
 ## Features
 
-- Secure user authentication using OPAQUE protocol
-- Encrypted vault blob storage (AES-GCM 256)
-- Chest Connect OAuth2-like flow for external applications
-- Rate limiting and security measures
-- Prometheus metrics and Grafana dashboards
+- **End-to-end encrypted** -- AES-256-GCM with per-item keys derived via HKDF. The server stores ciphertext only.
+- **Works everywhere** -- Claude Code, Cursor, Windsurf, or any MCP-compatible client.
+- **PWA dashboard** -- Browse memories, view connected agents, and manage sessions from a web UI.
+- **Session capture** -- Record full conversations and extract structured memories from them.
+- **Vector search** -- Optional semantic recall via OpenViking. Works without it too (falls back to text search).
+- **Self-hosted** -- Run on your own infrastructure. Docker Compose for local dev, deploy anywhere.
 
-## Prerequisites
+## How It Works
 
-- Node.js 20 or later
-- Docker and Docker Compose
-- PostgreSQL 15 or later (for production)
-- S3-compatible storage (MinIO for development, AWS S3 for production)
+Context Chest uses a three-layer encryption model:
 
-## Local Development Setup
+```
+Master Key (random 256-bit)
+  |
+  |-- wrapped with HKDF(exportKey, userId) --> stored on server
+  |
+  +-- HKDF(masterKey, memoryURI) --> per-item key
+        |
+        +-- AES-256-GCM encrypt --> ciphertext stored on server
+```
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/yourusername/context-chest.git
-   cd context-chest
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Set up environment variables:
-   ```bash
-   cp .env.example .env
-   ```
-   Edit `.env` with your configuration.
-
-4. Start development services:
-   ```bash
-   docker-compose up -d
-   ```
-
-5. Run database migrations:
-   ```bash
-   npx prisma migrate dev
-   ```
-
-6. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-## API Documentation
-
-The API documentation is available at `/docs` when running the server. The OpenAPI specification is in `openapi.yaml`.
-
-## Security Considerations
-
-- The server never sees plaintext profile data
-- All vault data is encrypted client-side using AES-GCM 256
-- OPAQUE protocol for password-based authentication
-- Ed25519 for JWT signatures
-- Rate limiting and request size restrictions
-- TLS 1.3 required for all connections
-
-## OPAQUE Integration
-
-Context Chest uses the OPAQUE protocol for secure password-based authentication. The integration is based on the `@cloudflare/opaque-ts` library.
-
-### How It Works
-
-1. **Registration:**
-   - The client initiates registration by sending a registration request.
-   - The server responds with a registration response, which is stored in the database.
-   - The client completes the registration process, and the server stores the OPAQUE record.
-
-2. **Login:**
-   - The client initiates login by sending a credential request.
-   - The server responds with a credential response, which is used to verify the client's credentials.
-   - The client sends a credential finalization, and the server verifies it to complete the login process.
-
-### Implementation Details
-
-- The server uses a persistent `serverPrivateKey` for OPAQUE operations.
-- The OPAQUE record is stored in the database as a `bytea` field.
-- The integration ensures that the server never sees the plaintext password, enhancing security.
+1. On registration, a random master key is generated client-side
+2. The master key is wrapped using a key derived from your credentials and stored server-side
+3. Each memory gets its own encryption key derived from the master key + the memory's URI
+4. Only the MCP server (running on your machine) can decrypt -- the API server never sees plaintext
 
 ## Development
+
+### Prerequisites
+
+- Node.js 20+
+- Docker and Docker Compose
+
+### Setup
+
+```bash
+git clone https://github.com/fuckupic/context-chest.git
+cd context-chest
+
+# Start Postgres, MinIO, and supporting services
+docker-compose up -d
+
+# Install dependencies
+npm install
+
+# Configure environment
+cp .env.example .env
+
+# Run database migrations
+npx prisma migrate dev
+
+# Start the API server
+npm run dev
+```
+
+The API server runs on `http://localhost:3002`. The PWA dev server runs on `http://localhost:5173`.
+
+### Project Structure
+
+```
+context-chest/
+  packages/
+    mcp-server/     # MCP server (installed by agents)
+  src/              # API server (Fastify + Prisma)
+  prisma/           # Database schema and migrations
+  docker-compose.yml
+```
 
 ### Running Tests
 
@@ -94,34 +117,6 @@ Context Chest uses the OPAQUE protocol for secure password-based authentication.
 npm test
 ```
 
-### Code Style
-
-```bash
-npm run lint
-```
-
-### Type Checking
-
-```bash
-npm run typecheck
-```
-
-## Deployment
-
-1. Build the Docker image:
-   ```bash
-   docker build -t context-chest .
-   ```
-
-2. Set up environment variables for production
-3. Deploy to your preferred platform (Fly.io, Render, etc.)
-
-## Monitoring
-
-- Prometheus metrics available at `/metrics`
-- Grafana dashboards at `http://localhost:3000`
-- Default credentials: admin/admin
-
 ## License
 
-MIT 
+MIT
