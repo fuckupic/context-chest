@@ -27,13 +27,13 @@ export function Sessions() {
   }, [client]);
 
   if (loading) {
-    return <div className="flex items-center justify-center h-full text-vault-muted">Loading...</div>;
+    return <div className="flex items-center justify-center h-full text-vault-muted text-sm">Loading...</div>;
   }
 
   if (sessions.length === 0) {
     return (
       <EmptyState
-        message="No sessions yet. Sessions are created automatically when connected agents track conversations."
+        message="No sessions yet. Sessions are created when agents track conversations."
         actionLabel="Connect an agent"
         actionTo="/agents"
       />
@@ -42,30 +42,35 @@ export function Sessions() {
 
   return (
     <div className="max-w-3xl mx-auto p-8">
-      <h1 className="text-xl font-bold mb-6">Sessions</h1>
-      <div className="bg-vault-surface rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
+      <h1 className="text-lg font-medium mb-6 text-vault-text">Sessions</h1>
+      <div className="bg-vault-mantle rounded-lg border border-vault-border overflow-hidden">
+        <table className="w-full text-[13px]">
           <thead>
-            <tr className="border-b border-white/10">
-              <th className="text-left px-4 py-3 text-vault-muted font-medium text-xs uppercase">ID</th>
-              <th className="text-left px-4 py-3 text-vault-muted font-medium text-xs uppercase">Status</th>
-              <th className="text-left px-4 py-3 text-vault-muted font-medium text-xs uppercase">Messages</th>
-              <th className="text-left px-4 py-3 text-vault-muted font-medium text-xs uppercase">Memories</th>
-              <th className="text-left px-4 py-3 text-vault-muted font-medium text-xs uppercase">Created</th>
+            <tr className="border-b border-vault-border">
+              <th className="text-left px-4 py-2.5 text-vault-muted font-medium text-[10px] uppercase tracking-wider">ID</th>
+              <th className="text-left px-4 py-2.5 text-vault-muted font-medium text-[10px] uppercase tracking-wider">Status</th>
+              <th className="text-left px-4 py-2.5 text-vault-muted font-medium text-[10px] uppercase tracking-wider">Messages</th>
+              <th className="text-left px-4 py-2.5 text-vault-muted font-medium text-[10px] uppercase tracking-wider">Memories</th>
+              <th className="text-left px-4 py-2.5 text-vault-muted font-medium text-[10px] uppercase tracking-wider">Created</th>
             </tr>
           </thead>
           <tbody>
             {sessions.map((s) => (
-              <tr key={s.id} className="border-b border-white/5 hover:bg-white/5">
-                <td className="px-4 py-3 font-mono text-xs">{s.id.slice(0, 8)}...</td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-0.5 rounded text-xs ${
-                    s.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-gray-500/20 text-gray-400'
-                  }`}>{s.status}</span>
+              <tr key={s.id} className="border-b border-vault-border/50 hover:bg-vault-surface/30 transition-colors">
+                <td className="px-4 py-2.5 font-mono text-[11px] text-vault-subtext">{s.id.slice(0, 8)}</td>
+                <td className="px-4 py-2.5">
+                  <span className={`inline-flex items-center gap-1.5 text-[11px] ${
+                    s.status === 'active' ? 'text-emerald-400' : 'text-vault-muted'
+                  }`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${
+                      s.status === 'active' ? 'bg-emerald-400' : 'bg-vault-muted'
+                    }`} />
+                    {s.status}
+                  </span>
                 </td>
-                <td className="px-4 py-3 text-vault-muted">{s.messageCount}</td>
-                <td className="px-4 py-3 text-vault-muted">{s.memoriesExtracted}</td>
-                <td className="px-4 py-3 text-vault-muted text-xs">{new Date(s.createdAt).toLocaleDateString()}</td>
+                <td className="px-4 py-2.5 text-vault-subtext">{s.messageCount}</td>
+                <td className="px-4 py-2.5 text-vault-subtext">{s.memoriesExtracted}</td>
+                <td className="px-4 py-2.5 text-vault-muted text-[11px]">{new Date(s.createdAt).toLocaleDateString()}</td>
               </tr>
             ))}
           </tbody>

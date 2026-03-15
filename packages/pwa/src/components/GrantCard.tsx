@@ -9,31 +9,31 @@ interface GrantCardProps {
 }
 
 const roleBadgeColors: Record<string, string> = {
-  tool: 'bg-gray-500/20 text-gray-400',
-  assistant: 'bg-blue-500/20 text-blue-400',
-  admin: 'bg-vault-accent/20 text-vault-accent',
+  tool: 'bg-vault-surface text-vault-muted',
+  assistant: 'bg-blue-500/10 text-blue-400',
+  admin: 'bg-vault-pink-glow text-vault-pink',
 };
 
 export function GrantCard({ id, clientName, role, createdAt, expiresAt, onRevoke, revoking }: GrantCardProps) {
   return (
-    <div className="bg-vault-surface rounded-lg p-4 flex items-center justify-between">
+    <div className="bg-vault-mantle rounded-lg border border-vault-border p-4 flex items-center justify-between hover:border-vault-pink-border transition-colors">
       <div>
-        <div className="flex items-center gap-2 mb-1">
-          <span className="font-medium">{clientName}</span>
-          <span className={`px-2 py-0.5 rounded text-xs ${roleBadgeColors[role] ?? 'bg-gray-500/20 text-gray-400'}`}>
+        <div className="flex items-center gap-2 mb-0.5">
+          <span className="text-[13px] font-medium text-vault-text">{clientName}</span>
+          <span className={`px-1.5 py-0.5 rounded text-[10px] ${roleBadgeColors[role] ?? 'bg-vault-surface text-vault-muted'}`}>
             {role}
           </span>
         </div>
-        <p className="text-vault-muted text-xs">
-          Connected {new Date(createdAt).toLocaleDateString()} · Expires {new Date(expiresAt).toLocaleDateString()}
+        <p className="text-vault-muted text-[11px]">
+          Connected {new Date(createdAt).toLocaleDateString()} &middot; Expires {new Date(expiresAt).toLocaleDateString()}
         </p>
       </div>
       <button
         onClick={() => onRevoke(id)}
         disabled={revoking}
-        className="px-3 py-1.5 bg-red-500/10 border border-red-500/30 rounded text-xs text-red-400 hover:bg-red-500/20 transition-colors disabled:opacity-50"
+        className="px-2.5 py-1 bg-vault-surface border border-vault-border rounded text-[11px] text-vault-muted hover:text-red-400 hover:border-red-400/30 transition-colors disabled:opacity-50"
       >
-        {revoking ? 'Revoking...' : 'Revoke'}
+        {revoking ? '...' : 'Revoke'}
       </button>
     </div>
   );

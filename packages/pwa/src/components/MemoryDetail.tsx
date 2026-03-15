@@ -8,7 +8,7 @@ interface MemoryDetailProps {
   l1?: string;
 }
 
-export function MemoryDetail({ uri, l0, l1 }: MemoryDetailProps) {
+export function MemoryDetail({ uri, l0 }: MemoryDetailProps) {
   const { client, masterKey } = useAuth();
   const [decryptedContent, setDecryptedContent] = useState<string | null>(null);
   const [decrypting, setDecrypting] = useState(false);
@@ -29,40 +29,52 @@ export function MemoryDetail({ uri, l0, l1 }: MemoryDetailProps) {
     }
   };
 
+  const pathSegments = uri.split('/');
+  const fileName = pathSegments.pop() || uri;
+  const dirPath = pathSegments.join('/');
+
   return (
-    <div className="p-6">
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <p className="text-vault-muted text-xs mb-1">{uri.split('/').slice(0, -1).join('/')}/</p>
-          <h2 className="text-lg font-bold">{uri.split('/').pop()}</h2>
-        </div>
+    <div className="h-full flex flex-col">
+      {/* Header */}
+      <div className="px-5 py-3 border-b border-vault-border flex items-center gap-2 shrink-0 bg-vault-mantle/30">
+        {dirPath && (
+          <span className="text-[11px] text-vault-muted font-mono">{dirPath}/</span>
+        )}
+        <span className="text-[13px] text-vault-text font-medium">{fileName}</span>
+        <div className="flex-1" />
         <button
           onClick={handleDecrypt}
           disabled={decrypting}
-          className="px-3 py-1.5 bg-vault-surface border border-white/10 rounded text-xs text-vault-muted hover:text-white transition-colors disabled:opacity-50"
+          className="px-3 py-1 bg-vault-surface border border-vault-border rounded text-[11px] text-vault-subtext hover:text-vault-pink hover:border-vault-pink-border transition-colors disabled:opacity-50"
         >
-          {decrypting ? 'Decrypting...' : 'Decrypt'}
+          {decrypting ? 'Decrypting...' : decryptedContent ? 'Re-decrypt' : 'Decrypt'}
         </button>
       </div>
-      <div className="space-y-4">
-        <div>
-          <p className="text-vault-muted text-xs uppercase mb-1">L0 Summary</p>
-          <p className="text-white text-sm">{l0}</p>
-        </div>
-        {l1 && (
+
+      {/* Content */}
+      <div className="flex-1 overflow-auto p-5 space-y-4">
+        {l0 && (
           <div>
-            <p className="text-vault-muted text-xs uppercase mb-1">L1 Overview</p>
-            <div className="bg-black/20 rounded-lg p-4 text-sm text-gray-300 whitespace-pre-wrap font-mono">{l1}</div>
+            <p className="text-[10px] text-vault-muted uppercase tracking-wider mb-1 font-medium">Summary</p>
+            <p className="text-[13px] text-vault-subtext">{l0}</p>
           </div>
         )}
+
         {error && (
-          <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-red-400 text-sm">{error}</div>
+          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3 text-red-400 text-[12px]">{error}</div>
         )}
+
         {decryptedContent && (
           <div>
-            <p className="text-vault-muted text-xs uppercase mb-1">L2 Full Content (Decrypted)</p>
-            <div className="bg-black/30 rounded-lg p-4 text-sm text-white whitespace-pre-wrap font-mono border border-vault-accent/20">{decryptedContent}</div>
+            <p className="text-[10px] text-vault-muted uppercase tracking-wider mb-1 font-medium">Content</p>
+            <div className="bg-vault-crust rounded-lg p-4 text-[13px] text-vault-text whitespace-pre-wrap font-mono leading-relaxed border border-vault-border">
+              {decryptedContent}
+            </div>
           </div>
+        )}
+
+        {!decryptedContent && !error && !decrypting && (
+          <p className="text-[12px] text-vault-muted italic">Click Decrypt to view the full content.</p>
         )}
       </div>
     </div>
