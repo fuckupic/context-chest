@@ -36,6 +36,7 @@ export function sessionRoutes(
       { preHandler: requirePermission('sessions') },
       async (request) => {
         const userId = (request as unknown as Record<string, unknown>).userId as string;
+        const chestId = (request as unknown as Record<string, unknown>).chestId as string;
         const { status, page, limit } = request.query as {
           status?: string;
           page?: string;
@@ -48,6 +49,7 @@ export function sessionRoutes(
           status,
           page: pageNum,
           limit: limitNum,
+          chestId,
         });
 
         return {
@@ -64,9 +66,10 @@ export function sessionRoutes(
       { preHandler: requirePermission('sessions') },
       async (request) => {
         const userId = (request as unknown as Record<string, unknown>).userId as string;
+        const chestId = (request as unknown as Record<string, unknown>).chestId as string;
         const { clientId } = (request.body as { clientId?: string }) ?? {};
 
-        const session = await sessionService.create(userId, clientId);
+        const session = await sessionService.create(userId, chestId, clientId);
         await usageService.increment(userId, 'session_create');
 
         return { success: true, data: session };
@@ -104,6 +107,8 @@ export function sessionRoutes(
       { preHandler: requirePermission('sessions') },
       async (request, reply) => {
         const userId = (request as unknown as Record<string, unknown>).userId as string;
+        const chestId = (request as unknown as Record<string, unknown>).chestId as string;
+        const chestName = (request as unknown as Record<string, unknown>).chestName as string;
         const { id } = request.params as { id: string };
         const body = closeSchema.parse(request.body);
 
@@ -113,7 +118,7 @@ export function sessionRoutes(
             encryptedL2: Buffer.from(m.encryptedL2, 'base64'),
           }));
 
-          const result = await sessionService.close(userId, id, memories);
+          const result = await sessionService.close(userId, id, chestId, chestName, memories);
           await usageService.increment(userId, 'session_close');
 
           return { success: true, data: result };

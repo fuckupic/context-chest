@@ -19,6 +19,9 @@ import { SessionService } from './services/session';
 import { StorageService } from './services/storage';
 import { ContextService } from './services/context';
 import { UsageService } from './services/usage';
+import { ChestService } from './services/chest';
+import { chestRoutes } from './routes/chests';
+import { createChestGuard } from './plugins/chest-guard';
 import roleGuard from './plugins/role-guard';
 import agentTracker from './plugins/agent-tracker';
 
@@ -42,6 +45,7 @@ const contextService = new ContextService({
 
 const memoryService = new MemoryService(prisma, storageService, contextService);
 const usageService = new UsageService(prisma);
+const chestService = new ChestService(prisma);
 const sessionService = new SessionService(prisma, memoryService, storageService, contextService);
 
 const app = Fastify({
@@ -60,7 +64,7 @@ app.register(cors, {
     /^chrome-extension:\/\/.*$/, // Chrome extensions
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-BLOB-SHA256', 'X-Agent-Name'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-BLOB-SHA256', 'X-Agent-Name', 'X-Chest'],
   credentials: true,
   maxAge: 86400, // 24 hours
 });
@@ -98,6 +102,8 @@ app.register(authRoutes, { prefix: '/v1/auth' });
 app.register(vaultRoutes, { prefix: '/v1/vault' });
 app.register(connectRoutes, { prefix: '/v1/connect' });
 app.register(roleGuard);
+app.register(createChestGuard(chestService));
+app.register(chestRoutes(chestService), { prefix: '/v1/chests' });
 app.register(memoryRoutes(memoryService, usageService), { prefix: '/v1/memory' });
 app.register(sessionRoutes(sessionService, usageService), { prefix: '/v1/sessions' });
 
