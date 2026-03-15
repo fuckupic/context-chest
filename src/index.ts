@@ -20,6 +20,7 @@ import { StorageService } from './services/storage';
 import { ContextService } from './services/context';
 import { UsageService } from './services/usage';
 import { ChestService } from './services/chest';
+import { ChestRouter } from './services/chest-router';
 import { chestRoutes } from './routes/chests';
 import roleGuard from './plugins/role-guard';
 import agentTracker from './plugins/agent-tracker';
@@ -45,6 +46,7 @@ const contextService = new ContextService({
 const memoryService = new MemoryService(prisma, storageService, contextService);
 const usageService = new UsageService(prisma);
 const chestService = new ChestService(prisma);
+const chestRouter = new ChestRouter(chestService, contextService);
 const sessionService = new SessionService(prisma, memoryService, storageService, contextService);
 
 const app = Fastify({
@@ -102,7 +104,7 @@ app.register(vaultRoutes, { prefix: '/v1/vault' });
 app.register(connectRoutes, { prefix: '/v1/connect' });
 app.register(roleGuard);
 app.register(chestRoutes(chestService), { prefix: '/v1/chests' });
-app.register(memoryRoutes(memoryService, usageService, chestService), { prefix: '/v1/memory' });
+app.register(memoryRoutes(memoryService, usageService, chestService, chestRouter), { prefix: '/v1/memory' });
 app.register(sessionRoutes(sessionService, usageService, chestService), { prefix: '/v1/sessions' });
 
 // Admin stats (protected by secret)

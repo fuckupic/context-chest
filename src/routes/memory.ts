@@ -5,6 +5,7 @@ import { requireChest } from '../plugins/chest-guard';
 import { ChestService } from '../services/chest';
 import { MemoryService } from '../services/memory';
 import { UsageService, UsageLimitError } from '../services/usage';
+import { ChestRouter } from '../services/chest-router';
 
 const rememberSchema = z.object({
   uri: z.string().min(1).max(500),
@@ -26,7 +27,8 @@ const recallSchema = z.object({
 export function memoryRoutes(
   memoryService: MemoryService,
   usageService: UsageService,
-  chestService: ChestService
+  chestService: ChestService,
+  chestRouter: ChestRouter
 ): FastifyPluginAsync {
   const chestGuard = requireChest(chestService);
   return async (fastify) => {
@@ -196,6 +198,21 @@ export function memoryRoutes(
         const body = z.object({ l0: z.string().min(1).max(500), l1: z.string().min(1).max(10000) }).parse(request.body);
         const uri = await memoryService.autoSortUri(userId, chestName, body.l0, body.l1);
         return { success: true, data: { uri } };
+      }
+    );
+
+    // Auto-chest — resolve which chest a memory belongs to
+    fastify.post(
+      '/auto-chest',
+      { preHandler: requirePermission('remember') },
+      async (request) => {
+        const userId = (request as unknown as Record<string, unknown>).userId as string;
+        const body = z.object({
+          l0: z.string().min(1).max(500),
+          l1: z.string().min(1).max(10000),
+        }).parse(request.body);
+        const result = await chestRouter.resolve(userId, body.l0, body.l1);
+        return { success: true, data: result };
       }
     );
 
