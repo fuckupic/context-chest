@@ -52,7 +52,11 @@ const app = Fastify({
 app.register(cors, {
   origin: [
     'http://localhost:5173', // Vite dev server
+    'http://localhost:5174',
     process.env.PWA_URL!, // Production PWA
+    'https://contextchest.com',
+    'https://www.contextchest.com',
+    'https://pwa-one-gold.vercel.app',
     /^chrome-extension:\/\/.*$/, // Chrome extensions
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
