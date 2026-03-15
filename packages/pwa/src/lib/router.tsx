@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from '../auth/context';
 import { Layout } from '../components/Layout';
+import { ChestProvider } from '../context/chest-context';
 import { Landing } from '../pages/Landing';
 import { Login } from '../pages/Login';
 import { Memories } from '../pages/Memories';
@@ -25,7 +26,9 @@ export function AppRouter() {
         <Route
           element={
             <AuthGuard>
-              <Layout />
+              <ChestProvider>
+                <Layout />
+              </ChestProvider>
             </AuthGuard>
           }
         >
