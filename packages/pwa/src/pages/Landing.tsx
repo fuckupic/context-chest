@@ -46,14 +46,14 @@ export function Landing() {
         <div className="flex flex-col md:flex-row items-center gap-12">
           {/* Chest image with memory pills */}
           <div className="opacity-0 animate-fade-in md:w-1/2 flex justify-center">
-            <div className="relative">
-              {/* Floating pills */}
-              <span className="absolute -top-4 left-4 px-2.5 py-1 bg-cc-surface border border-cc-border text-[11px] text-cc-sub rotate-[-6deg] opacity-80">I prefer dark mode</span>
-              <span className="absolute top-8 -left-8 px-2.5 py-1 bg-cc-surface border border-cc-border text-[11px] text-cc-sub rotate-[-3deg] opacity-70">API key is in .env</span>
-              <span className="absolute -top-2 right-0 px-2.5 py-1 bg-cc-pink-glow border border-cc-pink-border text-[11px] text-cc-pink rotate-[4deg]">use Tailwind, not CSS modules</span>
-              <span className="absolute top-20 -right-6 px-2.5 py-1 bg-cc-surface border border-cc-border text-[11px] text-cc-sub rotate-[2deg] opacity-75">deploy to Fly.io</span>
-              <span className="absolute bottom-16 -left-4 px-2.5 py-1 bg-cc-surface border border-cc-border text-[11px] text-cc-sub rotate-[5deg] opacity-65">user prefers TypeScript</span>
-              <span className="absolute bottom-4 right-2 px-2.5 py-1 bg-cc-surface border border-cc-border text-[11px] text-cc-sub rotate-[-4deg] opacity-70">project uses PostgreSQL</span>
+            <div className="relative py-12 px-8">
+              {/* Floating pixel pills */}
+              <span className="absolute top-0 left-0 px-3 py-1.5 bg-cc-white text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[-6deg] shadow-[3px_3px_0_0_rgba(232,69,122,0.5)]">I PREFER DARK MODE</span>
+              <span className="absolute top-6 right-0 px-3 py-1.5 bg-cc-pink text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-pink rotate-[3deg] shadow-[3px_3px_0_0_rgba(255,255,255,0.2)]">USE TAILWIND</span>
+              <span className="absolute top-[35%] -left-12 px-3 py-1.5 bg-cc-white text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[-2deg] shadow-[3px_3px_0_0_rgba(232,69,122,0.5)]">API KEY IN .ENV</span>
+              <span className="absolute top-[30%] -right-10 px-3 py-1.5 bg-cc-dark text-cc-white font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[5deg] shadow-[3px_3px_0_0_#222]">DEPLOY TO FLY.IO</span>
+              <span className="absolute bottom-12 -left-6 px-3 py-1.5 bg-cc-dark text-cc-white font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[4deg] shadow-[3px_3px_0_0_#222]">USES TYPESCRIPT</span>
+              <span className="absolute bottom-2 right-4 px-3 py-1.5 bg-cc-pink text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-pink rotate-[-3deg] shadow-[3px_3px_0_0_rgba(255,255,255,0.2)]">POSTGRESQL</span>
               <img
                 src="/logo.png"
                 alt="Context Chest"
