@@ -205,16 +205,28 @@ PWA crypto utils gain `chestName` parameter, same derivation change as MCP serve
 
 ### Trigger
 
-`POST /v1/memory/remember` called with `autoSort: true`. This replaces the existing fallback behavior (which generates `auto/${Date.now()}` paths) — when `autoSort` is true and OpenViking is available, the server generates a semantic path; when OpenViking is unavailable, falls back to the existing timestamp-based path.
+MCP `context-chest_remember` tool called without a `path` parameter.
 
-### Flow
+### Flow (Client-Side — MCP Server)
 
-1. MCP `context-chest_remember`: if user omits path, sets `autoSort: true`
-2. API receives content with `l0`, `l1` summaries
-3. Server calls new `ContextService.categorize()` method
-4. OpenViking returns: category (`profile/preferences/entities/events/cases/patterns`) + suggested path based on semantic similarity to existing memories in the chest
-5. Server uses suggested path as `uri`, stores memory normally
-6. Response includes auto-generated path for MCP server to report
+Auto-sort MUST happen client-side (in the MCP server) because the URI is part of the HKDF salt. If the server assigned the URI after encryption, the ciphertext would use the wrong salt and decryption would fail.
+
+1. MCP `context-chest_remember`: user omits `path`
+2. MCP server calls `POST /v1/memory/auto-sort` with `{ l0, l1 }` — a new lightweight endpoint
+3. API server calls `ContextService.categorize()` and returns `{ uri: "entities/acme-corp/tech-stack" }`
+4. MCP server receives the URI, encrypts content with `HKDF(masterKey, chestName + "/" + uri)` as normal
+5. MCP server calls `POST /v1/memory/remember` with the resolved URI + encrypted content
+6. MCP server reports the auto-assigned path to the user
+
+This two-step flow keeps all encryption client-side while letting the server leverage OpenViking for categorization.
+
+### API Endpoint
+
+`POST /v1/memory/auto-sort` — returns a suggested URI without storing anything:
+- Request: `{ l0: string, l1: string }`
+- Response: `{ uri: string }`
+- Uses `ContextService.categorize()` internally
+- Falls back to `auto/${Date.now()}` if OpenViking unavailable
 
 ### `ContextService.categorize()`
 
