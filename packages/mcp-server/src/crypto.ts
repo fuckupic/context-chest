@@ -15,10 +15,9 @@ export function deriveWrappingKey(exportKey: Buffer, userId: string): Buffer {
   );
 }
 
-export function deriveItemKey(masterKey: Buffer, uri: string): Buffer {
-  return Buffer.from(
-    hkdfSync(HKDF_HASH, masterKey, uri, 'context-chest-l2', KEY_LENGTH)
-  );
+export function deriveItemKey(masterKey: Buffer, chestName: string, uri: string): Buffer {
+  const salt = `${chestName}/${uri}`;
+  return Buffer.from(hkdfSync(HKDF_HASH, masterKey, salt, 'context-chest-l2', KEY_LENGTH));
 }
 
 export function wrapMasterKey(masterKey: Buffer, wrappingKey: Buffer): string {
@@ -39,8 +38,8 @@ export function unwrapMasterKey(wrapped: string, wrappingKey: Buffer): Buffer {
   return Buffer.concat([decipher.update(ciphertext), decipher.final()]);
 }
 
-export function encryptL2(masterKey: Buffer, uri: string, plaintext: Buffer): string {
-  const itemKey = deriveItemKey(masterKey, uri);
+export function encryptL2(masterKey: Buffer, chestName: string, uri: string, plaintext: Buffer): string {
+  const itemKey = deriveItemKey(masterKey, chestName, uri);
   const iv = randomBytes(IV_LENGTH);
   const cipher = createCipheriv('aes-256-gcm', itemKey, iv);
   const encrypted = Buffer.concat([cipher.update(plaintext), cipher.final()]);
@@ -48,8 +47,32 @@ export function encryptL2(masterKey: Buffer, uri: string, plaintext: Buffer): st
   return Buffer.concat([iv, encrypted, authTag]).toString('base64');
 }
 
-export function decryptL2(masterKey: Buffer, uri: string, encryptedBase64: string): Buffer {
-  const itemKey = deriveItemKey(masterKey, uri);
+export function decryptL2(masterKey: Buffer, chestName: string, uri: string, encryptedBase64: string): Buffer {
+  const itemKey = deriveItemKey(masterKey, chestName, uri);
+  const data = Buffer.from(encryptedBase64, 'base64');
+  const iv = data.subarray(0, IV_LENGTH);
+  const authTag = data.subarray(data.length - AUTH_TAG_LENGTH);
+  const ciphertext = data.subarray(IV_LENGTH, data.length - AUTH_TAG_LENGTH);
+  const decipher = createDecipheriv('aes-256-gcm', itemKey, iv);
+  decipher.setAuthTag(authTag);
+  return Buffer.concat([decipher.update(ciphertext), decipher.final()]);
+}
+
+function deriveItemKeyLegacy(masterKey: Buffer, uri: string): Buffer {
+  return Buffer.from(hkdfSync(HKDF_HASH, masterKey, uri, 'context-chest-l2', KEY_LENGTH));
+}
+
+export function encryptL2Legacy(masterKey: Buffer, uri: string, plaintext: Buffer): string {
+  const itemKey = deriveItemKeyLegacy(masterKey, uri);
+  const iv = randomBytes(IV_LENGTH);
+  const cipher = createCipheriv('aes-256-gcm', itemKey, iv);
+  const encrypted = Buffer.concat([cipher.update(plaintext), cipher.final()]);
+  const authTag = cipher.getAuthTag();
+  return Buffer.concat([iv, encrypted, authTag]).toString('base64');
+}
+
+export function decryptL2Legacy(masterKey: Buffer, uri: string, encryptedBase64: string): Buffer {
+  const itemKey = deriveItemKeyLegacy(masterKey, uri);
   const data = Buffer.from(encryptedBase64, 'base64');
   const iv = data.subarray(0, IV_LENGTH);
   const authTag = data.subarray(data.length - AUTH_TAG_LENGTH);
