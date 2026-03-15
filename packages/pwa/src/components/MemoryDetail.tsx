@@ -16,7 +16,10 @@ export function MemoryDetail({ uri, l0 }: MemoryDetailProps) {
   const [error, setError] = useState<string | null>(null);
 
   const handleDecrypt = async () => {
-    if (!client || !masterKey) return;
+    if (!client || !masterKey) {
+      setError('Not authenticated — master key unavailable. Try logging out and back in.');
+      return;
+    }
     setDecrypting(true);
     setError(null);
     try {
