@@ -101,6 +101,21 @@ app.register(roleGuard);
 app.register(memoryRoutes(memoryService, usageService), { prefix: '/v1/memory' });
 app.register(sessionRoutes(sessionService, usageService), { prefix: '/v1/sessions' });
 
+// Admin stats (protected by secret)
+app.get('/admin/stats', async (request, reply) => {
+  const secret = request.headers['x-admin-secret'];
+  if (secret !== process.env.ADMIN_SECRET) {
+    return reply.code(401).send({ error: 'unauthorized' });
+  }
+  const [users, memories, sessions, agents] = await Promise.all([
+    prisma.user.count(),
+    prisma.memoryEntry.count(),
+    prisma.session.count(),
+    prisma.agentConnection.count(),
+  ]);
+  return { users, memories, sessions, agents };
+});
+
 // Health check
 app.get('/health', async () => {
   return { status: 'ok' };
