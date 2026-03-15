@@ -77,9 +77,11 @@ app.register(swagger, {
   },
 });
 
-app.register(swaggerUi, {
-  routePrefix: '/docs',
-});
+if (process.env.NODE_ENV !== 'production') {
+  app.register(swaggerUi, {
+    routePrefix: '/docs',
+  });
+}
 
 app.register(rateLimit);
 app.register(validation);
