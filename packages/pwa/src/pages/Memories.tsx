@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../auth/context';
+import { useChest } from '../context/chest-context';
 import { MemoryDetail } from '../components/MemoryDetail';
 import { EmptyState } from '../components/EmptyState';
 
@@ -44,6 +45,7 @@ function TreeItem({ entry, selectedUri, onSelect, depth = 0 }: {
 
 export function Memories() {
   const { client } = useAuth();
+  const { activeChest } = useChest();
   const [tree, setTree] = useState<TreeEntry[]>([]);
   const [selectedUri, setSelectedUri] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -53,11 +55,15 @@ export function Memories() {
 
   useEffect(() => {
     if (!client) { setLoading(false); return; }
+    setLoading(true);
+    setSelectedUri(null);
+    setSearchResults(null);
+    setSearchQuery('');
     client.browse('', 2)
       .then((r) => { setTree(r.data.tree); setTotalCount(r.meta.total); })
       .catch(() => setTree([]))
       .finally(() => setLoading(false));
-  }, [client]);
+  }, [client, activeChest]);
 
   const handleSearch = async () => {
     if (!client || !searchQuery.trim()) { setSearchResults(null); return; }

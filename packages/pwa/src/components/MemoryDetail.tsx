@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../auth/context';
+import { useChest } from '../context/chest-context';
 import { decryptL2FromBytes } from '../crypto';
 
 interface MemoryDetailProps {
@@ -9,6 +10,7 @@ interface MemoryDetailProps {
 
 export function MemoryDetail({ uri, l0 }: MemoryDetailProps) {
   const { client, masterKey } = useAuth();
+  const { activeChest } = useChest();
   const [decryptedContent, setDecryptedContent] = useState<string | null>(null);
   const [decrypting, setDecrypting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -19,7 +21,7 @@ export function MemoryDetail({ uri, l0 }: MemoryDetailProps) {
     setError(null);
     try {
       const encryptedBytes = await client.getContent(uri);
-      const decrypted = await decryptL2FromBytes(masterKey, uri, encryptedBytes);
+      const decrypted = await decryptL2FromBytes(masterKey, activeChest?.name ?? 'default', uri, encryptedBytes);
       setDecryptedContent(new TextDecoder().decode(decrypted));
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Decryption failed');
