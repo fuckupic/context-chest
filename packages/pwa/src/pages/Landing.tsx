@@ -36,9 +36,12 @@ export function Landing() {
           <img src="/logo.png" alt="" className="w-6 h-6" style={{ imageRendering: 'auto' }} />
           <span className="font-pixel text-base text-cc-white tracking-wide">Context Chest</span>
         </div>
-        <button onClick={handleCTA} className="font-pixel text-xs text-cc-muted hover:text-cc-pink tracking-wider transition-colors">
-          {isAuthenticated ? 'DASHBOARD' : 'SIGN IN'}
-        </button>
+        <div className="flex gap-4">
+          <a href="/docs" className="font-pixel text-xs text-cc-muted hover:text-cc-pink tracking-wider transition-colors">DOCS</a>
+          <button onClick={handleCTA} className="font-pixel text-xs text-cc-muted hover:text-cc-pink tracking-wider transition-colors">
+            {isAuthenticated ? 'DASHBOARD' : 'SIGN IN'}
+          </button>
+        </div>
       </nav>
 
       {/* Hero */}
@@ -119,6 +122,38 @@ export function Landing() {
         <p className="text-center text-xs text-cc-muted mt-3">
           Add to Claude Code or Cursor config. That's it.
         </p>
+      </section>
+
+      {/* Divider */}
+      <div className="max-w-5xl mx-auto px-6">
+        <div className="border-t-2 border-cc-border border-dashed" />
+      </div>
+
+      {/* Works with */}
+      <section className="relative z-10 max-w-4xl mx-auto px-6 py-16">
+        <h2 className="font-pixel text-3xl text-cc-white text-center mb-4 tracking-wide">
+          ONE VAULT. <span className="text-cc-pink">EVERY AGENT.</span>
+        </h2>
+        <p className="text-center text-xs text-cc-muted mb-10">
+          Store a memory from Claude Code. Recall it from Cursor. Browse it from OpenClaw. All encrypted.
+        </p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-cc-border">
+          {[
+            { name: 'CLAUDE CODE', status: 'MCP server', supported: true },
+            { name: 'CURSOR', status: 'MCP server', supported: true },
+            { name: 'OPENCLAW', status: 'Plugin', supported: true },
+            { name: 'ANY REST API', status: 'HTTP client', supported: true },
+          ].map((agent) => (
+            <div key={agent.name} className="bg-cc-black p-5 text-center hover:bg-cc-surface transition-colors group">
+              <h3 className="font-pixel text-sm text-cc-white tracking-wider mb-1 group-hover:text-cc-pink transition-colors">{agent.name}</h3>
+              <p className="text-[10px] text-cc-muted font-mono">{agent.status}</p>
+            </div>
+          ))}
+        </div>
+        <div className="border-2 border-cc-border bg-cc-dark mt-6 p-4">
+          <p className="font-pixel text-[10px] text-cc-muted tracking-wider mb-3">HOW CROSS-AGENT MEMORY WORKS</p>
+          <pre className="text-[11px] font-mono text-cc-sub leading-relaxed overflow-x-auto">{'Claude Code ──encrypt──▶ Context Chest API ◀──encrypt── OpenClaw\n     │                        │                        │\n     │          ┌──────────────┴──────────────┐         │\n     │          │   Encrypted Vault (AES-256) │         │\n     │          │   Server sees: ████████████ │         │\n     │          └──────────────┬──────────────┘         │\n     │                        │                        │\nCursor ───encrypt───▶ Same vault, same keys ◀───── REST API'}</pre>
+        </div>
       </section>
 
       {/* Divider */}
