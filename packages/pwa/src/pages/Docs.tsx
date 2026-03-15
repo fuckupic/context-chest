@@ -13,7 +13,7 @@ Your AI forgets everything between sessions. Context Chest fixes that — withou
     title: 'SETUP: CLAUDE CODE / CURSOR',
     content: `1. Create an account at the Context Chest dashboard
 2. Run the login command:`,
-    code: 'npx context-chest-mcp login',
+    code: 'npm install -g context-chest-mcp && context-chest login',
     content2: `3. Add to your MCP config (.mcp.json or cursor settings):`,
     code2: `{
   "mcpServers": {
@@ -28,7 +28,7 @@ Your AI forgets everything between sessions. Context Chest fixes that — withou
   {
     id: 'setup-openclaw',
     title: 'SETUP: OPENCLAW',
-    content: `1. Create an account and run npx context-chest-mcp login
+    content: `1. Create an account and run npm install -g context-chest-mcp && context-chest login
 2. Open ~/.context-chest/credentials.json and note your apiToken, exportKey, and userId
 3. Add to your OpenClaw config (~/.openclaw/config.yaml):`,
     code: `plugins:

@@ -138,7 +138,7 @@ async function login() {
     "mcpServers": {
       "context-chest": {
         "command": "npx",
-        "args": ["@context-chest/mcp-server"]
+        "args": ["context-chest-mcp"]
       }
     }
   }
@@ -160,6 +160,7 @@ if (command === 'login') {
     context-chest login    Authenticate and save credentials
 
   Usage:
-    npx @context-chest/mcp-server login
+    npm install -g context-chest-mcp
+    context-chest login
   `);
 }

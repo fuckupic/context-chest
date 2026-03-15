@@ -179,4 +179,9 @@ async function main() {
   await server.connect(transport);
 }
 
-main().catch(console.error);
+// If called with "login" argument, run CLI instead of MCP server
+if (process.argv.includes('login')) {
+  require('./cli');
+} else {
+  main().catch(console.error);
+}

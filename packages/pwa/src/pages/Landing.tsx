@@ -326,7 +326,7 @@ export function Landing() {
         <div className="space-y-4">
           {[
             { n: '01', cmd: 'Create your account', code: 'pwa-one-gold.vercel.app → Sign up' },
-            { n: '02', cmd: 'Login from terminal', code: 'npx context-chest-mcp login' },
+            { n: '02', cmd: 'Login from terminal', code: 'npm install -g context-chest-mcp && context-chest login' },
             { n: '03', cmd: 'Add MCP config', code: '{ "mcpServers": { "context-chest": {\n  "command": "npx",\n  "args": ["context-chest-mcp"]\n}}}' },
             { n: '04', cmd: 'Restart your AI tool', code: 'Claude Code: /exit → relaunch\nCursor: restart' },
             { n: '05', cmd: 'Start remembering', code: '"Remember that I prefer TypeScript\n and always use Tailwind"' },
