@@ -47,17 +47,17 @@ export function Landing() {
           {/* Chest image with memory pills */}
           <div className="opacity-0 animate-fade-in md:w-1/2 flex justify-center">
             <div className="relative py-6 px-4">
-              {/* Floating secrets — redacted, classified, sensitive */}
-              <span className="absolute top-[12%] left-[8%] z-20 px-3 py-1.5 bg-cc-white text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[-5deg] shadow-[3px_3px_0_0_rgba(232,69,122,0.5)]">SK-PROJ-████████</span>
-              <span className="absolute top-[6%] right-[5%] z-20 px-3 py-1.5 bg-cc-pink text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-pink rotate-[3deg] shadow-[3px_3px_0_0_rgba(255,255,255,0.2)]">DB PASSWORD</span>
+              {/* Floating memories — real things people tell AI */}
+              <span className="absolute top-[12%] left-[8%] z-20 px-3 py-1.5 bg-cc-white text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[-5deg] shadow-[3px_3px_0_0_rgba(232,69,122,0.5)]">Q3 REVENUE: $2.4M</span>
+              <span className="absolute top-[6%] right-[5%] z-20 px-3 py-1.5 bg-cc-pink text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-pink rotate-[3deg] shadow-[3px_3px_0_0_rgba(255,255,255,0.2)]">SALARY: ████</span>
 
-              <span className="absolute top-[35%] left-[12%] z-20 px-3 py-1.5 bg-cc-dark text-cc-white font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[-2deg] shadow-[3px_3px_0_0_#222]">AWS_SECRET_████</span>
-              <span className="absolute top-[30%] right-[6%] z-20 px-3 py-1.5 bg-cc-white text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[4deg] shadow-[3px_3px_0_0_rgba(232,69,122,0.5)]">PROD CREDENTIALS</span>
-              <span className="absolute top-[48%] left-[25%] z-20 px-3 py-1.5 bg-cc-pink text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-pink rotate-[1deg] shadow-[3px_3px_0_0_rgba(255,255,255,0.2)]">SSH PRIVATE KEY</span>
+              <span className="absolute top-[35%] left-[12%] z-20 px-3 py-1.5 bg-cc-dark text-cc-white font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[-2deg] shadow-[3px_3px_0_0_#222]">CLIENT NDA TERMS</span>
+              <span className="absolute top-[30%] right-[6%] z-20 px-3 py-1.5 bg-cc-white text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[4deg] shadow-[3px_3px_0_0_rgba(232,69,122,0.5)]">HIRING PLAN 2026</span>
+              <span className="absolute top-[48%] left-[25%] z-20 px-3 py-1.5 bg-cc-pink text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-pink rotate-[1deg] shadow-[3px_3px_0_0_rgba(255,255,255,0.2)]">INVESTOR DECK</span>
 
-              <span className="absolute top-[62%] right-[10%] z-20 px-3 py-1.5 bg-cc-dark text-cc-white font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[-3deg] shadow-[3px_3px_0_0_#222]">STRIPE_SK_████</span>
-              <span className="absolute top-[72%] left-[6%] z-20 px-3 py-1.5 bg-cc-white text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[5deg] shadow-[3px_3px_0_0_rgba(232,69,122,0.5)]">CLIENT SECRETS</span>
-              <span className="absolute top-[78%] right-[18%] z-20 px-3 py-1.5 bg-cc-dark text-cc-white font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[-4deg] shadow-[3px_3px_0_0_#222]">INTERNAL DOCS</span>
+              <span className="absolute top-[62%] right-[10%] z-20 px-3 py-1.5 bg-cc-dark text-cc-white font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[-3deg] shadow-[3px_3px_0_0_#222]">BOARD MEETING NOTES</span>
+              <span className="absolute top-[72%] left-[6%] z-20 px-3 py-1.5 bg-cc-white text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[5deg] shadow-[3px_3px_0_0_rgba(232,69,122,0.5)]">LEGAL DRAFT V3</span>
+              <span className="absolute top-[78%] right-[18%] z-20 px-3 py-1.5 bg-cc-dark text-cc-white font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[-4deg] shadow-[3px_3px_0_0_#222]">PRODUCT ROADMAP</span>
               <span className="absolute top-[88%] left-[20%] z-20 px-3 py-1.5 bg-cc-pink text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-pink rotate-[2deg] shadow-[3px_3px_0_0_rgba(255,255,255,0.2)]">████ ENCRYPTED</span>
 
               <img
@@ -77,9 +77,10 @@ export function Landing() {
               <span className="text-cc-pink">Nobody else.</span>
             </h1>
             <p className="opacity-0 animate-fade-up stagger-1 text-cc-sub text-sm leading-relaxed mb-8 max-w-sm">
-              You share API keys, credentials, and proprietary code with AI every day.
-              Context Chest encrypts everything before it leaves your machine.
-              The server never sees plaintext. Not even us.
+              Revenue numbers, hiring plans, legal drafts, investor decks — you
+              share sensitive context with AI every day. Context Chest encrypts
+              it all before it leaves your machine. The server never sees
+              plaintext. Not even us.
             </p>
             <div className="opacity-0 animate-fade-up stagger-2 flex gap-3">
               <button
