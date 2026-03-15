@@ -44,14 +44,23 @@ export function Landing() {
       {/* Hero */}
       <section className="relative z-10 max-w-5xl mx-auto px-6 pt-16 pb-20">
         <div className="flex flex-col md:flex-row items-center gap-12">
-          {/* Chest image */}
+          {/* Chest image with memory pills */}
           <div className="opacity-0 animate-fade-in md:w-1/2 flex justify-center">
-            <img
-              src="/logo.png"
-              alt="Context Chest"
-              className="w-72 md:w-96"
-              style={{ imageRendering: 'auto' }}
-            />
+            <div className="relative">
+              {/* Floating pills */}
+              <span className="absolute -top-4 left-4 px-2.5 py-1 bg-cc-surface border border-cc-border text-[11px] text-cc-sub rotate-[-6deg] opacity-80">I prefer dark mode</span>
+              <span className="absolute top-8 -left-8 px-2.5 py-1 bg-cc-surface border border-cc-border text-[11px] text-cc-sub rotate-[-3deg] opacity-70">API key is in .env</span>
+              <span className="absolute -top-2 right-0 px-2.5 py-1 bg-cc-pink-glow border border-cc-pink-border text-[11px] text-cc-pink rotate-[4deg]">use Tailwind, not CSS modules</span>
+              <span className="absolute top-20 -right-6 px-2.5 py-1 bg-cc-surface border border-cc-border text-[11px] text-cc-sub rotate-[2deg] opacity-75">deploy to Fly.io</span>
+              <span className="absolute bottom-16 -left-4 px-2.5 py-1 bg-cc-surface border border-cc-border text-[11px] text-cc-sub rotate-[5deg] opacity-65">user prefers TypeScript</span>
+              <span className="absolute bottom-4 right-2 px-2.5 py-1 bg-cc-surface border border-cc-border text-[11px] text-cc-sub rotate-[-4deg] opacity-70">project uses PostgreSQL</span>
+              <img
+                src="/logo.png"
+                alt="Context Chest"
+                className="w-72 md:w-96 relative z-10"
+                style={{ imageRendering: 'auto' }}
+              />
+            </div>
           </div>
 
           {/* Text */}
