@@ -4,6 +4,7 @@ interface CreateChestInput {
   name: string;
   description?: string;
   isPublic?: boolean;
+  isAutoCreated?: boolean;
 }
 
 interface PermissionInput {
@@ -17,12 +18,16 @@ export class ChestService {
 
   async create(userId: string, input: CreateChestInput): Promise<Chest> {
     return this.prisma.chest.create({
-      data: { userId, name: input.name, description: input.description, isPublic: input.isPublic ?? false },
+      data: { userId, name: input.name, description: input.description, isPublic: input.isPublic ?? false, isAutoCreated: input.isAutoCreated ?? false },
     });
   }
 
-  async list(userId: string): Promise<Chest[]> {
-    return this.prisma.chest.findMany({ where: { userId }, orderBy: { createdAt: 'asc' } });
+  async list(userId: string) {
+    return this.prisma.chest.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'asc' },
+      include: { _count: { select: { memories: true } } },
+    });
   }
 
   async resolveByName(userId: string, name: string): Promise<Chest> {
@@ -79,5 +84,13 @@ export class ChestService {
     const chest = await this.prisma.chest.findUnique({ where: { id: chestId } });
     if (!chest || chest.userId !== userId) throw new Error('Chest not found');
     return this.prisma.chestPermission.findMany({ where: { chestId } });
+  }
+
+  async upsertByName(userId: string, input: CreateChestInput): Promise<Chest> {
+    return this.prisma.chest.upsert({
+      where: { userId_name: { userId, name: input.name } },
+      create: { userId, name: input.name, description: input.description, isPublic: input.isPublic ?? false, isAutoCreated: input.isAutoCreated ?? false },
+      update: {},
+    });
   }
 }

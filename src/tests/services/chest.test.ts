@@ -7,6 +7,7 @@ const mockPrisma = {
     findUnique: jest.fn(),
     findFirst: jest.fn(),
     delete: jest.fn(),
+    upsert: jest.fn(),
   },
   chestPermission: {
     upsert: jest.fn(),
@@ -27,20 +28,20 @@ describe('ChestService', () => {
   describe('create', () => {
     it('should create a chest with name and description', async () => {
       const now = new Date();
-      const chest = { id: 'chest-1', userId: 'user-1', name: 'work', description: 'Work notes', isPublic: false, createdAt: now };
+      const chest = { id: 'chest-1', userId: 'user-1', name: 'work', description: 'Work notes', isPublic: false, isAutoCreated: false, createdAt: now };
       mockPrisma.chest.create.mockResolvedValue(chest);
 
       const result = await service.create('user-1', { name: 'work', description: 'Work notes' });
 
       expect(mockPrisma.chest.create).toHaveBeenCalledWith({
-        data: { userId: 'user-1', name: 'work', description: 'Work notes', isPublic: false },
+        data: { userId: 'user-1', name: 'work', description: 'Work notes', isPublic: false, isAutoCreated: false },
       });
       expect(result.name).toBe('work');
       expect(result.description).toBe('Work notes');
     });
 
     it('should default isPublic to false when not provided', async () => {
-      const chest = { id: 'chest-1', userId: 'user-1', name: 'private', description: undefined, isPublic: false, createdAt: new Date() };
+      const chest = { id: 'chest-1', userId: 'user-1', name: 'private', description: undefined, isPublic: false, isAutoCreated: false, createdAt: new Date() };
       mockPrisma.chest.create.mockResolvedValue(chest);
 
       await service.create('user-1', { name: 'private' });
@@ -51,7 +52,7 @@ describe('ChestService', () => {
     });
 
     it('should respect isPublic: true when provided', async () => {
-      const chest = { id: 'chest-1', userId: 'user-1', name: 'shared', description: undefined, isPublic: true, createdAt: new Date() };
+      const chest = { id: 'chest-1', userId: 'user-1', name: 'shared', description: undefined, isPublic: true, isAutoCreated: false, createdAt: new Date() };
       mockPrisma.chest.create.mockResolvedValue(chest);
 
       await service.create('user-1', { name: 'shared', isPublic: true });
@@ -60,13 +61,35 @@ describe('ChestService', () => {
         data: expect.objectContaining({ isPublic: true }),
       });
     });
+
+    it('should pass isAutoCreated: true when provided', async () => {
+      const chest = { id: 'chest-1', userId: 'user-1', name: 'auto-chest', description: undefined, isPublic: false, isAutoCreated: true, createdAt: new Date() };
+      mockPrisma.chest.create.mockResolvedValue(chest);
+
+      await service.create('user-1', { name: 'auto-chest', isAutoCreated: true });
+
+      expect(mockPrisma.chest.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({ isAutoCreated: true }),
+      });
+    });
+
+    it('should default isAutoCreated to false when not provided', async () => {
+      const chest = { id: 'chest-1', userId: 'user-1', name: 'manual', description: undefined, isPublic: false, isAutoCreated: false, createdAt: new Date() };
+      mockPrisma.chest.create.mockResolvedValue(chest);
+
+      await service.create('user-1', { name: 'manual' });
+
+      expect(mockPrisma.chest.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({ isAutoCreated: false }),
+      });
+    });
   });
 
   describe('list', () => {
-    it('should list all chests for a user ordered by createdAt asc', async () => {
+    it('should list all chests for a user ordered by createdAt asc with memory count', async () => {
       const chests = [
-        { id: 'chest-1', userId: 'user-1', name: 'default', createdAt: new Date('2024-01-01') },
-        { id: 'chest-2', userId: 'user-1', name: 'work', createdAt: new Date('2024-01-02') },
+        { id: 'chest-1', userId: 'user-1', name: 'default', createdAt: new Date('2024-01-01'), _count: { memories: 3 } },
+        { id: 'chest-2', userId: 'user-1', name: 'work', createdAt: new Date('2024-01-02'), _count: { memories: 7 } },
       ];
       mockPrisma.chest.findMany.mockResolvedValue(chests);
 
@@ -75,6 +98,7 @@ describe('ChestService', () => {
       expect(mockPrisma.chest.findMany).toHaveBeenCalledWith({
         where: { userId: 'user-1' },
         orderBy: { createdAt: 'asc' },
+        include: { _count: { select: { memories: true } } },
       });
       expect(result).toHaveLength(2);
       expect(result[0].name).toBe('default');
@@ -262,6 +286,47 @@ describe('ChestService', () => {
       await expect(
         service.setPermissions('user-1', 'chest-999', [{ agentName: 'agent-a', canRead: true, canWrite: true }])
       ).rejects.toThrow('Chest not found');
+    });
+  });
+
+  describe('upsertByName', () => {
+    it('should call prisma.chest.upsert with correct args', async () => {
+      const chest = { id: 'chest-1', userId: 'user-1', name: 'work', description: 'Work notes', isPublic: false, isAutoCreated: false, createdAt: new Date() };
+      mockPrisma.chest.upsert.mockResolvedValue(chest);
+
+      const result = await service.upsertByName('user-1', { name: 'work', description: 'Work notes' });
+
+      expect(mockPrisma.chest.upsert).toHaveBeenCalledWith({
+        where: { userId_name: { userId: 'user-1', name: 'work' } },
+        create: { userId: 'user-1', name: 'work', description: 'Work notes', isPublic: false, isAutoCreated: false },
+        update: {},
+      });
+      expect(result.name).toBe('work');
+    });
+
+    it('should pass isAutoCreated: true in the create payload', async () => {
+      const chest = { id: 'chest-2', userId: 'user-1', name: 'auto', description: undefined, isPublic: false, isAutoCreated: true, createdAt: new Date() };
+      mockPrisma.chest.upsert.mockResolvedValue(chest);
+
+      await service.upsertByName('user-1', { name: 'auto', isAutoCreated: true });
+
+      expect(mockPrisma.chest.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({
+          create: expect.objectContaining({ isAutoCreated: true }),
+        })
+      );
+    });
+
+    it('should return existing chest without modification when it already exists', async () => {
+      const existing = { id: 'chest-1', userId: 'user-1', name: 'work', isPublic: false, isAutoCreated: false, createdAt: new Date() };
+      mockPrisma.chest.upsert.mockResolvedValue(existing);
+
+      const result = await service.upsertByName('user-1', { name: 'work' });
+
+      expect(mockPrisma.chest.upsert).toHaveBeenCalledWith(
+        expect.objectContaining({ update: {} })
+      );
+      expect(result.id).toBe('chest-1');
     });
   });
 
