@@ -50,6 +50,28 @@ That's it. Your agent now has 8 tools for persistent, encrypted memory.
 - **Vector search** -- Optional semantic recall via OpenViking. Works without it too (falls back to text search).
 - **Self-hosted** -- Run on your own infrastructure. Docker Compose for local dev, deploy anywhere.
 
+## Use Cases
+
+**Developers** — Your AI remembers your stack, conventions, and past decisions across sessions. No more re-explaining your architecture every time. Encrypted, so proprietary code context stays private.
+
+**Founders & PMs** — You paste revenue numbers, hiring plans, and investor decks into AI daily. Context Chest encrypts it all client-side. The server never sees your burn rate.
+
+**Freelancers** — Juggle 5 client projects without cross-contamination. Your AI switches context instantly, and client A's secrets never leak into client B's session.
+
+**Regulated industries** — Healthcare, finance, legal. Your compliance team would lose it if they knew what you paste into AI. AES-256-GCM, keys on your machine, server sees only ciphertext.
+
+**Teams** — Multiple developers connect to the same vault. Architecture decisions, review guidelines, runbooks — stored once, available to every agent.
+
+### Example
+
+```
+You:  "Remember that we chose Stripe over Paddle because of marketplace support"
+      → Stored at decisions/payments, encrypted
+
+You:  "Recall everything about payments"
+      → Returns the decision, instantly, in any future session
+```
+
 ## How It Works
 
 Context Chest uses a three-layer encryption model:

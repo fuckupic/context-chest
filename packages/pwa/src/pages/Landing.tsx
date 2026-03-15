@@ -148,6 +148,48 @@ export function Landing() {
         <div className="border-t-2 border-cc-border border-dashed" />
       </div>
 
+      {/* Use cases */}
+      <section className="relative z-10 max-w-5xl mx-auto px-6 py-16">
+        <h2 className="font-pixel text-3xl text-cc-white text-center mb-12 tracking-wide">
+          WHO IT'S <span className="text-cc-pink">FOR</span>
+        </h2>
+        <div className="grid md:grid-cols-2 gap-4">
+          {[
+            {
+              who: 'DEVELOPERS',
+              what: 'Your AI remembers your stack, conventions, and past decisions. No more re-explaining your architecture every session.',
+              example: '"Remember: we use Fastify, not Express, and deploy to Fly.io"',
+            },
+            {
+              who: 'FOUNDERS & PMs',
+              what: 'You paste revenue numbers, hiring plans, and strategy into AI daily. Context Chest encrypts it before it leaves your machine.',
+              example: '"Remember: Q3 revenue $2.4M, targeting break-even by Q1 2027"',
+            },
+            {
+              who: 'FREELANCERS',
+              what: 'Juggle 5 client projects. Your AI switches context instantly. Client A\'s secrets never leak into client B\'s session.',
+              example: '"Remember: Acme Corp uses PostgreSQL, Widget Inc uses MongoDB"',
+            },
+            {
+              who: 'REGULATED INDUSTRIES',
+              what: 'Healthcare, finance, legal. AES-256-GCM, keys on your machine, server sees only ciphertext. Your compliance team can breathe.',
+              example: '"Remember: patient data schema uses field-level encryption"',
+            },
+          ].map((uc) => (
+            <div key={uc.who} className="border-2 border-cc-border bg-cc-dark p-5 hover:border-cc-pink-border transition-colors group">
+              <h3 className="font-pixel text-sm text-cc-white tracking-wider mb-2 group-hover:text-cc-pink transition-colors">{uc.who}</h3>
+              <p className="text-xs text-cc-sub leading-relaxed mb-3">{uc.what}</p>
+              <p className="text-[11px] text-cc-pink font-mono italic">{uc.example}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Divider */}
+      <div className="max-w-5xl mx-auto px-6">
+        <div className="border-t-2 border-cc-border border-dashed" />
+      </div>
+
       {/* How it works */}
       <section className="relative z-10 max-w-3xl mx-auto px-6 py-16">
         <h2 className="font-pixel text-3xl text-cc-white text-center mb-12 tracking-wide">
@@ -156,7 +198,7 @@ export function Landing() {
         <div className="space-y-6">
           {[
             { n: '01', title: 'ENCRYPT LOCALLY', desc: 'Your agent encrypts content with your key before it leaves your machine.' },
-            { n: '02', title: 'STORE SUMMARIES', desc: 'Unencrypted summaries enable search. Full content stays encrypted.' },
+            { n: '02', title: 'SAFE METADATA', desc: 'Only category labels and word counts are stored for search. No content ever leaks.' },
             { n: '03', title: 'ACCESS ANYWHERE', desc: 'Any MCP tool connects to the same vault. Memories sync across agents.' },
           ].map((item) => (
             <div key={item.n} className="flex gap-5 items-start border-2 border-cc-border p-4 hover:border-cc-pink-border transition-colors">
