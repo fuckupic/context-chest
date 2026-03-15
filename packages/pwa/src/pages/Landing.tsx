@@ -45,50 +45,50 @@ export function Landing() {
       </nav>
 
       {/* Hero */}
-      <section className="relative z-10 max-w-5xl mx-auto px-6 pt-16 pb-20">
-        <div className="flex flex-col md:flex-row items-center gap-12">
-          {/* Chest image with memory pills */}
+      <section className="relative z-10 max-w-5xl mx-auto px-4 md:px-6 pt-10 md:pt-16 pb-12 md:pb-20">
+        <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
+          {/* Chest image with memory pills — hidden on small mobile, visible from sm+ */}
           <div className="opacity-0 animate-fade-in md:w-1/2 flex justify-center">
-            <div className="relative py-6 px-4">
-              {/* Floating memories — real things people tell AI */}
-              <span className="absolute top-[12%] left-[8%] z-20 px-3 py-1.5 bg-cc-white text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[-5deg] shadow-[3px_3px_0_0_rgba(232,69,122,0.5)]">Q3 REVENUE: $2.4M</span>
-              <span className="absolute top-[6%] right-[5%] z-20 px-3 py-1.5 bg-cc-pink text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-pink rotate-[3deg] shadow-[3px_3px_0_0_rgba(255,255,255,0.2)]">SK-PROJ-████████</span>
+            <div className="relative py-4 px-2 md:py-6 md:px-4">
+              {/* Floating memories — hidden on mobile, too cramped */}
+              <span className="hidden sm:block absolute top-[12%] left-[8%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-white text-cc-black font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-white rotate-[-5deg] shadow-[3px_3px_0_0_rgba(232,69,122,0.5)]">Q3 REVENUE: $2.4M</span>
+              <span className="hidden sm:block absolute top-[6%] right-[5%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-pink text-cc-black font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-pink rotate-[3deg] shadow-[3px_3px_0_0_rgba(255,255,255,0.2)]">SK-PROJ-████████</span>
 
-              <span className="absolute top-[35%] left-[12%] z-20 px-3 py-1.5 bg-cc-dark text-cc-white font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[-2deg] shadow-[3px_3px_0_0_#222]">CLIENT NDA TERMS</span>
-              <span className="absolute top-[30%] right-[6%] z-20 px-3 py-1.5 bg-cc-white text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[4deg] shadow-[3px_3px_0_0_rgba(232,69,122,0.5)]">AWS_SECRET_████</span>
-              <span className="absolute top-[48%] left-[25%] z-20 px-3 py-1.5 bg-cc-pink text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-pink rotate-[1deg] shadow-[3px_3px_0_0_rgba(255,255,255,0.2)]">INVESTOR DECK</span>
+              <span className="hidden sm:block absolute top-[35%] left-[12%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-dark text-cc-white font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-white rotate-[-2deg] shadow-[3px_3px_0_0_#222]">CLIENT NDA</span>
+              <span className="hidden sm:block absolute top-[30%] right-[6%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-white text-cc-black font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-white rotate-[4deg] shadow-[3px_3px_0_0_rgba(232,69,122,0.5)]">AWS_SECRET_████</span>
+              <span className="hidden sm:block absolute top-[48%] left-[25%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-pink text-cc-black font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-pink rotate-[1deg] shadow-[3px_3px_0_0_rgba(255,255,255,0.2)]">INVESTOR DECK</span>
 
-              <span className="absolute top-[62%] right-[10%] z-20 px-3 py-1.5 bg-cc-dark text-cc-white font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[-3deg] shadow-[3px_3px_0_0_#222]">PROD DB PASSWORD</span>
-              <span className="absolute top-[72%] left-[6%] z-20 px-3 py-1.5 bg-cc-white text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[5deg] shadow-[3px_3px_0_0_rgba(232,69,122,0.5)]">HIRING PLAN 2026</span>
-              <span className="absolute top-[78%] right-[18%] z-20 px-3 py-1.5 bg-cc-dark text-cc-white font-pixel text-xs tracking-wider border-2 border-cc-white rotate-[-4deg] shadow-[3px_3px_0_0_#222]">PRODUCT ROADMAP</span>
-              <span className="absolute top-[88%] left-[20%] z-20 px-3 py-1.5 bg-cc-pink text-cc-black font-pixel text-xs tracking-wider border-2 border-cc-pink rotate-[2deg] shadow-[3px_3px_0_0_rgba(255,255,255,0.2)]">████ ENCRYPTED</span>
+              <span className="hidden sm:block absolute top-[62%] right-[10%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-dark text-cc-white font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-white rotate-[-3deg] shadow-[3px_3px_0_0_#222]">DB PASSWORD</span>
+              <span className="hidden sm:block absolute top-[72%] left-[6%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-white text-cc-black font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-white rotate-[5deg] shadow-[3px_3px_0_0_rgba(232,69,122,0.5)]">HIRING PLAN</span>
+              <span className="hidden sm:block absolute top-[78%] right-[18%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-dark text-cc-white font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-white rotate-[-4deg] shadow-[3px_3px_0_0_#222]">ROADMAP</span>
+              <span className="hidden sm:block absolute top-[88%] left-[20%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-pink text-cc-black font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-pink rotate-[2deg] shadow-[3px_3px_0_0_rgba(255,255,255,0.2)]">████ ENCRYPTED</span>
 
               <img
                 src="/logo.png"
                 alt="Context Chest"
-                className="w-72 md:w-96 relative"
+                className="w-48 sm:w-72 md:w-96 relative"
                 style={{ imageRendering: 'auto' }}
               />
             </div>
           </div>
 
           {/* Text */}
-          <div className="md:w-1/2">
-            <h1 className="opacity-0 animate-fade-up font-pixel text-5xl md:text-6xl text-cc-white leading-none mb-6 tracking-wide">
+          <div className="md:w-1/2 text-center md:text-left">
+            <h1 className="opacity-0 animate-fade-up font-pixel text-3xl sm:text-4xl md:text-6xl text-cc-white leading-none mb-4 md:mb-6 tracking-wide">
               AI processes.<br />
               Memory <span className="text-cc-pink">persists.</span><br />
               Encrypt it.
             </h1>
-            <p className="opacity-0 animate-fade-up stagger-1 text-cc-sub text-sm leading-relaxed mb-8 max-w-sm">
+            <p className="opacity-0 animate-fade-up stagger-1 text-cc-sub text-xs sm:text-sm leading-relaxed mb-6 md:mb-8 max-w-sm mx-auto md:mx-0">
               Your AI sees your secrets temporarily. But a permanent, searchable
               database of everything you've ever shared? That's a different risk.
               Context Chest encrypts your AI's memory so even a full breach
               reveals nothing. Self-host it. Own your keys.
             </p>
-            <div className="opacity-0 animate-fade-up stagger-2 flex gap-3">
+            <div className="opacity-0 animate-fade-up stagger-2 flex gap-3 justify-center md:justify-start">
               <button
                 onClick={handleCTA}
-                className="px-6 py-2.5 bg-cc-pink text-cc-black font-pixel text-sm tracking-wider hover:bg-cc-pink-dim transition-colors"
+                className="px-5 md:px-6 py-2.5 bg-cc-pink text-cc-black font-pixel text-xs sm:text-sm tracking-wider hover:bg-cc-pink-dim transition-colors"
               >
                 {isAuthenticated ? 'OPEN DASHBOARD' : 'GET STARTED'}
               </button>
@@ -96,7 +96,7 @@ export function Landing() {
                 href="https://github.com/fuckupic/context-chest"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-6 py-2.5 border-2 border-cc-border text-cc-muted font-pixel text-sm tracking-wider hover:border-cc-pink hover:text-cc-pink transition-colors"
+                className="px-5 md:px-6 py-2.5 border-2 border-cc-border text-cc-muted font-pixel text-xs sm:text-sm tracking-wider hover:border-cc-pink hover:text-cc-pink transition-colors"
               >
                 GITHUB
               </a>
@@ -106,12 +106,12 @@ export function Landing() {
       </section>
 
       {/* Divider */}
-      <div className="max-w-5xl mx-auto px-6">
+      <div className="max-w-5xl mx-auto px-4 md:px-6">
         <div className="border-t-2 border-cc-border border-dashed" />
       </div>
 
       {/* Setup */}
-      <section className="relative z-10 max-w-3xl mx-auto px-6 py-16">
+      <section className="relative z-10 max-w-3xl mx-auto px-4 md:px-6 py-10 md:py-16">
         <p className="font-pixel text-xs text-cc-muted tracking-[0.3em] mb-4 text-center">30 SECOND SETUP</p>
         <div className="border-2 border-cc-border bg-cc-dark">
           <div className="flex items-center gap-2 px-3 py-2 border-b-2 border-cc-border">
@@ -125,16 +125,16 @@ export function Landing() {
       </section>
 
       {/* Divider */}
-      <div className="max-w-5xl mx-auto px-6">
+      <div className="max-w-5xl mx-auto px-4 md:px-6">
         <div className="border-t-2 border-cc-border border-dashed" />
       </div>
 
       {/* Works with */}
-      <section className="relative z-10 max-w-4xl mx-auto px-6 py-16">
-        <h2 className="font-pixel text-3xl text-cc-white text-center mb-4 tracking-wide">
+      <section className="relative z-10 max-w-4xl mx-auto px-4 md:px-6 py-10 md:py-16">
+        <h2 className="font-pixel text-2xl md:text-3xl text-cc-white text-center mb-4 tracking-wide">
           ONE VAULT. <span className="text-cc-pink">EVERY AGENT.</span>
         </h2>
-        <p className="text-center text-xs text-cc-muted mb-10">
+        <p className="text-center text-[11px] md:text-xs text-cc-muted mb-10">
           Store a memory from Claude Code. Recall it from Cursor. Browse it from OpenClaw. All encrypted.
         </p>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-cc-border">
@@ -152,18 +152,18 @@ export function Landing() {
         </div>
         <div className="border-2 border-cc-border bg-cc-dark mt-6 p-4">
           <p className="font-pixel text-[10px] text-cc-muted tracking-wider mb-3">HOW CROSS-AGENT MEMORY WORKS</p>
-          <pre className="text-[11px] font-mono text-cc-sub leading-relaxed overflow-x-auto">{'Claude Code ──encrypt──▶ Context Chest API ◀──encrypt── OpenClaw\n     │                        │                        │\n     │          ┌──────────────┴──────────────┐         │\n     │          │   Encrypted Vault (AES-256) │         │\n     │          │   Server sees: ████████████ │         │\n     │          └──────────────┬──────────────┘         │\n     │                        │                        │\nCursor ───encrypt───▶ Same vault, same keys ◀───── REST API'}</pre>
+          <pre className="text-[9px] sm:text-[11px] font-mono text-cc-sub leading-relaxed overflow-x-auto">{'Claude Code ──▶ Context Chest ◀── OpenClaw\n        │            │            │\n        │    ┌───────┴───────┐    │\n        │    │ Encrypted     │    │\n        │    │ Vault (AES)   │    │\n        │    │ ████████████  │    │\n        │    └───────┬───────┘    │\n        │            │            │\nCursor ─────▶ Same keys ◀─── REST API'}</pre>
         </div>
       </section>
 
       {/* Divider */}
-      <div className="max-w-5xl mx-auto px-6">
+      <div className="max-w-5xl mx-auto px-4 md:px-6">
         <div className="border-t-2 border-cc-border border-dashed" />
       </div>
 
       {/* Features */}
-      <section className="relative z-10 max-w-5xl mx-auto px-6 py-16">
-        <h2 className="font-pixel text-3xl text-cc-white text-center mb-12 tracking-wide">
+      <section className="relative z-10 max-w-5xl mx-auto px-4 md:px-6 py-10 md:py-16">
+        <h2 className="font-pixel text-2xl md:text-3xl text-cc-white text-center mb-8 md:mb-12 tracking-wide">
           WHAT'S IN THE <span className="text-cc-pink">CHEST</span>
         </h2>
         <div className="grid md:grid-cols-3 gap-px bg-cc-border">
@@ -179,13 +179,13 @@ export function Landing() {
       </section>
 
       {/* Divider */}
-      <div className="max-w-5xl mx-auto px-6">
+      <div className="max-w-5xl mx-auto px-4 md:px-6">
         <div className="border-t-2 border-cc-border border-dashed" />
       </div>
 
       {/* Use cases */}
-      <section className="relative z-10 max-w-5xl mx-auto px-6 py-16">
-        <h2 className="font-pixel text-3xl text-cc-white text-center mb-12 tracking-wide">
+      <section className="relative z-10 max-w-5xl mx-auto px-4 md:px-6 py-10 md:py-16">
+        <h2 className="font-pixel text-2xl md:text-3xl text-cc-white text-center mb-8 md:mb-12 tracking-wide">
           WHO IT'S <span className="text-cc-pink">FOR</span>
         </h2>
         <div className="grid md:grid-cols-2 gap-4">
@@ -221,13 +221,13 @@ export function Landing() {
       </section>
 
       {/* Divider */}
-      <div className="max-w-5xl mx-auto px-6">
+      <div className="max-w-5xl mx-auto px-4 md:px-6">
         <div className="border-t-2 border-cc-border border-dashed" />
       </div>
 
       {/* How it works */}
-      <section className="relative z-10 max-w-3xl mx-auto px-6 py-16">
-        <h2 className="font-pixel text-3xl text-cc-white text-center mb-12 tracking-wide">
+      <section className="relative z-10 max-w-3xl mx-auto px-4 md:px-6 py-10 md:py-16">
+        <h2 className="font-pixel text-2xl md:text-3xl text-cc-white text-center mb-8 md:mb-12 tracking-wide">
           HOW IT <span className="text-cc-pink">WORKS</span>
         </h2>
         <div className="space-y-6">
@@ -248,11 +248,11 @@ export function Landing() {
       </section>
 
       {/* Real examples */}
-      <div className="max-w-5xl mx-auto px-6">
+      <div className="max-w-5xl mx-auto px-4 md:px-6">
         <div className="border-t-2 border-cc-border border-dashed" />
       </div>
-      <section className="relative z-10 max-w-4xl mx-auto px-6 py-16">
-        <h2 className="font-pixel text-3xl text-cc-white text-center mb-4 tracking-wide">
+      <section className="relative z-10 max-w-4xl mx-auto px-4 md:px-6 py-10 md:py-16">
+        <h2 className="font-pixel text-2xl md:text-3xl text-cc-white text-center mb-4 tracking-wide">
           SEE IT IN <span className="text-cc-pink">ACTION</span>
         </h2>
         <p className="text-center text-xs text-cc-muted mb-12">Real conversations with Claude Code + Context Chest</p>
@@ -316,11 +316,11 @@ export function Landing() {
       </section>
 
       {/* Quick start guide */}
-      <div className="max-w-5xl mx-auto px-6">
+      <div className="max-w-5xl mx-auto px-4 md:px-6">
         <div className="border-t-2 border-cc-border border-dashed" />
       </div>
-      <section className="relative z-10 max-w-3xl mx-auto px-6 py-16">
-        <h2 className="font-pixel text-3xl text-cc-white text-center mb-12 tracking-wide">
+      <section className="relative z-10 max-w-3xl mx-auto px-4 md:px-6 py-10 md:py-16">
+        <h2 className="font-pixel text-2xl md:text-3xl text-cc-white text-center mb-8 md:mb-12 tracking-wide">
           QUICK <span className="text-cc-pink">START</span>
         </h2>
         <div className="space-y-4">
@@ -343,11 +343,11 @@ export function Landing() {
       </section>
 
       {/* Developer notes */}
-      <div className="max-w-5xl mx-auto px-6">
+      <div className="max-w-5xl mx-auto px-4 md:px-6">
         <div className="border-t-2 border-cc-border border-dashed" />
       </div>
-      <section className="relative z-10 max-w-4xl mx-auto px-6 py-16">
-        <h2 className="font-pixel text-3xl text-cc-white text-center mb-12 tracking-wide">
+      <section className="relative z-10 max-w-4xl mx-auto px-4 md:px-6 py-10 md:py-16">
+        <h2 className="font-pixel text-2xl md:text-3xl text-cc-white text-center mb-8 md:mb-12 tracking-wide">
           UNDER THE <span className="text-cc-pink">HOOD</span>
         </h2>
         <div className="grid md:grid-cols-2 gap-4">
@@ -398,13 +398,13 @@ export function Landing() {
       </section>
 
       {/* Divider */}
-      <div className="max-w-5xl mx-auto px-6">
+      <div className="max-w-5xl mx-auto px-4 md:px-6">
         <div className="border-t-2 border-cc-border border-dashed" />
       </div>
 
       {/* CTA */}
-      <section className="relative z-10 max-w-3xl mx-auto px-6 py-20 text-center">
-        <h2 className="font-pixel text-4xl md:text-5xl text-cc-white mb-4 tracking-wide">
+      <section className="relative z-10 max-w-3xl mx-auto px-4 md:px-6 py-12 md:py-20 text-center">
+        <h2 className="font-pixel text-2xl sm:text-4xl md:text-5xl text-cc-white mb-4 tracking-wide">
           YOUR AI REMEMBERS.<br /><span className="text-cc-pink">NOBODY ELSE CAN READ IT.</span>
         </h2>
         <p className="text-cc-muted text-sm mb-8">Open source. Self-hostable. Your keys, your data.</p>
@@ -417,7 +417,7 @@ export function Landing() {
       </section>
 
       {/* Founders */}
-      <section className="relative z-10 max-w-3xl mx-auto px-6 py-16 text-center">
+      <section className="relative z-10 max-w-3xl mx-auto px-4 md:px-6 py-10 md:py-16 text-center">
         <p className="font-pixel text-[10px] text-cc-muted tracking-[0.3em] mb-8">BUILT BY</p>
         <div className="flex justify-center gap-12">
           <div>
