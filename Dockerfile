@@ -1,26 +1,17 @@
-FROM node:20-alpine AS builder
+FROM node:20-alpine
 
 WORKDIR /app
 
 COPY package*.json ./
 COPY prisma ./prisma/
 
-RUN npm ci
+RUN npm ci --omit=dev && npm install ts-node typescript && npx prisma generate
 
-COPY . .
-RUN npm run build
-
-FROM node:20-alpine
-
-WORKDIR /app
-
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/prisma ./prisma
+COPY src ./src
+COPY tsconfig.json ./
 
 ENV NODE_ENV=production
 
 EXPOSE 3000
 
-CMD ["npm", "start"] 
+CMD ["npx", "ts-node", "--transpile-only", "src/index.ts"]
