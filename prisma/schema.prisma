@@ -186,8 +186,9 @@ model Chest {
   userId      String            @map("user_id")
   name        String
   description String?
-  isPublic    Boolean           @default(false) @map("is_public")
-  createdAt   DateTime          @default(now()) @map("created_at")
+  isPublic      Boolean           @default(false) @map("is_public")
+  isAutoCreated Boolean           @default(false) @map("is_auto_created")
+  createdAt     DateTime          @default(now()) @map("created_at")
   user        User              @relation(fields: [userId], references: [id])
   memories    MemoryEntry[]
   sessions    Session[]
