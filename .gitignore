@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+*.log
+.DS_Store
+.superpowers/
+packages/pwa/dist/
+packages/pwa/dev-credentials.json
+packages/mcp-server/dist/
