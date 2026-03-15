@@ -212,6 +212,161 @@ export function Landing() {
         </div>
       </section>
 
+      {/* Real examples */}
+      <div className="max-w-5xl mx-auto px-6">
+        <div className="border-t-2 border-cc-border border-dashed" />
+      </div>
+      <section className="relative z-10 max-w-4xl mx-auto px-6 py-16">
+        <h2 className="font-pixel text-3xl text-cc-white text-center mb-4 tracking-wide">
+          SEE IT IN <span className="text-cc-pink">ACTION</span>
+        </h2>
+        <p className="text-center text-xs text-cc-muted mb-12">Real conversations with Claude Code + Context Chest</p>
+
+        <div className="space-y-8">
+          {/* Example 1 */}
+          <div className="border-2 border-cc-border bg-cc-dark p-5">
+            <p className="font-pixel text-[10px] text-cc-muted tracking-wider mb-4">EXAMPLE 1 — REMEMBER PROJECT CONTEXT</p>
+            <div className="space-y-3">
+              <div className="flex gap-3">
+                <span className="font-pixel text-[10px] text-cc-pink shrink-0 w-12">YOU:</span>
+                <p className="text-sm text-cc-text">"Remember that this project uses Fastify with Prisma, deploys to Railway, and we always use Zod for validation"</p>
+              </div>
+              <div className="flex gap-3">
+                <span className="font-pixel text-[10px] text-cc-sub shrink-0 w-12">AI:</span>
+                <p className="text-sm text-cc-sub">Remembered at project/stack. Encrypted and stored.</p>
+              </div>
+              <div className="border-t border-cc-border my-2" />
+              <p className="text-[11px] text-cc-muted italic">Next session — different day, different conversation:</p>
+              <div className="flex gap-3">
+                <span className="font-pixel text-[10px] text-cc-pink shrink-0 w-12">YOU:</span>
+                <p className="text-sm text-cc-text">"Add a new endpoint for user profiles"</p>
+              </div>
+              <div className="flex gap-3">
+                <span className="font-pixel text-[10px] text-cc-sub shrink-0 w-12">AI:</span>
+                <p className="text-sm text-cc-sub">I see from your vault that you use Fastify + Prisma with Zod validation. I'll follow that pattern...</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Example 2 */}
+          <div className="border-2 border-cc-border bg-cc-dark p-5">
+            <p className="font-pixel text-[10px] text-cc-muted tracking-wider mb-4">EXAMPLE 2 — RECALL A PAST DECISION</p>
+            <div className="space-y-3">
+              <div className="flex gap-3">
+                <span className="font-pixel text-[10px] text-cc-pink shrink-0 w-12">YOU:</span>
+                <p className="text-sm text-cc-text">"Why did we choose Stripe over Paddle?"</p>
+              </div>
+              <div className="flex gap-3">
+                <span className="font-pixel text-[10px] text-cc-sub shrink-0 w-12">AI:</span>
+                <p className="text-sm text-cc-sub">Searching your vault... Found at decisions/payments: "Chose Stripe because Paddle doesn't support marketplace payouts for our multi-vendor model."</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Example 3 */}
+          <div className="border-2 border-cc-border bg-cc-dark p-5">
+            <p className="font-pixel text-[10px] text-cc-muted tracking-wider mb-4">EXAMPLE 3 — BROWSE YOUR VAULT</p>
+            <div className="space-y-3">
+              <div className="flex gap-3">
+                <span className="font-pixel text-[10px] text-cc-pink shrink-0 w-12">YOU:</span>
+                <p className="text-sm text-cc-text">"What's in my vault?"</p>
+              </div>
+              <div className="flex gap-3">
+                <span className="font-pixel text-[10px] text-cc-sub shrink-0 w-12">AI:</span>
+                <pre className="text-sm text-cc-sub font-mono">{'project/\n  stack\n  architecture\n  deploy-config\ndecisions/\n  payments\n  auth-provider\npreferences/\n  coding-style'}</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Quick start guide */}
+      <div className="max-w-5xl mx-auto px-6">
+        <div className="border-t-2 border-cc-border border-dashed" />
+      </div>
+      <section className="relative z-10 max-w-3xl mx-auto px-6 py-16">
+        <h2 className="font-pixel text-3xl text-cc-white text-center mb-12 tracking-wide">
+          QUICK <span className="text-cc-pink">START</span>
+        </h2>
+        <div className="space-y-4">
+          {[
+            { n: '01', cmd: 'Create your account', code: 'pwa-one-gold.vercel.app → Sign up' },
+            { n: '02', cmd: 'Login from terminal', code: 'npx context-chest-mcp login' },
+            { n: '03', cmd: 'Add MCP config', code: '{ "mcpServers": { "context-chest": {\n  "command": "npx",\n  "args": ["context-chest-mcp"]\n}}}' },
+            { n: '04', cmd: 'Restart your AI tool', code: 'Claude Code: /exit → relaunch\nCursor: restart' },
+            { n: '05', cmd: 'Start remembering', code: '"Remember that I prefer TypeScript\n and always use Tailwind"' },
+          ].map((step) => (
+            <div key={step.n} className="flex gap-4 items-start">
+              <span className="font-pixel text-xl text-cc-pink shrink-0 w-8">{step.n}</span>
+              <div className="flex-1">
+                <p className="font-pixel text-xs text-cc-white tracking-wider mb-1.5">{step.cmd.toUpperCase()}</p>
+                <pre className="bg-cc-surface border border-cc-border p-3 text-[12px] font-mono text-cc-sub overflow-x-auto">{step.code}</pre>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Developer notes */}
+      <div className="max-w-5xl mx-auto px-6">
+        <div className="border-t-2 border-cc-border border-dashed" />
+      </div>
+      <section className="relative z-10 max-w-4xl mx-auto px-6 py-16">
+        <h2 className="font-pixel text-3xl text-cc-white text-center mb-12 tracking-wide">
+          UNDER THE <span className="text-cc-pink">HOOD</span>
+        </h2>
+        <div className="grid md:grid-cols-2 gap-4">
+          <div className="border-2 border-cc-border bg-cc-dark p-5">
+            <h3 className="font-pixel text-sm text-cc-white tracking-wider mb-3">ENCRYPTION MODEL</h3>
+            <pre className="text-[11px] font-mono text-cc-sub leading-relaxed">{'Master Key (256-bit random)\n  │\n  ├─ HKDF(exportKey, userId)\n  │  → wrapping key\n  │  → wraps master key for storage\n  │\n  └─ HKDF(masterKey, memoryURI)\n     → per-item AES-256-GCM key\n     → encrypts content'}</pre>
+          </div>
+          <div className="border-2 border-cc-border bg-cc-dark p-5">
+            <h3 className="font-pixel text-sm text-cc-white tracking-wider mb-3">WHAT THE SERVER SEES</h3>
+            <div className="space-y-2 text-[11px] font-mono">
+              <div className="flex justify-between">
+                <span className="text-cc-muted">URI path</span>
+                <span className="text-green-400">project/stack</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-cc-muted">Category label</span>
+                <span className="text-green-400">project: stack</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-cc-muted">Word count</span>
+                <span className="text-green-400">~24 words</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-cc-muted">Content</span>
+                <span className="text-cc-pink">████████████</span>
+              </div>
+              <div className="border-t border-cc-border my-1" />
+              <p className="text-cc-muted">Server stores ciphertext only. Category labels are derived from the path you choose — never from actual content.</p>
+            </div>
+          </div>
+          <div className="border-2 border-cc-border bg-cc-dark p-5">
+            <h3 className="font-pixel text-sm text-cc-white tracking-wider mb-3">TECH STACK</h3>
+            <div className="space-y-1.5 text-[11px] font-mono text-cc-sub">
+              <p><span className="text-cc-pink">API</span> — Fastify + Prisma + PostgreSQL</p>
+              <p><span className="text-cc-pink">MCP</span> — @modelcontextprotocol/sdk</p>
+              <p><span className="text-cc-pink">CRYPTO</span> — Node.js crypto (AES-256-GCM + HKDF)</p>
+              <p><span className="text-cc-pink">PWA</span> — React + Tailwind + Vite</p>
+              <p><span className="text-cc-pink">AUTH</span> — JWT + refresh token rotation</p>
+              <p><span className="text-cc-pink">DEPLOY</span> — Railway (API) + Vercel (PWA)</p>
+            </div>
+          </div>
+          <div className="border-2 border-cc-border bg-cc-dark p-5">
+            <h3 className="font-pixel text-sm text-cc-white tracking-wider mb-3">SELF-HOST IT</h3>
+            <pre className="text-[11px] font-mono text-cc-sub leading-relaxed">{'git clone github.com/fuckupic/\n  context-chest\n\ndocker-compose up -d\nnpm install\ncp .env.example .env\nnpx prisma migrate dev\nnpm run dev'}</pre>
+            <p className="text-[11px] text-cc-muted mt-3">Full control. Your infra, your keys, your data. MIT licensed.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* Divider */}
+      <div className="max-w-5xl mx-auto px-6">
+        <div className="border-t-2 border-cc-border border-dashed" />
+      </div>
+
       {/* CTA */}
       <section className="relative z-10 max-w-3xl mx-auto px-6 py-20 text-center">
         <h2 className="font-pixel text-4xl md:text-5xl text-cc-white mb-4 tracking-wide">
