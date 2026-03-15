@@ -31,7 +31,7 @@ describe('MCP Tools', () => {
 
       const result = await handleRemember(
         { content: 'secret data', path: 'test/path' },
-        client, mk, mockSummaries
+        client, mk, 'default', mockSummaries
       );
 
       expect(result).toContain('test/path');
@@ -72,7 +72,7 @@ describe('MCP Tools', () => {
 
   describe('read', () => {
     it('should decrypt content from API', async () => {
-      const encrypted = encryptL2(mk, 'test/uri', Buffer.from('decrypted content'));
+      const encrypted = encryptL2(mk, 'default', 'test/uri', Buffer.from('decrypted content'));
       const encBuf = Buffer.from(encrypted, 'base64');
 
       mockFetch.mockResolvedValueOnce({
@@ -80,7 +80,7 @@ describe('MCP Tools', () => {
         arrayBuffer: () => Promise.resolve(encBuf.buffer.slice(encBuf.byteOffset, encBuf.byteOffset + encBuf.byteLength)),
       });
 
-      const result = await handleRead({ uri: 'test/uri' }, client, mk);
+      const result = await handleRead({ uri: 'test/uri' }, client, mk, 'default');
       expect(result).toBe('decrypted content');
     });
   });
