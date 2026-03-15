@@ -106,6 +106,8 @@ model MemoryEntry {
   s3Key     String   @map("s3_key")
   sha256    String
   sizeBytes Int      @map("size_bytes")
+  l0        String   @default("")
+  l1        String   @default("") @db.Text
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   user      User     @relation(fields: [userId], references: [id])

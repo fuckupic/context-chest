@@ -21,6 +21,13 @@ interface RecallResult {
   total: number;
 }
 
+interface BrowseEntry {
+  uri: string;
+  l0: string;
+  type: 'file' | 'directory';
+  children?: BrowseEntry[];
+}
+
 export class MemoryService {
   constructor(
     private readonly prisma: PrismaClient,
@@ -41,46 +48,87 @@ export class MemoryService {
     // Step 1: S3
     await this.storage.upload(key, input.encryptedL2, input.sha256);
 
-    // Step 2: OpenViking (rollback S3 on failure)
-    try {
-      await this.context.write(userId, input.uri, {
-        l0: input.l0,
-        l1: input.l1,
-      });
-    } catch (error) {
-      await this.storage.delete(key);
-      throw error;
-    }
+    // Step 2: OpenViking (best-effort — don't block on failure)
+    await this.context.write(userId, input.uri, {
+      l0: input.l0,
+      l1: input.l1,
+    }).catch(() => {});
 
-    // Step 3: Prisma (rollback OV + S3 on failure)
+    // Step 3: Prisma (rollback S3 on failure)
     try {
-      const entry = await this.prisma.memoryEntry.create({
-        data: {
+      const entry = await this.prisma.memoryEntry.upsert({
+        where: { userId_uri: { userId, uri: input.uri } },
+        create: {
           userId,
           uri: input.uri,
           s3Key: key,
           sha256: input.sha256,
           sizeBytes: input.encryptedL2.length,
+          l0: input.l0,
+          l1: input.l1,
+        },
+        update: {
+          s3Key: key,
+          sha256: input.sha256,
+          sizeBytes: input.encryptedL2.length,
+          l0: input.l0,
+          l1: input.l1,
         },
       });
 
       return { uri: entry.uri, createdAt: entry.createdAt };
     } catch (error) {
-      await this.context.delete(userId, input.uri);
       await this.storage.delete(key);
       throw error;
     }
   }
 
   async recall(userId: string, input: RecallInput): Promise<RecallResult> {
-    const { results, total } = await this.context.find(
-      userId,
-      input.query,
-      input.limit,
-      input.offset
-    );
+    // Try OpenViking vector search first
+    try {
+      const { results, total } = await this.context.find(
+        userId,
+        input.query,
+        input.limit,
+        input.offset
+      );
+      if (results.length > 0) {
+        return { data: results, total };
+      }
+    } catch {
+      // OpenViking unavailable — fall through to Prisma
+    }
 
-    return { data: results, total };
+    // Fallback: Prisma text search on l0/l1
+    const words = input.query.toLowerCase().split(/\s+/).filter(Boolean);
+    const where = {
+      userId,
+      OR: words.flatMap((word) => [
+        { l0: { contains: word, mode: 'insensitive' as const } },
+        { l1: { contains: word, mode: 'insensitive' as const } },
+        { uri: { contains: word, mode: 'insensitive' as const } },
+      ]),
+    };
+
+    const [entries, total] = await Promise.all([
+      this.prisma.memoryEntry.findMany({
+        where,
+        orderBy: { updatedAt: 'desc' },
+        skip: input.offset,
+        take: input.limit,
+      }),
+      this.prisma.memoryEntry.count({ where }),
+    ]);
+
+    return {
+      data: entries.map((e) => ({
+        uri: e.uri,
+        l0: e.l0,
+        l1: e.l1,
+        score: 1.0,
+      })),
+      total,
+    };
   }
 
   async getContent(userId: string, uri: string): Promise<Buffer> {
@@ -113,9 +161,49 @@ export class MemoryService {
   async browse(
     userId: string,
     path: string,
-    depth: number
-  ): Promise<unknown[]> {
-    return this.context.list(userId, path, depth);
+    _depth: number
+  ): Promise<BrowseEntry[]> {
+    // Query Prisma directly — no OpenViking dependency
+    const prefix = path ? `${path}/` : '';
+
+    const entries = await this.prisma.memoryEntry.findMany({
+      where: {
+        userId,
+        ...(prefix ? { uri: { startsWith: prefix } } : {}),
+      },
+      select: { uri: true, l0: true },
+      orderBy: { uri: 'asc' },
+    });
+
+    // Build tree from flat URI list
+    const tree: BrowseEntry[] = [];
+    const dirs = new Map<string, BrowseEntry>();
+
+    for (const entry of entries) {
+      const relativePath = prefix ? entry.uri.slice(prefix.length) : entry.uri;
+      const segments = relativePath.split('/');
+
+      if (segments.length === 1) {
+        // Direct child file
+        tree.push({ uri: entry.uri, l0: entry.l0, type: 'file' });
+      } else {
+        // Nested — create directory entry for the first segment
+        const dirName = segments[0];
+        const dirUri = prefix ? `${path}/${dirName}` : dirName;
+        if (!dirs.has(dirUri)) {
+          const dirEntry: BrowseEntry = { uri: dirUri, l0: '', type: 'directory', children: [] };
+          dirs.set(dirUri, dirEntry);
+          tree.push(dirEntry);
+        }
+        dirs.get(dirUri)!.children!.push({
+          uri: entry.uri,
+          l0: entry.l0,
+          type: 'file',
+        });
+      }
+    }
+
+    return tree;
   }
 
   async list(
