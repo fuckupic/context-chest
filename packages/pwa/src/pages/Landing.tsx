@@ -416,6 +416,23 @@ export function Landing() {
         </button>
       </section>
 
+      {/* Founders */}
+      <section className="relative z-10 max-w-3xl mx-auto px-6 py-16 text-center">
+        <p className="font-pixel text-[10px] text-cc-muted tracking-[0.3em] mb-8">BUILT BY</p>
+        <div className="flex justify-center gap-12">
+          <div>
+            <img src="/tady.png" alt="Tady" className="w-24 h-24 border-2 border-cc-border mx-auto mb-3" style={{ imageRendering: 'auto' }} />
+            <p className="font-pixel text-sm text-cc-white tracking-wider">TADY</p>
+            <p className="text-[11px] text-cc-muted">Co-founder</p>
+          </div>
+          <div>
+            <img src="/luky.png" alt="Luky" className="w-24 h-24 border-2 border-cc-border mx-auto mb-3" style={{ imageRendering: 'auto' }} />
+            <p className="font-pixel text-sm text-cc-white tracking-wider">LUKY</p>
+            <p className="text-[11px] text-cc-muted">Co-founder</p>
+          </div>
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="relative z-10 border-t-2 border-cc-border py-6 text-center">
         <p className="font-pixel text-[10px] text-cc-muted tracking-wider">
