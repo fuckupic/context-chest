@@ -4,6 +4,8 @@ import { ContextService } from './context';
 
 interface RememberInput {
   uri: string;
+  chestId: string;
+  chestName: string;
   l0: string;
   l1: string;
   encryptedL2: Buffer;
@@ -35,33 +37,28 @@ export class MemoryService {
     private readonly context: ContextService
   ) {}
 
-  private s3Key(userId: string, uri: string): string {
-    return `${userId}/memories/${uri}.enc`;
+  private s3Key(userId: string, chestId: string, uri: string): string {
+    return `${userId}/chests/${chestId}/memories/${uri}.enc`;
   }
 
   async remember(
     userId: string,
     input: RememberInput
   ): Promise<{ uri: string; createdAt: Date }> {
-    const key = this.s3Key(userId, input.uri);
+    const key = this.s3Key(userId, input.chestId, input.uri);
 
-    // Step 1: S3 (if available)
     if (this.storage) {
       await this.storage.upload(key, input.encryptedL2, input.sha256);
     }
 
-    // Step 2: OpenViking (best-effort — don't block on failure)
-    await this.context.write(userId, input.uri, {
-      l0: input.l0,
-      l1: input.l1,
-    }).catch(() => {});
+    await this.context.write(userId, input.uri, { l0: input.l0, l1: input.l1 }, input.chestName).catch(() => {});
 
-    // Step 3: Prisma
     try {
       const entry = await this.prisma.memoryEntry.upsert({
-        where: { userId_uri: { userId, uri: input.uri } },
+        where: { userId_chestId_uri: { userId, chestId: input.chestId, uri: input.uri } },
         create: {
           userId,
+          chestId: input.chestId,
           uri: input.uri,
           s3Key: key,
           sha256: input.sha256,
@@ -89,14 +86,19 @@ export class MemoryService {
     }
   }
 
-  async recall(userId: string, input: RecallInput): Promise<RecallResult> {
-    // Try OpenViking vector search first
+  async recall(
+    userId: string,
+    chestId: string,
+    chestName: string,
+    input: RecallInput
+  ): Promise<RecallResult> {
     try {
       const { results, total } = await this.context.find(
         userId,
         input.query,
         input.limit,
-        input.offset
+        input.offset,
+        chestName
       );
       if (results.length > 0) {
         return { data: results, total };
@@ -105,10 +107,10 @@ export class MemoryService {
       // OpenViking unavailable — fall through to Prisma
     }
 
-    // Fallback: Prisma text search on l0/l1
     const words = input.query.toLowerCase().split(/\s+/).filter(Boolean);
     const where = {
       userId,
+      chestId,
       OR: words.flatMap((word) => [
         { l0: { contains: word, mode: 'insensitive' as const } },
         { l1: { contains: word, mode: 'insensitive' as const } },
@@ -137,16 +139,15 @@ export class MemoryService {
     };
   }
 
-  async getContent(userId: string, uri: string): Promise<Buffer> {
+  async getContent(userId: string, chestId: string, uri: string): Promise<Buffer> {
     const entry = await this.prisma.memoryEntry.findUnique({
-      where: { userId_uri: { userId, uri } },
+      where: { userId_chestId_uri: { userId, chestId, uri } },
     });
 
     if (!entry) {
       throw new Error('Memory not found');
     }
 
-    // Try Postgres first, fall back to S3
     if (entry.content) {
       return Buffer.from(entry.content);
     }
@@ -156,17 +157,16 @@ export class MemoryService {
     throw new Error('Content not available');
   }
 
-  async forget(userId: string, uri: string): Promise<void> {
+  async forget(userId: string, chestId: string, chestName: string, uri: string): Promise<void> {
     const entry = await this.prisma.memoryEntry.findUnique({
-      where: { userId_uri: { userId, uri } },
+      where: { userId_chestId_uri: { userId, chestId, uri } },
     });
 
     if (!entry) {
       throw new Error('Memory not found');
     }
 
-    // OpenViking delete may fail if the resource was never indexed — continue anyway
-    await this.context.delete(userId, uri).catch(() => {});
+    await this.context.delete(userId, uri, chestName).catch(() => {});
     if (this.storage) {
       await this.storage.delete(entry.s3Key).catch(() => {});
     }
@@ -175,22 +175,22 @@ export class MemoryService {
 
   async browse(
     userId: string,
+    chestId: string,
     path: string,
     _depth: number
   ): Promise<BrowseEntry[]> {
-    // Query Prisma directly — no OpenViking dependency
     const prefix = path ? `${path}/` : '';
 
     const entries = await this.prisma.memoryEntry.findMany({
       where: {
         userId,
+        chestId,
         ...(prefix ? { uri: { startsWith: prefix } } : {}),
       },
       select: { uri: true, l0: true },
       orderBy: { uri: 'asc' },
     });
 
-    // Build tree from flat URI list
     const tree: BrowseEntry[] = [];
     const dirs = new Map<string, BrowseEntry>();
 
@@ -199,10 +199,8 @@ export class MemoryService {
       const segments = relativePath.split('/');
 
       if (segments.length === 1) {
-        // Direct child file
         tree.push({ uri: entry.uri, l0: entry.l0, type: 'file' });
       } else {
-        // Nested — create directory entry for the first segment
         const dirName = segments[0];
         const dirUri = prefix ? `${path}/${dirName}` : dirName;
         if (!dirs.has(dirUri)) {
@@ -223,20 +221,22 @@ export class MemoryService {
 
   async list(
     userId: string,
+    chestId: string,
     page: number = 1,
     limit: number = 100
   ): Promise<{
     data: Array<{ uri: string; sha256: string; sizeBytes: number; createdAt: Date }>;
     total: number;
   }> {
+    const where = { userId, chestId };
     const [entries, total] = await Promise.all([
       this.prisma.memoryEntry.findMany({
-        where: { userId },
+        where,
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
       }),
-      this.prisma.memoryEntry.count({ where: { userId } }),
+      this.prisma.memoryEntry.count({ where }),
     ]);
 
     return {
@@ -248,5 +248,31 @@ export class MemoryService {
       })),
       total,
     };
+  }
+
+  async updateContent(
+    userId: string,
+    chestId: string,
+    uri: string,
+    encryptedL2: Buffer,
+    sha256: string,
+    encryptionVersion: number
+  ): Promise<void> {
+    const entry = await this.prisma.memoryEntry.findUnique({
+      where: { userId_chestId_uri: { userId, chestId, uri } },
+    });
+    if (!entry) throw new Error('Memory not found');
+
+    const key = this.s3Key(userId, chestId, uri);
+    if (this.storage) await this.storage.upload(key, encryptedL2, sha256);
+
+    await this.prisma.memoryEntry.update({
+      where: { id: entry.id },
+      data: { s3Key: key, sha256, sizeBytes: encryptedL2.length, content: encryptedL2, encryptionVersion },
+    });
+  }
+
+  async autoSortUri(userId: string, chestName: string, l0: string, l1: string): Promise<string> {
+    return this.context.categorize(userId, chestName, l0, l1);
   }
 }
