@@ -1,9 +1,26 @@
 import { FastifyPluginAsync } from 'fastify';
 import { PrismaClient } from '@prisma/client';
 import { hashSync, compareSync } from 'bcryptjs';
-import { createHash } from 'crypto';
+import { createHash, randomBytes } from 'crypto';
 
 const prisma = new PrismaClient();
+
+const REFRESH_TOKEN_EXPIRY_DAYS = 30;
+
+function generateRefreshToken(): string {
+  return randomBytes(48).toString('hex');
+}
+
+async function createRefreshToken(userId: string): Promise<string> {
+  const token = generateRefreshToken();
+  const expiresAt = new Date(Date.now() + REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
+
+  await prisma.refreshToken.create({
+    data: { userId, token, expiresAt },
+  });
+
+  return token;
+}
 
 export const authRoutes: FastifyPluginAsync = async (fastify) => {
   // Register
@@ -24,8 +41,9 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
 
     const user = await prisma.user.create({ data: { email, passwordHash } });
     const token = fastify.jwt.sign({ sub: user.id });
+    const refreshToken = await createRefreshToken(user.id);
 
-    return { token, userId: user.id, exportKey };
+    return { token, refreshToken, userId: user.id, exportKey };
   });
 
   // Login
@@ -39,8 +57,37 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
 
     const exportKey = createHash('sha256').update(`context-chest:${email}:${password}`).digest('hex');
     const token = fastify.jwt.sign({ sub: user.id });
+    const refreshToken = await createRefreshToken(user.id);
 
-    return { token, userId: user.id, exportKey };
+    return { token, refreshToken, userId: user.id, exportKey };
+  });
+
+  // Refresh — exchange a valid refresh token for a new JWT + refresh token
+  fastify.post('/refresh', async (request, reply) => {
+    const { refreshToken } = request.body as { refreshToken: string };
+
+    if (!refreshToken) {
+      return reply.code(400).send({ code: 'MISSING_REFRESH_TOKEN', message: 'refreshToken is required' });
+    }
+
+    const stored = await prisma.refreshToken.findUnique({
+      where: { token: refreshToken },
+    });
+
+    if (!stored || stored.expiresAt < new Date()) {
+      if (stored) {
+        await prisma.refreshToken.delete({ where: { id: stored.id } });
+      }
+      return reply.code(401).send({ code: 'INVALID_REFRESH_TOKEN', message: 'Refresh token is invalid or expired' });
+    }
+
+    // Rotate: delete old, issue new
+    await prisma.refreshToken.delete({ where: { id: stored.id } });
+
+    const token = fastify.jwt.sign({ sub: stored.userId });
+    const newRefreshToken = await createRefreshToken(stored.userId);
+
+    return { token, refreshToken: newRefreshToken };
   });
 
   // Store wrapped master key (409 if already set)

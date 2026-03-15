@@ -2,7 +2,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { ContextChestClient } from './client';
-import { loadCredentials, isTokenExpired } from './auth';
+import { loadCredentials, saveCredentials, isTokenExpired } from './auth';
 import { unwrapMasterKey, deriveWrappingKey } from './crypto';
 import { parseL0Response, parseL1Response } from './summarizer';
 
@@ -91,16 +91,67 @@ server.tool('context-chest_session-save', 'Extract memories and close session', 
   return { content: [{ type: 'text' as const, text: result }] };
 });
 
+async function refreshAndInit(apiUrl: string, refreshToken: string, creds: ReturnType<typeof loadCredentials>): Promise<boolean> {
+  try {
+    const response = await fetch(`${apiUrl}/v1/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken }),
+    });
+
+    if (!response.ok) {
+      process.stderr.write(`[context-chest] Refresh failed: HTTP ${response.status}\n`);
+      return false;
+    }
+
+    const data = (await response.json()) as { token: string; refreshToken: string };
+
+    // Update credentials on disk
+    if (creds) {
+      saveCredentials({
+        ...creds,
+        jwt: data.token,
+        refreshToken: data.refreshToken,
+      });
+    }
+
+    client = new ContextChestClient({
+      baseUrl: apiUrl,
+      token: data.token,
+      refreshToken: data.refreshToken,
+    });
+
+    process.stderr.write('[context-chest] Token refreshed on startup\n');
+    return true;
+  } catch (err) {
+    process.stderr.write(`[context-chest] Refresh error: ${(err as Error).message}\n`);
+    return false;
+  }
+}
+
 async function main() {
   const creds = loadCredentials();
 
-  if (creds && !isTokenExpired(creds.jwt)) {
-    client = new ContextChestClient({
-      baseUrl: creds.apiUrl,
-      token: creds.jwt,
-    });
+  if (creds) {
+    if (!isTokenExpired(creds.jwt)) {
+      // Token is still valid
+      client = new ContextChestClient({
+        baseUrl: creds.apiUrl,
+        token: creds.jwt,
+        refreshToken: creds.refreshToken,
+      });
+    } else if (creds.refreshToken) {
+      // JWT expired but we have a refresh token — try to refresh
+      const ok = await refreshAndInit(creds.apiUrl, creds.refreshToken, creds);
+      if (!ok) {
+        process.stderr.write('[context-chest] Could not refresh token. Run context-chest login.\n');
+      }
+    } else {
+      process.stderr.write('[context-chest] Token expired and no refresh token. Run context-chest login.\n');
+    }
 
-    if (creds.wrappedMasterKey && creds.exportKey && creds.userId) {
+    // Unwrap master key if client is ready
+    if (client && creds.wrappedMasterKey && creds.exportKey && creds.userId) {
       try {
         const wrappedMK = await client.getMasterKey();
         const exportKeyBuf = Buffer.from(creds.exportKey, 'hex');
@@ -111,7 +162,7 @@ async function main() {
       }
     }
   } else {
-    process.stderr.write('[context-chest] No credentials or token expired. Run context-chest login first.\n');
+    process.stderr.write('[context-chest] No credentials found. Run context-chest login first.\n');
   }
 
   const transport = new StdioServerTransport();

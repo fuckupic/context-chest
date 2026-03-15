@@ -104,8 +104,9 @@ export class MemoryService {
       throw new Error('Memory not found');
     }
 
-    await this.context.delete(userId, uri);
-    await this.storage.delete(entry.s3Key);
+    // OpenViking delete may fail if the resource was never indexed — continue anyway
+    await this.context.delete(userId, uri).catch(() => {});
+    await this.storage.delete(entry.s3Key).catch(() => {});
     await this.prisma.memoryEntry.delete({ where: { id: entry.id } });
   }
 

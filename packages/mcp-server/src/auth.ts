@@ -4,6 +4,7 @@ import { homedir } from 'os';
 
 export interface Credentials {
   jwt: string;
+  refreshToken?: string;
   wrappedMasterKey: string;
   exportKey: string;
   userId: string;
@@ -38,6 +39,15 @@ export function isTokenExpired(jwt: string): boolean {
   try {
     const payload = JSON.parse(Buffer.from(jwt.split('.')[1], 'base64').toString());
     return Date.now() >= payload.exp * 1000;
+  } catch {
+    return true;
+  }
+}
+
+export function tokenExpiresWithin(jwt: string, marginMs: number): boolean {
+  try {
+    const payload = JSON.parse(Buffer.from(jwt.split('.')[1], 'base64').toString());
+    return Date.now() >= (payload.exp * 1000) - marginMs;
   } catch {
     return true;
   }

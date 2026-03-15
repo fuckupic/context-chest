@@ -41,6 +41,7 @@ model User {
   sessions            Session[]
   usageRecords        UsageRecord[]
   agentConnections    AgentConnection[]
+  refreshTokens       RefreshToken[]
 
   @@map("users")
 }
@@ -141,6 +142,18 @@ model UsageRecord {
   @@unique([userId, action, period])
   @@index([userId, period])
   @@map("usage_records")
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  token     String   @unique
+  expiresAt DateTime @map("expires_at")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([token])
+  @@map("refresh_tokens")
 }
 
 model AgentConnection {

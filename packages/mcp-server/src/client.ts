@@ -1,6 +1,9 @@
+import { saveCredentials, loadCredentials, tokenExpiresWithin } from './auth';
+
 interface ClientConfig {
   baseUrl: string;
   token: string;
+  refreshToken?: string;
 }
 
 interface RememberInput {
@@ -24,17 +27,26 @@ interface SessionMemory {
   sha256: string;
 }
 
+const REFRESH_MARGIN_MS = 5 * 60 * 1000; // refresh 5 min before expiry
+
 export class ContextChestClient {
   private readonly baseUrl: string;
   private token: string;
+  private refreshToken: string | undefined;
+  private refreshing: Promise<void> | null = null;
 
   constructor(config: ClientConfig) {
     this.baseUrl = config.baseUrl;
     this.token = config.token;
+    this.refreshToken = config.refreshToken;
   }
 
   setToken(token: string): void {
     this.token = token;
+  }
+
+  setRefreshToken(refreshToken: string): void {
+    this.refreshToken = refreshToken;
   }
 
   private headers(): Record<string, string> {
@@ -45,12 +57,83 @@ export class ContextChestClient {
     };
   }
 
+  private async ensureFreshToken(): Promise<void> {
+    if (!this.refreshToken) return;
+    if (!tokenExpiresWithin(this.token, REFRESH_MARGIN_MS)) return;
+
+    // Deduplicate concurrent refresh calls
+    if (this.refreshing) {
+      await this.refreshing;
+      return;
+    }
+
+    this.refreshing = this.doRefresh();
+    try {
+      await this.refreshing;
+    } finally {
+      this.refreshing = null;
+    }
+  }
+
+  private async doRefresh(): Promise<void> {
+    try {
+      const response = await fetch(`${this.baseUrl}/v1/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken: this.refreshToken }),
+      });
+
+      if (!response.ok) {
+        process.stderr.write(`[context-chest] Token refresh failed: HTTP ${response.status}\n`);
+        return;
+      }
+
+      const data = (await response.json()) as { token: string; refreshToken: string };
+      this.token = data.token;
+      this.refreshToken = data.refreshToken;
+
+      // Persist the new tokens to credentials file
+      const creds = loadCredentials();
+      if (creds) {
+        saveCredentials({
+          ...creds,
+          jwt: data.token,
+          refreshToken: data.refreshToken,
+        });
+      }
+
+      process.stderr.write('[context-chest] Token refreshed successfully\n');
+    } catch (err) {
+      process.stderr.write(`[context-chest] Token refresh error: ${(err as Error).message}\n`);
+    }
+  }
+
   private async request<T>(method: string, path: string, body?: unknown): Promise<T> {
+    await this.ensureFreshToken();
+
     const response = await fetch(`${this.baseUrl}${path}`, {
       method,
       headers: this.headers(),
       body: body ? JSON.stringify(body) : undefined,
     });
+
+    // If we get a 401, try one refresh and retry
+    if (response.status === 401 && this.refreshToken) {
+      await this.doRefresh();
+      const retry = await fetch(`${this.baseUrl}${path}`, {
+        method,
+        headers: this.headers(),
+        body: body ? JSON.stringify(body) : undefined,
+      });
+
+      if (!retry.ok) {
+        const error = await retry.json().catch(() => ({ code: 'UNKNOWN', message: `HTTP ${retry.status}` }));
+        throw new Error((error as Record<string, string>).code ?? `HTTP ${retry.status}`);
+      }
+
+      if (retry.status === 204) return undefined as T;
+      return retry.json() as Promise<T>;
+    }
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ code: 'UNKNOWN', message: `HTTP ${response.status}` }));
@@ -65,6 +148,8 @@ export class ContextChestClient {
   }
 
   private async requestBinary(path: string): Promise<Buffer> {
+    await this.ensureFreshToken();
+
     const response = await fetch(`${this.baseUrl}${path}`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${this.token}`, 'X-Agent-Name': 'Claude Code' },
