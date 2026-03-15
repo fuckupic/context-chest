@@ -9,6 +9,7 @@ import { Agents } from '../pages/Agents';
 import { Sessions } from '../pages/Sessions';
 import { Settings } from '../pages/Settings';
 import { Docs } from '../pages/Docs';
+import { Chests } from '../pages/Chests';
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
@@ -34,6 +35,7 @@ export function AppRouter() {
         >
           <Route path="/memories" element={<Memories />} />
           <Route path="/agents" element={<Agents />} />
+          <Route path="/chests" element={<Chests />} />
           <Route path="/sessions" element={<Sessions />} />
           <Route path="/settings" element={<Settings />} />
         </Route>
