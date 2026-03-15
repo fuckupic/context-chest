@@ -1,4 +1,4 @@
-FROM node:20-alpine
+FROM node:20-alpine3.19
 
 WORKDIR /app
 
@@ -14,4 +14,4 @@ ENV NODE_ENV=production
 
 EXPOSE 3000
 
-CMD ["npx", "ts-node", "--transpile-only", "src/index.ts"]
+CMD ["sh", "-c", "npx prisma migrate deploy && npx ts-node --transpile-only src/index.ts"]
