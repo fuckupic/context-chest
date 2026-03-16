@@ -9,9 +9,9 @@ export function requireChest(chestService: ChestService) {
       return;
     }
 
-    const chestHeader = request.headers['x-chest'] as string | undefined;
     const chestQuery = (request.query as Record<string, string>)?.chest;
-    const chestName = chestHeader ?? chestQuery ?? 'default';
+    const chestHeader = request.headers['x-chest'] as string | undefined;
+    const chestName = chestQuery ?? chestHeader ?? 'default';
 
     try {
       const chest = chestName === 'default'
