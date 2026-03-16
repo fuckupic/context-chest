@@ -20,7 +20,9 @@ export const MCP_TERMINAL_CMD = `cat <<'EOF' > .mcp.json
 }
 EOF`;
 
-export const AGENT_INSTRUCTIONS = `## Context Chest — AI Agent Memory Protocol
+export const AGENT_INSTRUCTIONS = `Please create a CLAUDE.md file in my current directory and put this text in it:
+
+## Context Chest — AI Agent Memory Protocol
 
 You have access to Context Chest, an encrypted persistent memory vault via MCP. Your job is to BUILD CONTEXT AUTOMATICALLY — don't wait for "remember this" commands.
 
