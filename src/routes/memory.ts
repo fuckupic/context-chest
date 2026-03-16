@@ -223,14 +223,17 @@ export function memoryRoutes(
       async (request, reply) => {
         const userId = (request as unknown as Record<string, unknown>).userId as string;
         const chestId = (request as unknown as Record<string, unknown>).chestId as string;
+        const chestName = (request as unknown as Record<string, unknown>).chestName as string;
         const uri = (request.params as Record<string, string>)['*'];
         const body = z.object({
           encryptedL2: z.string().min(1),
           sha256: z.string().regex(/^[a-f0-9]{64}$/),
           encryptionVersion: z.number().int().min(1).max(2),
+          l0: z.string().min(1).max(500).optional(),
+          l1: z.string().min(1).max(10000).optional(),
         }).parse(request.body);
         try {
-          await memoryService.updateContent(userId, chestId, uri, Buffer.from(body.encryptedL2, 'base64'), body.sha256, body.encryptionVersion);
+          await memoryService.updateContent(userId, chestId, chestName, uri, Buffer.from(body.encryptedL2, 'base64'), body.sha256, body.encryptionVersion, body.l0, body.l1);
           return { success: true };
         } catch {
           reply.code(404).send({ code: 'MEMORY_NOT_FOUND', message: 'Memory not found' });

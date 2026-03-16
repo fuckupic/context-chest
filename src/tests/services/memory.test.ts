@@ -333,6 +333,7 @@ describe('MemoryService', () => {
       await service.updateContent(
         'user-1',
         'chest-1',
+        'default',
         'prefs/theme',
         Buffer.from('re-encrypted'),
         'newsha256',
@@ -356,7 +357,7 @@ describe('MemoryService', () => {
       mockPrisma.memoryEntry.findUnique.mockResolvedValue(null);
 
       await expect(
-        service.updateContent('user-1', 'chest-1', 'nonexistent', Buffer.from('x'), 'sha', 2)
+        service.updateContent('user-1', 'chest-1', 'default', 'nonexistent', Buffer.from('x'), 'sha', 2)
       ).rejects.toThrow('Memory not found');
     });
 
@@ -368,11 +369,70 @@ describe('MemoryService', () => {
       mockStorage.upload = jest.fn().mockResolvedValue(undefined);
       mockPrisma.memoryEntry.update.mockResolvedValue({});
 
-      await service.updateContent('user-1', 'chest-1', 'prefs/theme', Buffer.from('x'), 'sha', 2);
+      await service.updateContent('user-1', 'chest-1', 'default', 'prefs/theme', Buffer.from('x'), 'sha', 2);
 
       expect(mockPrisma.memoryEntry.findUnique).toHaveBeenCalledWith({
         where: { userId_chestId_uri: { userId: 'user-1', chestId: 'chest-1', uri: 'prefs/theme' } },
       });
+    });
+
+    it('should call context.write when l0 and l1 are provided', async () => {
+      mockPrisma.memoryEntry.findUnique.mockResolvedValue({
+        id: 'mem-1',
+        s3Key: 'user-1/chests/chest-1/memories/prefs/theme.enc',
+      });
+      mockStorage.upload = jest.fn().mockResolvedValue(undefined);
+      mockPrisma.memoryEntry.update.mockResolvedValue({});
+      mockContext.write = jest.fn().mockResolvedValue(undefined);
+
+      await service.updateContent(
+        'user-1', 'chest-1', 'my-chest', 'prefs/theme',
+        Buffer.from('re-encrypted'), 'newsha256', 2,
+        'Theme preference', '## Theme\n- Dark mode'
+      );
+
+      expect(mockContext.write).toHaveBeenCalledWith(
+        'user-1',
+        'prefs/theme',
+        { l0: 'Theme preference', l1: '## Theme\n- Dark mode' },
+        'my-chest'
+      );
+    });
+
+    it('should not call context.write when l0/l1 are omitted', async () => {
+      mockPrisma.memoryEntry.findUnique.mockResolvedValue({
+        id: 'mem-1',
+        s3Key: 'user-1/chests/chest-1/memories/prefs/theme.enc',
+      });
+      mockStorage.upload = jest.fn().mockResolvedValue(undefined);
+      mockPrisma.memoryEntry.update.mockResolvedValue({});
+      mockContext.write = jest.fn().mockResolvedValue(undefined);
+
+      await service.updateContent('user-1', 'chest-1', 'default', 'prefs/theme', Buffer.from('x'), 'sha', 2);
+
+      expect(mockContext.write).not.toHaveBeenCalled();
+    });
+
+    it('should include l0 and l1 in Prisma update data when provided', async () => {
+      mockPrisma.memoryEntry.findUnique.mockResolvedValue({
+        id: 'mem-1',
+        s3Key: 'user-1/chests/chest-1/memories/prefs/theme.enc',
+      });
+      mockStorage.upload = jest.fn().mockResolvedValue(undefined);
+      mockPrisma.memoryEntry.update.mockResolvedValue({});
+      mockContext.write = jest.fn().mockResolvedValue(undefined);
+
+      await service.updateContent(
+        'user-1', 'chest-1', 'my-chest', 'prefs/theme',
+        Buffer.from('re-encrypted'), 'newsha256', 2,
+        'My summary', 'Detailed content'
+      );
+
+      expect(mockPrisma.memoryEntry.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ l0: 'My summary', l1: 'Detailed content' }),
+        })
+      );
     });
   });
 

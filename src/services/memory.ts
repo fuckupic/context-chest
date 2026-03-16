@@ -253,10 +253,13 @@ export class MemoryService {
   async updateContent(
     userId: string,
     chestId: string,
+    chestName: string,
     uri: string,
     encryptedL2: Buffer,
     sha256: string,
-    encryptionVersion: number
+    encryptionVersion: number,
+    l0?: string,
+    l1?: string
   ): Promise<void> {
     const entry = await this.prisma.memoryEntry.findUnique({
       where: { userId_chestId_uri: { userId, chestId, uri } },
@@ -266,10 +269,21 @@ export class MemoryService {
     const key = this.s3Key(userId, chestId, uri);
     if (this.storage) await this.storage.upload(key, encryptedL2, sha256);
 
+    const updateData: Record<string, unknown> = {
+      s3Key: key, sha256, sizeBytes: encryptedL2.length, content: encryptedL2, encryptionVersion,
+    };
+    if (l0 !== undefined) updateData.l0 = l0;
+    if (l1 !== undefined) updateData.l1 = l1;
+
     await this.prisma.memoryEntry.update({
       where: { id: entry.id },
-      data: { s3Key: key, sha256, sizeBytes: encryptedL2.length, content: encryptedL2, encryptionVersion },
+      data: updateData,
     });
+
+    // Update OpenViking index when summaries change
+    if (l0 !== undefined && l1 !== undefined) {
+      await this.context.write(userId, uri, { l0, l1 }, chestName).catch(() => {});
+    }
   }
 
   async autoSortUri(userId: string, chestName: string, l0: string, l1: string): Promise<string> {
