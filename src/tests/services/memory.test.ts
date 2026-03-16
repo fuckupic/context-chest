@@ -9,9 +9,11 @@ jest.mock('../../services/context');
 const mockPrisma = {
   memoryEntry: {
     upsert: jest.fn(),
+    findFirst: jest.fn(),
     findUnique: jest.fn(),
     findMany: jest.fn(),
     count: jest.fn(),
+    create: jest.fn(),
     delete: jest.fn(),
     update: jest.fn(),
   },
@@ -33,7 +35,8 @@ describe('MemoryService', () => {
     it('should store L2 in S3, metadata in OV (best-effort), record in Prisma', async () => {
       mockStorage.upload = jest.fn().mockResolvedValue(undefined);
       mockContext.write = jest.fn().mockResolvedValue(undefined);
-      mockPrisma.memoryEntry.upsert.mockResolvedValue({
+      mockPrisma.memoryEntry.findFirst.mockResolvedValue(null);
+      mockPrisma.memoryEntry.create.mockResolvedValue({
         id: 'mem-1',
         uri: 'prefs/theme',
         createdAt: new Date(),
@@ -50,19 +53,22 @@ describe('MemoryService', () => {
       });
 
       expect(mockStorage.upload).toHaveBeenCalledTimes(1);
-      expect(mockPrisma.memoryEntry.upsert).toHaveBeenCalledTimes(1);
-      expect(mockPrisma.memoryEntry.upsert).toHaveBeenCalledWith(
-        expect.objectContaining({
-          where: { userId_chestId_uri: { userId: 'user-1', chestId: 'chest-1', uri: 'prefs/theme' } },
-        })
-      );
+      expect(mockPrisma.memoryEntry.create).toHaveBeenCalledTimes(1);
+      expect(mockPrisma.memoryEntry.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          userId: 'user-1',
+          chestId: 'chest-1',
+          uri: 'prefs/theme',
+        }),
+      });
       expect(result.uri).toBe('prefs/theme');
     });
 
     it('should use per-chest S3 key path', async () => {
       mockStorage.upload = jest.fn().mockResolvedValue(undefined);
       mockContext.write = jest.fn().mockResolvedValue(undefined);
-      mockPrisma.memoryEntry.upsert.mockResolvedValue({
+      mockPrisma.memoryEntry.findFirst.mockResolvedValue(null);
+      mockPrisma.memoryEntry.create.mockResolvedValue({
         id: 'mem-1',
         uri: 'prefs/theme',
         createdAt: new Date(),
@@ -88,7 +94,8 @@ describe('MemoryService', () => {
     it('should continue if OpenViking write fails (best-effort)', async () => {
       mockStorage.upload = jest.fn().mockResolvedValue(undefined);
       mockContext.write = jest.fn().mockRejectedValue(new Error('OV down'));
-      mockPrisma.memoryEntry.upsert.mockResolvedValue({
+      mockPrisma.memoryEntry.findFirst.mockResolvedValue(null);
+      mockPrisma.memoryEntry.create.mockResolvedValue({
         id: 'mem-1',
         uri: 'prefs/theme',
         createdAt: new Date(),
@@ -105,13 +112,14 @@ describe('MemoryService', () => {
       });
 
       expect(result.uri).toBe('prefs/theme');
-      expect(mockPrisma.memoryEntry.upsert).toHaveBeenCalledTimes(1);
+      expect(mockPrisma.memoryEntry.create).toHaveBeenCalledTimes(1);
     });
 
     it('should pass chestName to context.write', async () => {
       mockStorage.upload = jest.fn().mockResolvedValue(undefined);
       mockContext.write = jest.fn().mockResolvedValue(undefined);
-      mockPrisma.memoryEntry.upsert.mockResolvedValue({
+      mockPrisma.memoryEntry.findFirst.mockResolvedValue(null);
+      mockPrisma.memoryEntry.create.mockResolvedValue({
         id: 'mem-1',
         uri: 'prefs/theme',
         createdAt: new Date(),

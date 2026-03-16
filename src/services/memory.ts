@@ -54,28 +54,28 @@ export class MemoryService {
     await this.context.write(userId, input.uri, { l0: input.l0, l1: input.l1 }, input.chestName).catch(() => {});
 
     try {
-      const entry = await this.prisma.memoryEntry.upsert({
-        where: { userId_chestId_uri: { userId, chestId: input.chestId, uri: input.uri } },
-        create: {
-          userId,
-          chestId: input.chestId,
-          uri: input.uri,
-          s3Key: key,
-          sha256: input.sha256,
-          sizeBytes: input.encryptedL2.length,
-          l0: input.l0,
-          l1: input.l1,
-          content: input.encryptedL2,
-        },
-        update: {
-          s3Key: key,
-          sha256: input.sha256,
-          sizeBytes: input.encryptedL2.length,
-          l0: input.l0,
-          l1: input.l1,
-          content: input.encryptedL2,
-        },
+      // Use findFirst + create/update instead of upsert to handle nullable chestId
+      const existing = await this.prisma.memoryEntry.findFirst({
+        where: { userId, chestId: input.chestId, uri: input.uri },
       });
+
+      const data = {
+        s3Key: key,
+        sha256: input.sha256,
+        sizeBytes: input.encryptedL2.length,
+        l0: input.l0,
+        l1: input.l1,
+        content: input.encryptedL2,
+      };
+
+      const entry = existing
+        ? await this.prisma.memoryEntry.update({
+            where: { id: existing.id },
+            data,
+          })
+        : await this.prisma.memoryEntry.create({
+            data: { userId, chestId: input.chestId, uri: input.uri, ...data },
+          });
 
       return { uri: entry.uri, createdAt: entry.createdAt };
     } catch (error) {
