@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-const SETUP_CODE = `{
+export const SETUP_CODE = `{
   "mcpServers": {
     "context-chest": {
       "command": "npx",
@@ -9,34 +9,56 @@ const SETUP_CODE = `{
   }
 }`;
 
-const AGENT_INSTRUCTIONS = `## Context Chest — AI Agent Memory Protocol
+export const AGENT_INSTRUCTIONS = `## Context Chest — AI Agent Memory Protocol
 
-You have access to Context Chest, an encrypted persistent memory vault via MCP.
+You have access to Context Chest, an encrypted persistent memory vault via MCP. Your job is to BUILD CONTEXT AUTOMATICALLY — don't wait for "remember this" commands.
 
-### CRITICAL: Memory Protocol
-Before responding to ANY user message:
-1. Call \`context-chest_browse\` to see what's in the vault
-2. Call \`context-chest_recall\` with keywords relevant to the current request
+### CRITICAL: Passive Context Extraction
 
-Before ending ANY session or when context is getting long:
-- Store key decisions with \`context-chest_remember\` using descriptive paths
-- Example: "decisions/chose-stripe-over-paddle", "bugs/auth-fix", "architecture/api-design"
+As you work with the user, PROACTIVELY extract and store important context you learn from the conversation. You don't need to be asked. Examples:
+
+- User asks to "help with our landing page for Context Chest" → store: business name, what the product does, who it's for
+- User mentions "we use Fastify and Prisma" → store: tech stack
+- User says "we chose Stripe over Paddle because..." → store: the decision and reasoning
+- User discusses pricing at "$20/month for pro tier" → store: pricing model
+- User mentions "my co-founder Luky handles design" → store: team structure
+
+**Extract facts, decisions, preferences, and context — even when the user doesn't explicitly ask you to remember.**
+
+Do NOT store every message verbatim. Extract the MEANING — the facts, decisions, and context that would be useful in a future conversation.
+
+### Before Every Response
+1. Call \`context-chest_recall\` with keywords relevant to the current request
+2. Use recalled context to give better, more informed responses
+3. If you have no vault context yet, call \`context-chest_browse\` once to see what's there
+
+### What to Extract and Store (automatically, without being asked)
+- **Business context**: what the product/company does, target market, competitors, positioning
+- **Technical decisions**: tech stack, architecture choices, deployment setup, conventions
+- **People & roles**: team members, their responsibilities, stakeholders
+- **Preferences**: coding style, communication preferences, tools they like
+- **Key decisions**: what was chosen, what was rejected, and WHY
+- **Project state**: current priorities, deadlines, blockers, milestones
+- **Domain knowledge**: industry terms, client details, regulatory requirements
+
+### How to Store
+- Call \`context-chest_remember\` with the extracted context as content
+- Skip the path — auto-routing will put it in the right chest (work, health, finance, personal, tools, learning)
+- Write context as clear, factual statements — not conversation transcripts
+- Example: "Context Chest is an encrypted memory vault for AI agents. Target market: developers using Claude Code and Cursor. Differentiator: E2E encryption where the server never sees plaintext."
 
 ### Available Tools
-- \`context-chest_remember\` — Store a memory (content + optional path). Without a path, auto-routes to the right chest (work, health, finance, personal, tools, learning) based on content.
-- \`context-chest_recall\` — Search memories by keyword. Always check before asking the user to repeat themselves.
-- \`context-chest_read\` — Read full decrypted content of a specific memory.
-- \`context-chest_forget\` — Delete a memory you no longer need.
-- \`context-chest_browse\` — Browse the vault directory tree.
-- \`context-chest_session-start\` — Start tracking a conversation session.
-- \`context-chest_session-append\` — Add a message to the current session.
-- \`context-chest_session-save\` — Extract memories and close a session.
+- \`context-chest_remember\` — Store context (auto-routes to the right chest based on content)
+- \`context-chest_recall\` — Search memories by keyword — ALWAYS check before asking the user to repeat themselves
+- \`context-chest_read\` — Read full content of a specific memory
+- \`context-chest_forget\` — Delete outdated context
+- \`context-chest_browse\` — Browse the vault tree
 
-### Best Practices
-- Remember user preferences, project conventions, tech stack choices, and key decisions
-- Use descriptive paths: "project/tech-stack", "preferences/coding-style", "clients/acme/database"
-- Recall before re-asking — the user may have told you before
+### Rules
+- Recall before re-asking — the user may have told you (or a different AI) before
 - Store decisions with reasoning: "Chose X because Y" not just "X"
+- Update stale context — if something changed, store the new version
+- Don't over-store — 2-3 meaningful extractions per conversation is plenty
 - Memories are encrypted end-to-end — the server never sees plaintext`;
 
 function CopyButton({ text, label }: { text: string; label: string }) {
@@ -92,7 +114,7 @@ export function SetupGuide({ compact = false }: { compact?: boolean }) {
           <CopyButton text={AGENT_INSTRUCTIONS} label="COPY INSTRUCTIONS" />
         </div>
         <div className="p-3 text-[11px] font-mono text-cc-muted leading-relaxed">
-          Teaches your AI to auto-browse vault, recall memories, store decisions, and auto-route to chests.
+          Your AI will passively extract context from conversations — learning your business, tech stack, preferences, and decisions without being asked.
         </div>
       </div>
 

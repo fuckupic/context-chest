@@ -1,45 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/context';
-
-const SETUP_CODE = `{
-  "mcpServers": {
-    "context-chest": {
-      "command": "npx",
-      "args": ["context-chest-mcp"]
-    }
-  }
-}`;
-
-const AGENT_INSTRUCTIONS = `## Context Chest — AI Agent Memory Protocol
-
-You have access to Context Chest, an encrypted persistent memory vault via MCP.
-
-### CRITICAL: Memory Protocol
-Before responding to ANY user message:
-1. Call \`context-chest_browse\` to see what's in the vault
-2. Call \`context-chest_recall\` with keywords relevant to the current request
-
-Before ending ANY session or when context is getting long:
-- Store key decisions with \`context-chest_remember\` using descriptive paths
-- Example: "decisions/chose-stripe-over-paddle", "bugs/auth-fix", "architecture/api-design"
-
-### Available Tools
-- \`context-chest_remember\` — Store a memory (content + optional path). Without a path, auto-routes to the right chest (work, health, finance, personal, tools, learning) based on content.
-- \`context-chest_recall\` — Search memories by keyword. Always check before asking the user to repeat themselves.
-- \`context-chest_read\` — Read full decrypted content of a specific memory.
-- \`context-chest_forget\` — Delete a memory you no longer need.
-- \`context-chest_browse\` — Browse the vault directory tree.
-- \`context-chest_session-start\` — Start tracking a conversation session.
-- \`context-chest_session-append\` — Add a message to the current session.
-- \`context-chest_session-save\` — Extract memories and close a session.
-
-### Best Practices
-- Remember user preferences, project conventions, tech stack choices, and key decisions
-- Use descriptive paths: "project/tech-stack", "preferences/coding-style", "clients/acme/database"
-- Recall before re-asking — the user may have told you before
-- Store decisions with reasoning: "Chose X because Y" not just "X"
-- Memories are encrypted end-to-end — the server never sees plaintext`;
+import { SETUP_CODE, AGENT_INSTRUCTIONS } from '../components/SetupGuide';
 
 function CopyButton({ text, label }: { text: string; label: string }) {
   const [copied, setCopied] = useState(false);
@@ -213,9 +175,9 @@ export function Landing() {
             <div className="p-4 text-xs font-mono text-cc-sub leading-relaxed">
               <p className="text-cc-white mb-2">Paste into your CLAUDE.md or AGENTS.md — your AI will automatically:</p>
               <ul className="space-y-1 text-cc-muted">
-                <li>- Check the vault before every response</li>
-                <li>- Recall relevant memories instead of re-asking you</li>
-                <li>- Store decisions, preferences, and project context</li>
+                <li>- Extract context from conversations without being asked</li>
+                <li>- Learn your business, tech stack, team, and preferences passively</li>
+                <li>- Recall context before every response — never re-ask you</li>
                 <li>- Auto-route memories to chests (work, health, finance, personal...)</li>
               </ul>
             </div>
