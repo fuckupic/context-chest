@@ -160,37 +160,70 @@ export function Landing() {
 
       {/* Setup */}
       <section className="relative z-10 max-w-3xl mx-auto px-4 md:px-6 py-10 md:py-16">
-        <p className="font-pixel text-xs text-cc-muted tracking-[0.3em] mb-4 text-center">30 SECOND SETUP</p>
+        <p className="font-pixel text-xs text-cc-muted tracking-[0.3em] mb-4 text-center">SETUP IN 3 STEPS</p>
 
-        {/* MCP Config */}
-        <div className="border-2 border-cc-border bg-cc-dark mb-4">
-          <div className="flex items-center justify-between px-3 py-2 border-b-2 border-cc-border">
-            <span className="font-pixel text-[10px] text-cc-muted tracking-wider">.mcp.json</span>
-            <CopyButton text={SETUP_CODE} label="COPY CONFIG" />
+        <div className="space-y-4">
+          {/* Step 1: Create account */}
+          <div className="border-2 border-cc-pink bg-cc-dark">
+            <div className="flex items-center gap-3 px-4 py-3 border-b-2 border-cc-border">
+              <span className="font-pixel text-lg text-cc-pink">01</span>
+              <span className="font-pixel text-xs text-cc-white tracking-wider">CREATE YOUR ENCRYPTED VAULT</span>
+            </div>
+            <div className="p-4 flex items-center justify-between">
+              <p className="text-xs text-cc-sub font-mono">Sign up to generate your encryption keys. Takes 10 seconds.</p>
+              <button
+                onClick={handleCTA}
+                className="shrink-0 ml-4 px-5 py-2 bg-cc-pink text-cc-black font-pixel text-xs tracking-wider hover:bg-cc-pink-dim transition-colors"
+              >
+                {isAuthenticated ? 'DASHBOARD' : 'SIGN UP FREE'}
+              </button>
+            </div>
           </div>
-          <pre className="p-4 text-sm font-mono text-cc-pink overflow-x-auto leading-relaxed">{SETUP_CODE}</pre>
+
+          {/* Step 2: Login from terminal + add MCP config */}
+          <div className="border-2 border-cc-border bg-cc-dark">
+            <div className="flex items-center gap-3 px-4 py-3 border-b-2 border-cc-border">
+              <span className="font-pixel text-lg text-cc-pink">02</span>
+              <span className="font-pixel text-xs text-cc-white tracking-wider">CONNECT YOUR AI TOOL</span>
+            </div>
+            <div className="p-4 space-y-3">
+              <div>
+                <p className="text-[10px] text-cc-muted font-pixel tracking-wider mb-1.5">RUN IN TERMINAL:</p>
+                <pre className="bg-cc-black border border-cc-border p-3 text-sm font-mono text-cc-sub overflow-x-auto">npx context-chest-mcp login</pre>
+              </div>
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <p className="text-[10px] text-cc-muted font-pixel tracking-wider">ADD TO .mcp.json:</p>
+                  <CopyButton text={SETUP_CODE} label="COPY" />
+                </div>
+                <pre className="bg-cc-black border border-cc-border p-3 text-sm font-mono text-cc-pink overflow-x-auto leading-relaxed">{SETUP_CODE}</pre>
+              </div>
+            </div>
+          </div>
+
+          {/* Step 3: Agent instructions */}
+          <div className="border-2 border-cc-border bg-cc-dark">
+            <div className="flex items-center justify-between px-4 py-3 border-b-2 border-cc-border">
+              <div className="flex items-center gap-3">
+                <span className="font-pixel text-lg text-cc-pink">03</span>
+                <span className="font-pixel text-xs text-cc-white tracking-wider">TEACH YOUR AI TO REMEMBER</span>
+              </div>
+              <CopyButton text={AGENT_INSTRUCTIONS} label="COPY INSTRUCTIONS" />
+            </div>
+            <div className="p-4 text-xs font-mono text-cc-sub leading-relaxed">
+              <p className="text-cc-white mb-2">Paste into your CLAUDE.md or AGENTS.md — your AI will automatically:</p>
+              <ul className="space-y-1 text-cc-muted">
+                <li>- Check the vault before every response</li>
+                <li>- Recall relevant memories instead of re-asking you</li>
+                <li>- Store decisions, preferences, and project context</li>
+                <li>- Auto-route memories to chests (work, health, finance, personal...)</li>
+              </ul>
+            </div>
+          </div>
         </div>
 
-        {/* Agent Instructions */}
-        <div className="border-2 border-cc-border bg-cc-dark">
-          <div className="flex items-center justify-between px-3 py-2 border-b-2 border-cc-border">
-            <span className="font-pixel text-[10px] text-cc-muted tracking-wider">CLAUDE.md / AGENTS.md</span>
-            <CopyButton text={AGENT_INSTRUCTIONS} label="COPY AGENT INSTRUCTIONS" />
-          </div>
-          <div className="p-4 text-xs font-mono text-cc-sub leading-relaxed max-h-48 overflow-y-auto">
-            <p className="text-cc-white mb-2">Paste into your CLAUDE.md or AGENTS.md to teach your AI how to use Context Chest:</p>
-            <ul className="space-y-1 text-cc-muted">
-              <li>- Auto-browse vault before every response</li>
-              <li>- Auto-recall relevant memories for current task</li>
-              <li>- Store decisions, preferences, and project context</li>
-              <li>- Auto-route memories to the right chest (work, health, finance...)</li>
-              <li>- Use descriptive paths for organization</li>
-            </ul>
-          </div>
-        </div>
-
-        <p className="text-center text-xs text-cc-muted mt-3">
-          Add MCP config to Claude Code or Cursor. Paste agent instructions into CLAUDE.md.
+        <p className="text-center text-xs text-cc-muted mt-4">
+          Restart Claude Code or Cursor after setup. Your AI now has persistent encrypted memory.
         </p>
       </section>
 
