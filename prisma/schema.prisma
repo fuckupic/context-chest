@@ -118,7 +118,6 @@ model MemoryEntry {
   user      User     @relation(fields: [userId], references: [id])
   chest     Chest?   @relation(fields: [chestId], references: [id])
 
-  @@unique([userId, uri])
   @@unique([userId, chestId, uri], map: "memory_entries_user_chest_uri")
   @@index([userId, createdAt])
   @@map("memory_entries")
