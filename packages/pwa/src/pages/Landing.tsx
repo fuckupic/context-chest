@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/context';
 
@@ -9,6 +10,53 @@ const SETUP_CODE = `{
     }
   }
 }`;
+
+const AGENT_INSTRUCTIONS = `## Context Chest — AI Agent Memory Protocol
+
+You have access to Context Chest, an encrypted persistent memory vault via MCP.
+
+### CRITICAL: Memory Protocol
+Before responding to ANY user message:
+1. Call \`context-chest_browse\` to see what's in the vault
+2. Call \`context-chest_recall\` with keywords relevant to the current request
+
+Before ending ANY session or when context is getting long:
+- Store key decisions with \`context-chest_remember\` using descriptive paths
+- Example: "decisions/chose-stripe-over-paddle", "bugs/auth-fix", "architecture/api-design"
+
+### Available Tools
+- \`context-chest_remember\` — Store a memory (content + optional path). Without a path, auto-routes to the right chest (work, health, finance, personal, tools, learning) based on content.
+- \`context-chest_recall\` — Search memories by keyword. Always check before asking the user to repeat themselves.
+- \`context-chest_read\` — Read full decrypted content of a specific memory.
+- \`context-chest_forget\` — Delete a memory you no longer need.
+- \`context-chest_browse\` — Browse the vault directory tree.
+- \`context-chest_session-start\` — Start tracking a conversation session.
+- \`context-chest_session-append\` — Add a message to the current session.
+- \`context-chest_session-save\` — Extract memories and close a session.
+
+### Best Practices
+- Remember user preferences, project conventions, tech stack choices, and key decisions
+- Use descriptive paths: "project/tech-stack", "preferences/coding-style", "clients/acme/database"
+- Recall before re-asking — the user may have told you before
+- Store decisions with reasoning: "Chose X because Y" not just "X"
+- Memories are encrypted end-to-end — the server never sees plaintext`;
+
+function CopyButton({ text, label }: { text: string; label: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <button
+      onClick={handleCopy}
+      className="font-pixel text-[10px] tracking-wider px-3 py-1.5 border-2 border-cc-border text-cc-muted hover:border-cc-pink hover:text-cc-pink transition-colors"
+    >
+      {copied ? 'COPIED!' : label}
+    </button>
+  );
+}
 
 const FEATURES = [
   { title: 'ENCRYPTED', desc: 'AES-256-GCM on your machine. Server never sees plaintext.' },
@@ -113,14 +161,36 @@ export function Landing() {
       {/* Setup */}
       <section className="relative z-10 max-w-3xl mx-auto px-4 md:px-6 py-10 md:py-16">
         <p className="font-pixel text-xs text-cc-muted tracking-[0.3em] mb-4 text-center">30 SECOND SETUP</p>
-        <div className="border-2 border-cc-border bg-cc-dark">
-          <div className="flex items-center gap-2 px-3 py-2 border-b-2 border-cc-border">
+
+        {/* MCP Config */}
+        <div className="border-2 border-cc-border bg-cc-dark mb-4">
+          <div className="flex items-center justify-between px-3 py-2 border-b-2 border-cc-border">
             <span className="font-pixel text-[10px] text-cc-muted tracking-wider">.mcp.json</span>
+            <CopyButton text={SETUP_CODE} label="COPY CONFIG" />
           </div>
           <pre className="p-4 text-sm font-mono text-cc-pink overflow-x-auto leading-relaxed">{SETUP_CODE}</pre>
         </div>
+
+        {/* Agent Instructions */}
+        <div className="border-2 border-cc-border bg-cc-dark">
+          <div className="flex items-center justify-between px-3 py-2 border-b-2 border-cc-border">
+            <span className="font-pixel text-[10px] text-cc-muted tracking-wider">CLAUDE.md / AGENTS.md</span>
+            <CopyButton text={AGENT_INSTRUCTIONS} label="COPY AGENT INSTRUCTIONS" />
+          </div>
+          <div className="p-4 text-xs font-mono text-cc-sub leading-relaxed max-h-48 overflow-y-auto">
+            <p className="text-cc-white mb-2">Paste into your CLAUDE.md or AGENTS.md to teach your AI how to use Context Chest:</p>
+            <ul className="space-y-1 text-cc-muted">
+              <li>- Auto-browse vault before every response</li>
+              <li>- Auto-recall relevant memories for current task</li>
+              <li>- Store decisions, preferences, and project context</li>
+              <li>- Auto-route memories to the right chest (work, health, finance...)</li>
+              <li>- Use descriptive paths for organization</li>
+            </ul>
+          </div>
+        </div>
+
         <p className="text-center text-xs text-cc-muted mt-3">
-          Add to Claude Code or Cursor config. That's it.
+          Add MCP config to Claude Code or Cursor. Paste agent instructions into CLAUDE.md.
         </p>
       </section>
 
