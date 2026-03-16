@@ -122,7 +122,7 @@ export function Landing() {
 
       {/* Setup */}
       <section className="relative z-10 max-w-3xl mx-auto px-4 md:px-6 py-10 md:py-16">
-        <p className="font-pixel text-xs text-cc-muted tracking-[0.3em] mb-4 text-center">SETUP IN 3 STEPS</p>
+        <p className="font-pixel text-xs text-cc-muted tracking-[0.3em] mb-4 text-center">SETUP IN 4 STEPS</p>
 
         <div className="space-y-4">
           {/* Step 1: Create account */}
@@ -142,50 +142,58 @@ export function Landing() {
             </div>
           </div>
 
-          {/* Step 2: Login from terminal + add MCP config */}
+          {/* Step 2: Login from a separate terminal */}
           <div className="border-2 border-cc-border bg-cc-dark">
             <div className="flex items-center gap-3 px-4 py-3 border-b-2 border-cc-border">
               <span className="font-pixel text-lg text-cc-pink">02</span>
-              <span className="font-pixel text-xs text-cc-white tracking-wider">CONNECT YOUR AI TOOL</span>
+              <span className="font-pixel text-xs text-cc-white tracking-wider">LOGIN FROM A SEPARATE TERMINAL</span>
             </div>
             <div className="p-4 space-y-3">
-              <div>
-                <p className="text-[10px] text-cc-muted font-pixel tracking-wider mb-1.5">RUN IN TERMINAL:</p>
-                <pre className="bg-cc-black border border-cc-border p-3 text-sm font-mono text-cc-sub overflow-x-auto">npx context-chest-mcp login</pre>
-              </div>
+              <p className="text-xs text-cc-muted">Open a regular terminal <span className="text-cc-white">(not Claude Code)</span>. Run this and enter your email + password:</p>
+              <pre className="bg-cc-black border border-cc-border p-3 text-sm font-mono text-cc-sub overflow-x-auto">npx context-chest-mcp login</pre>
+              <p className="text-[10px] text-cc-muted italic">This saves credentials to ~/.context-chest/credentials.json. Only needed once.</p>
+            </div>
+          </div>
+
+          {/* Step 3: Add MCP config */}
+          <div className="border-2 border-cc-border bg-cc-dark">
+            <div className="flex items-center gap-3 px-4 py-3 border-b-2 border-cc-border">
+              <span className="font-pixel text-lg text-cc-pink">03</span>
+              <span className="font-pixel text-xs text-cc-white tracking-wider">ADD CONFIG FILES TO YOUR PROJECT</span>
+            </div>
+            <div className="p-4 space-y-4">
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <p className="text-[10px] text-cc-muted font-pixel tracking-wider">ADD TO .mcp.json:</p>
-                  <CopyButton text={SETUP_CODE} label="COPY" />
+                  <p className="text-xs text-cc-muted">Create <span className="text-cc-white">.mcp.json</span> in your project root folder:</p>
+                  <CopyButton text={SETUP_CODE} label="COPY CONFIG" />
                 </div>
                 <pre className="bg-cc-black border border-cc-border p-3 text-sm font-mono text-cc-pink overflow-x-auto leading-relaxed">{SETUP_CODE}</pre>
+                <p className="text-[10px] text-cc-muted italic mt-1.5">If .mcp.json already exists, add the "context-chest" block inside "mcpServers".</p>
+              </div>
+              <div className="border-t border-cc-border pt-3">
+                <div className="flex items-center justify-between mb-1.5">
+                  <p className="text-xs text-cc-muted">Create <span className="text-cc-white">CLAUDE.md</span> in your project root folder:</p>
+                  <CopyButton text={AGENT_INSTRUCTIONS} label="COPY INSTRUCTIONS" />
+                </div>
+                <p className="text-[10px] text-cc-muted italic">This teaches your AI to automatically extract context from conversations and sort it into chests.</p>
               </div>
             </div>
           </div>
 
-          {/* Step 3: Agent instructions */}
-          <div className="border-2 border-cc-border bg-cc-dark">
-            <div className="flex items-center justify-between px-4 py-3 border-b-2 border-cc-border">
-              <div className="flex items-center gap-3">
-                <span className="font-pixel text-lg text-cc-pink">03</span>
-                <span className="font-pixel text-xs text-cc-white tracking-wider">TEACH YOUR AI TO REMEMBER</span>
-              </div>
-              <CopyButton text={AGENT_INSTRUCTIONS} label="COPY INSTRUCTIONS" />
+          {/* Step 4: Restart */}
+          <div className="border-2 border-cc-pink bg-cc-dark">
+            <div className="flex items-center gap-3 px-4 py-3 border-b-2 border-cc-border">
+              <span className="font-pixel text-lg text-cc-pink">04</span>
+              <span className="font-pixel text-xs text-cc-white tracking-wider">RESTART CLAUDE CODE</span>
             </div>
-            <div className="p-4 text-xs font-mono text-cc-sub leading-relaxed">
-              <p className="text-cc-white mb-2">Paste into your CLAUDE.md or AGENTS.md — your AI will automatically:</p>
-              <ul className="space-y-1 text-cc-muted">
-                <li>- Extract context from conversations without being asked</li>
-                <li>- Learn your business, tech stack, team, and preferences passively</li>
-                <li>- Recall context before every response — never re-ask you</li>
-                <li>- Auto-route memories to chests (work, health, finance, personal...)</li>
-              </ul>
+            <div className="p-4">
+              <p className="text-xs text-cc-muted">Type <span className="text-cc-white font-mono">/exit</span> in Claude Code, then relaunch it in the same project folder. The context-chest tools will load automatically.</p>
             </div>
           </div>
         </div>
 
         <p className="text-center text-xs text-cc-muted mt-4">
-          Restart Claude Code or Cursor after setup. Your AI now has persistent encrypted memory.
+          That's it. Your AI now has persistent encrypted memory across all sessions.
         </p>
       </section>
 

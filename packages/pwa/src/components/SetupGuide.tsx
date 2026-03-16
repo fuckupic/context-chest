@@ -85,10 +85,12 @@ export function SetupGuide({ compact = false }: { compact?: boolean }) {
       <div className="border-2 border-cc-border bg-cc-dark">
         <div className="flex items-center gap-3 px-3 py-2 border-b-2 border-cc-border">
           <span className="font-pixel text-sm text-cc-pink">01</span>
-          <span className="font-pixel text-[10px] text-cc-white tracking-wider">LOGIN FROM TERMINAL</span>
+          <span className="font-pixel text-[10px] text-cc-white tracking-wider">LOGIN FROM A SEPARATE TERMINAL</span>
         </div>
-        <div className="p-3">
+        <div className="p-3 space-y-2">
+          <p className="text-[10px] text-cc-muted">Open a regular terminal (not Claude Code). Run this and enter your email + password:</p>
           <pre className="bg-cc-black border border-cc-border p-2.5 text-xs font-mono text-cc-sub overflow-x-auto">npx context-chest-mcp login</pre>
+          <p className="text-[10px] text-cc-muted italic">This saves credentials to ~/.context-chest/credentials.json. Only needed once.</p>
         </div>
       </div>
 
@@ -97,11 +99,15 @@ export function SetupGuide({ compact = false }: { compact?: boolean }) {
         <div className="flex items-center justify-between px-3 py-2 border-b-2 border-cc-border">
           <div className="flex items-center gap-3">
             <span className="font-pixel text-sm text-cc-pink">02</span>
-            <span className="font-pixel text-[10px] text-cc-white tracking-wider">ADD MCP CONFIG</span>
+            <span className="font-pixel text-[10px] text-cc-white tracking-wider">ADD MCP CONFIG TO YOUR PROJECT</span>
           </div>
           <CopyButton text={SETUP_CODE} label="COPY" />
         </div>
-        <pre className="p-3 text-xs font-mono text-cc-pink overflow-x-auto leading-relaxed">{SETUP_CODE}</pre>
+        <div className="p-3 space-y-2">
+          <p className="text-[10px] text-cc-muted">Create a file called <span className="text-cc-white">.mcp.json</span> in your project root folder and paste this:</p>
+          <pre className="bg-cc-black border border-cc-border p-2.5 text-xs font-mono text-cc-pink overflow-x-auto leading-relaxed">{SETUP_CODE}</pre>
+          <p className="text-[10px] text-cc-muted italic">If .mcp.json already exists, add the "context-chest" block inside "mcpServers".</p>
+        </div>
       </div>
 
       {/* Agent Instructions */}
@@ -109,13 +115,24 @@ export function SetupGuide({ compact = false }: { compact?: boolean }) {
         <div className="flex items-center justify-between px-3 py-2 border-b-2 border-cc-border">
           <div className="flex items-center gap-3">
             <span className="font-pixel text-sm text-cc-pink">03</span>
-            <span className="font-pixel text-[10px] text-cc-white tracking-wider">PASTE INTO CLAUDE.md</span>
+            <span className="font-pixel text-[10px] text-cc-white tracking-wider">ADD INSTRUCTIONS TO CLAUDE.md</span>
           </div>
           <CopyButton text={AGENT_INSTRUCTIONS} label="COPY INSTRUCTIONS" />
         </div>
-        <div className="px-3 py-2 flex items-center gap-2">
-          <span className="text-green-400 text-xs">&#10003;</span>
-          <span className="text-[10px] text-cc-muted italic">Click COPY INSTRUCTIONS, then paste into your project's CLAUDE.md file</span>
+        <div className="p-3 space-y-2">
+          <p className="text-[10px] text-cc-muted">Create or open <span className="text-cc-white">CLAUDE.md</span> in your project root folder. Paste the copied instructions there.</p>
+          <p className="text-[10px] text-cc-muted italic">This teaches your AI to automatically extract and remember context from conversations.</p>
+        </div>
+      </div>
+
+      {/* Restart */}
+      <div className="border-2 border-cc-pink bg-cc-dark">
+        <div className="flex items-center gap-3 px-3 py-2 border-b-2 border-cc-border">
+          <span className="font-pixel text-sm text-cc-pink">04</span>
+          <span className="font-pixel text-[10px] text-cc-white tracking-wider">RESTART CLAUDE CODE</span>
+        </div>
+        <div className="p-3">
+          <p className="text-[10px] text-cc-muted">Type <span className="text-cc-white font-mono">/exit</span> in Claude Code, then relaunch it in the same project folder. The MCP tools will load automatically.</p>
         </div>
       </div>
 
