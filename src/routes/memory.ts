@@ -201,17 +201,16 @@ export function memoryRoutes(
       }
     );
 
-    // Auto-chest — resolve which chest a memory belongs to
+    // Auto-chest — resolve which chest a memory belongs to based on content keywords
     fastify.post(
       '/auto-chest',
       { preHandler: requirePermission('remember') },
       async (request) => {
         const userId = (request as unknown as Record<string, unknown>).userId as string;
         const body = z.object({
-          l0: z.string().min(1).max(500),
-          l1: z.string().min(1).max(10000),
+          keywords: z.array(z.string().max(100)).min(1).max(30),
         }).parse(request.body);
-        const result = await chestRouter.resolve(userId, body.l0, body.l1);
+        const result = await chestRouter.resolve(userId, body.keywords);
         return { success: true, data: result };
       }
     );

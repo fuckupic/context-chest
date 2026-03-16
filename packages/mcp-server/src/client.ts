@@ -244,9 +244,9 @@ export class ContextChestClient {
     return this.request<{ success: boolean; data: { uri: string } }>('POST', `/v1/memory/auto-sort${qs}`, { l0, l1 });
   }
 
-  async autoChest(l0: string, l1: string) {
+  async autoChest(keywords: string[]) {
     return this.request<{ success: boolean; data: { chestName: string; chestId: string; isNew: boolean } }>(
-      'POST', '/v1/memory/auto-chest', { l0, l1 }
+      'POST', '/v1/memory/auto-chest', { keywords }
     );
   }
 }
