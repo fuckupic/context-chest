@@ -63,29 +63,21 @@ function ChestCard({ chest, isActive, onSelect, onExport, onImport, onDelete, on
       }`}
       style={{ borderColor: isActive ? color.border : undefined, color: color.bg }}
     >
-      {/* Dithered chest image with color tint */}
+      {/* White dithered chest on colored background */}
       <div
-        className="flex items-center justify-center py-6 relative overflow-hidden"
-        style={{ backgroundColor: color.glow }}
+        className="flex items-center justify-center py-8 relative overflow-hidden"
+        style={{ background: `linear-gradient(135deg, ${color.bg}22 0%, ${color.bg}44 100%)` }}
       >
-        <img
-          src="/chest.png"
-          alt=""
-          className="w-20 h-20 relative z-10 drop-shadow-lg transition-transform group-hover:scale-110"
-          style={{
-            filter: `brightness(0) saturate(100%) drop-shadow(0 0 8px ${color.bg})`,
-            imageRendering: 'auto',
-          }}
+        {/* Subtle color glow behind chest */}
+        <div
+          className="absolute w-24 h-24 rounded-full blur-2xl opacity-40"
+          style={{ backgroundColor: color.bg }}
         />
-        {/* Color overlay on the chest */}
         <img
           src="/chest.png"
           alt=""
-          className="w-20 h-20 absolute z-20 opacity-80 mix-blend-screen"
-          style={{
-            filter: `brightness(0.5) sepia(1) saturate(5) hue-rotate(${getHueRotation(color.bg)}deg)`,
-            imageRendering: 'auto',
-          }}
+          className="w-24 h-24 relative z-10 transition-transform group-hover:scale-110 opacity-90"
+          style={{ imageRendering: 'auto' }}
         />
         {isActive && (
           <div className="absolute top-2 right-2 z-30">
@@ -151,25 +143,6 @@ function ChestCard({ chest, isActive, onSelect, onExport, onImport, onDelete, on
       </div>
     </div>
   );
-}
-
-function getHueRotation(color: string): number {
-  // Extract hue from hex or hsl color for CSS hue-rotate
-  if (color.startsWith('hsl')) {
-    const match = color.match(/hsl\((\d+)/);
-    return match ? parseInt(match[1]) - 330 : 0; // 330 is the base sepia hue
-  }
-  // For hex colors, map to approximate hue
-  const colorMap: Record<string, number> = {
-    '#ff2d7b': 0,    // pink (base)
-    '#4a9eff': 200,   // blue
-    '#a855f7': 260,   // purple
-    '#22c55e': 130,   // green
-    '#eab308': 45,    // yellow
-    '#06b6d4': 180,   // cyan
-    '#f97316': 25,    // orange
-  };
-  return (colorMap[color] ?? 0) - 330;
 }
 
 export function Chests() {
