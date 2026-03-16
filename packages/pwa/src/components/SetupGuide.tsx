@@ -113,8 +113,9 @@ export function SetupGuide({ compact = false }: { compact?: boolean }) {
           </div>
           <CopyButton text={AGENT_INSTRUCTIONS} label="COPY INSTRUCTIONS" />
         </div>
-        <div className="p-3 text-[11px] font-mono text-cc-muted leading-relaxed">
-          Your AI will passively extract context from conversations — learning your business, tech stack, preferences, and decisions without being asked.
+        <div className="px-3 py-2 flex items-center gap-2">
+          <span className="text-green-400 text-xs">&#10003;</span>
+          <span className="text-[10px] text-cc-muted italic">Click COPY INSTRUCTIONS, then paste into your project's CLAUDE.md file</span>
         </div>
       </div>
 
