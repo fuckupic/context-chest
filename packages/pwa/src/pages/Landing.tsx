@@ -21,11 +21,11 @@ function CopyButton({ text, label }: { text: string; label: string }) {
 }
 
 const FEATURES = [
+  { title: 'CROSS-AGENT', desc: 'Store in Claude Code, recall in Cursor. One memory, every tool.' },
+  { title: 'AUTO-SORTED', desc: 'Memories auto-route to chests: work, health, finance, personal.' },
   { title: 'ENCRYPTED', desc: 'AES-256-GCM on your machine. Server never sees plaintext.' },
-  { title: '8 TOOLS', desc: 'Remember, recall, read, forget, browse, sessions.' },
-  { title: 'ANY AGENT', desc: 'Claude Code, Cursor, OpenClaw, any MCP or API client. One vault.' },
-  { title: 'ORGANIZED', desc: 'Path-based storage. Browse like a filesystem.' },
-  { title: 'SEARCHABLE', desc: 'Instant text recall across all memories.' },
+  { title: 'EDITABLE', desc: 'Full markdown editor. Browse, search, edit, export your memories.' },
+  { title: 'SEARCHABLE', desc: 'Instant recall across all memories and chests.' },
   { title: 'OPEN SOURCE', desc: 'MIT licensed. Self-host or use our cloud.' },
 ];
 
@@ -60,18 +60,18 @@ export function Landing() {
           {/* Chest image with memory pills — hidden on small mobile, visible from sm+ */}
           <div className="opacity-0 animate-fade-in md:w-1/2 flex justify-center">
             <div className="relative py-4 px-2 md:py-6 md:px-4">
-              {/* Floating memories — hidden on mobile, too cramped */}
-              <span className="hidden sm:block absolute top-[12%] left-[8%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-white text-cc-black font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-white rotate-[-5deg] shadow-[3px_3px_0_0_rgba(232,69,122,0.5)]">Q3 REVENUE: $2.4M</span>
-              <span className="hidden sm:block absolute top-[6%] right-[5%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-pink text-cc-black font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-pink rotate-[3deg] shadow-[3px_3px_0_0_rgba(255,255,255,0.2)]">SK-PROJ-████████</span>
+              {/* Floating tool labels — showing cross-agent story */}
+              <span className="hidden sm:block absolute top-[8%] left-[5%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-[#4a9eff] text-white font-pixel text-[10px] md:text-xs tracking-wider border-2 border-[#4a9eff] rotate-[-4deg] shadow-[3px_3px_0_0_rgba(0,0,0,0.3)]">CLAUDE CODE</span>
+              <span className="hidden sm:block absolute top-[6%] right-[8%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-[#a855f7] text-white font-pixel text-[10px] md:text-xs tracking-wider border-2 border-[#a855f7] rotate-[3deg] shadow-[3px_3px_0_0_rgba(0,0,0,0.3)]">CURSOR</span>
 
-              <span className="hidden sm:block absolute top-[35%] left-[12%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-dark text-cc-white font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-white rotate-[-2deg] shadow-[3px_3px_0_0_#222]">CLIENT NDA</span>
-              <span className="hidden sm:block absolute top-[30%] right-[6%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-white text-cc-black font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-white rotate-[4deg] shadow-[3px_3px_0_0_rgba(232,69,122,0.5)]">AWS_SECRET_████</span>
-              <span className="hidden sm:block absolute top-[48%] left-[25%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-pink text-cc-black font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-pink rotate-[1deg] shadow-[3px_3px_0_0_rgba(255,255,255,0.2)]">INVESTOR DECK</span>
+              <span className="hidden sm:block absolute top-[30%] left-[10%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-dark text-cc-white font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-border rotate-[-2deg] shadow-[3px_3px_0_0_#222]">TECH STACK</span>
+              <span className="hidden sm:block absolute top-[28%] right-[5%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-dark text-cc-white font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-border rotate-[4deg] shadow-[3px_3px_0_0_#222]">DECISIONS</span>
+              <span className="hidden sm:block absolute top-[48%] left-[20%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-pink text-cc-black font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-pink rotate-[1deg] shadow-[3px_3px_0_0_rgba(255,255,255,0.2)]">PREFERENCES</span>
 
-              <span className="hidden sm:block absolute top-[62%] right-[10%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-dark text-cc-white font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-white rotate-[-3deg] shadow-[3px_3px_0_0_#222]">DB PASSWORD</span>
-              <span className="hidden sm:block absolute top-[72%] left-[6%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-white text-cc-black font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-white rotate-[5deg] shadow-[3px_3px_0_0_rgba(232,69,122,0.5)]">HIRING PLAN</span>
-              <span className="hidden sm:block absolute top-[78%] right-[18%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-dark text-cc-white font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-white rotate-[-4deg] shadow-[3px_3px_0_0_#222]">ROADMAP</span>
-              <span className="hidden sm:block absolute top-[88%] left-[20%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-pink text-cc-black font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-pink rotate-[2deg] shadow-[3px_3px_0_0_rgba(255,255,255,0.2)]">████ ENCRYPTED</span>
+              <span className="hidden sm:block absolute top-[62%] right-[8%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-[#22c55e] text-white font-pixel text-[10px] md:text-xs tracking-wider border-2 border-[#22c55e] rotate-[-3deg] shadow-[3px_3px_0_0_rgba(0,0,0,0.3)]">WINDSURF</span>
+              <span className="hidden sm:block absolute top-[72%] left-[8%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-dark text-cc-white font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-border rotate-[5deg] shadow-[3px_3px_0_0_#222]">TEAM</span>
+              <span className="hidden sm:block absolute top-[82%] right-[15%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-[#f97316] text-white font-pixel text-[10px] md:text-xs tracking-wider border-2 border-[#f97316] rotate-[-4deg] shadow-[3px_3px_0_0_rgba(0,0,0,0.3)]">ANY MCP</span>
+              <span className="hidden sm:block absolute top-[88%] left-[22%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-dark text-cc-muted font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-border rotate-[2deg] shadow-[3px_3px_0_0_#222]">AES-256 ENCRYPTED</span>
 
               <img
                 src="/logo.png"
@@ -85,15 +85,15 @@ export function Landing() {
           {/* Text */}
           <div className="md:w-1/2 text-center md:text-left">
             <h1 className="opacity-0 animate-fade-up font-pixel text-3xl sm:text-4xl md:text-6xl text-cc-white leading-none mb-4 md:mb-6 tracking-wide">
-              AI processes.<br />
-              Memory <span className="text-cc-pink">persists.</span><br />
-              Encrypt it.
+              One memory.<br />
+              <span className="text-cc-pink">Every</span> AI tool.<br />
+              Never repeat yourself.
             </h1>
             <p className="opacity-0 animate-fade-up stagger-1 text-cc-sub text-xs sm:text-sm leading-relaxed mb-6 md:mb-8 max-w-sm mx-auto md:mx-0">
-              Your AI sees your secrets temporarily. But a permanent, searchable
-              database of everything you've ever shared? That's a different risk.
-              Context Chest encrypts your AI's memory so even a full breach
-              reveals nothing. Self-host it. Own your keys.
+              Stop re-explaining your tech stack, decisions, and preferences
+              to every AI tool. Context Chest gives Claude Code, Cursor, and
+              any MCP client a shared, encrypted memory that auto-organizes
+              by topic. Store once, recall everywhere.
             </p>
             <div className="opacity-0 animate-fade-up stagger-2 flex gap-3 justify-center md:justify-start">
               <button
@@ -484,9 +484,9 @@ export function Landing() {
       {/* CTA */}
       <section className="relative z-10 max-w-3xl mx-auto px-4 md:px-6 py-12 md:py-20 text-center">
         <h2 className="font-pixel text-2xl sm:text-4xl md:text-5xl text-cc-white mb-4 tracking-wide">
-          YOUR AI REMEMBERS.<br /><span className="text-cc-pink">NOBODY ELSE CAN READ IT.</span>
+          STOP RE-EXPLAINING.<br /><span className="text-cc-pink">START REMEMBERING.</span>
         </h2>
-        <p className="text-cc-muted text-sm mb-8">Open source. Self-hostable. Your keys, your data.</p>
+        <p className="text-cc-muted text-sm mb-8">One memory for all your AI tools. Encrypted. Open source. Self-hostable.</p>
         <button
           onClick={handleCTA}
           className="px-8 py-3 bg-cc-pink text-cc-black font-pixel text-sm tracking-wider hover:bg-cc-pink-dim transition-colors"
