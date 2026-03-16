@@ -191,6 +191,15 @@ export class ApiClient {
     );
   }
 
+  async remember(data: RememberInput & { chest?: string }) {
+    const { chest, ...body } = data;
+    const chestParam = chest ?? this.chestName;
+    return this.request<{ success: boolean; data: { uri: string } }>(
+      'POST', `/v1/memory/remember?chest=${encodeURIComponent(chestParam)}`,
+      body
+    );
+  }
+
   // Grants
   async listGrants() {
     return this.request<{ grants: GrantItem[] }>('GET', '/v1/connect/grants');
