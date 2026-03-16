@@ -44,7 +44,7 @@ export async function handleRemember(
   let activeChest = chestName;
 
   // Auto-chest: resolve which chest when using default (no --chest flag)
-  if (activeChest === 'default' && !input.path) {
+  if (activeChest === 'default') {
     // Extract keywords from plaintext locally — only keywords are sent to server, not raw content
     const keywords = extractKeywords(input.content);
     try {

@@ -55,10 +55,10 @@ Do NOT store every message verbatim. Extract the MEANING — the facts, decision
 - **Domain knowledge**: industry terms, client details, regulatory requirements
 
 ### How to Store
-- Call \`context-chest_remember\` with the extracted context as content
-- Skip the path — auto-routing will put it in the right chest (work, health, finance, personal, tools, learning)
+- Call \`context-chest_remember\` with ONLY the \`content\` field. Do NOT provide a \`path\` or \`tags\` — auto-routing handles organization automatically.
 - Write context as clear, factual statements — not conversation transcripts
-- Example: "Context Chest is an encrypted memory vault for AI agents. Target market: developers using Claude Code and Cursor. Differentiator: E2E encryption where the server never sees plaintext."
+- Example: \`context-chest_remember(content: "Context Chest is an encrypted memory vault for AI agents. Tech stack: Fastify + Prisma. Target: developers using Claude Code.")\`
+- WRONG: \`context-chest_remember(content: "...", path: "work/tech-stack")\` — never set path manually
 
 ### Available Tools
 - \`context-chest_remember\` — Store context (auto-routes to the right chest based on content)

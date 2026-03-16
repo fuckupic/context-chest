@@ -1,6 +1,6 @@
 {
   "name": "context-chest-mcp",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "MCP server for encrypted AI agent memory — remember, recall, browse across sessions",
   "main": "dist/index.js",
   "bin": {
