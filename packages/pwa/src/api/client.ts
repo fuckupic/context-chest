@@ -184,6 +184,13 @@ export class ApiClient {
     return response.arrayBuffer();
   }
 
+  async updateMemory(uri: string, data: { l0: string; l1: string; encryptedL2: string; sha256: string }) {
+    return this.request<{ success: boolean }>(
+      'PUT', `/v1/memory/content/${uri}?chest=${encodeURIComponent(this.chestName)}`,
+      { ...data, encryptionVersion: 2 }
+    );
+  }
+
   // Grants
   async listGrants() {
     return this.request<{ grants: GrantItem[] }>('GET', '/v1/connect/grants');
