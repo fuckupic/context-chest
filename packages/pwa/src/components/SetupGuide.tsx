@@ -88,9 +88,15 @@ export function SetupGuide({ compact = false }: { compact?: boolean }) {
           <span className="font-pixel text-[10px] text-cc-white tracking-wider">LOGIN FROM A SEPARATE TERMINAL</span>
         </div>
         <div className="p-3 space-y-2">
-          <p className="text-[10px] text-cc-muted">Open a regular terminal (not Claude Code). Run this and enter your email + password:</p>
+          <p className="text-[10px] text-cc-muted">Open a regular terminal (not Claude Code). Run this:</p>
           <pre className="bg-cc-black border border-cc-border p-2.5 text-xs font-mono text-cc-sub overflow-x-auto">npx context-chest-mcp login</pre>
-          <p className="text-[10px] text-cc-muted italic">This saves credentials to ~/.context-chest/credentials.json. Only needed once.</p>
+          <p className="text-[10px] text-cc-muted mt-1.5">It will ask 3 things:</p>
+          <ul className="text-[10px] text-cc-muted space-y-0.5 ml-2">
+            <li><span className="text-cc-white">API URL</span> → just press Enter (uses the default)</li>
+            <li><span className="text-cc-white">Email</span> → the email you signed up with</li>
+            <li><span className="text-cc-white">Password</span> → your password</li>
+          </ul>
+          <p className="text-[10px] text-cc-muted italic mt-1.5">Saves credentials locally. Only needed once.</p>
         </div>
       </div>
 

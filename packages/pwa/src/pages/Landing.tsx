@@ -149,9 +149,15 @@ export function Landing() {
               <span className="font-pixel text-xs text-cc-white tracking-wider">LOGIN FROM A SEPARATE TERMINAL</span>
             </div>
             <div className="p-4 space-y-3">
-              <p className="text-xs text-cc-muted">Open a regular terminal <span className="text-cc-white">(not Claude Code)</span>. Run this and enter your email + password:</p>
+              <p className="text-xs text-cc-muted">Open a regular terminal <span className="text-cc-white">(not Claude Code)</span>. Run this:</p>
               <pre className="bg-cc-black border border-cc-border p-3 text-sm font-mono text-cc-sub overflow-x-auto">npx context-chest-mcp login</pre>
-              <p className="text-[10px] text-cc-muted italic">This saves credentials to ~/.context-chest/credentials.json. Only needed once.</p>
+              <p className="text-[10px] text-cc-muted mt-2">It will ask 3 things:</p>
+              <ul className="text-[10px] text-cc-muted space-y-0.5 ml-2 mt-1">
+                <li><span className="text-cc-white">API URL</span> → just press Enter (uses the default)</li>
+                <li><span className="text-cc-white">Email</span> → the email you signed up with</li>
+                <li><span className="text-cc-white">Password</span> → your password</li>
+              </ul>
+              <p className="text-[10px] text-cc-muted italic mt-2">Saves credentials locally. Only needed once.</p>
             </div>
           </div>
 
