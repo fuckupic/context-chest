@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../auth/context';
 import { useChest } from '../context/chest-context';
 import { MemoryEditor } from '../components/MemoryEditor';
-import { EmptyState } from '../components/EmptyState';
+import { SetupGuide } from '../components/SetupGuide';
 
 interface TreeEntry {
   uri: string;
@@ -83,7 +83,16 @@ export function Memories() {
   if (loading) return <div className="flex items-center justify-center h-full text-cc-muted font-pixel text-sm">LOADING...</div>;
 
   if (tree.length === 0 && !searchResults) {
-    return <EmptyState message="Vault empty. Connect an AI agent to start." actionLabel="CONNECT AGENT" actionTo="/agents" />;
+    return (
+      <div className="max-w-lg mx-auto p-8">
+        <div className="text-center mb-6">
+          <img src="/chest.png" alt="" className="w-16 h-16 mx-auto mb-4 opacity-30" style={{ imageRendering: 'auto' }} />
+          <h2 className="font-pixel text-lg text-cc-white tracking-wider mb-2">VAULT EMPTY</h2>
+          <p className="text-xs text-cc-muted">Connect an AI agent to start remembering. Follow these steps:</p>
+        </div>
+        <SetupGuide compact />
+      </div>
+    );
   }
 
   return (

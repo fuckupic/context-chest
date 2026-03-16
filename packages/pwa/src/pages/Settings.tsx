@@ -1,5 +1,6 @@
 import { useAuth } from '../auth/context';
 import { useNavigate } from 'react-router-dom';
+import { SetupGuide } from '../components/SetupGuide';
 
 export function Settings() {
   const { logout } = useAuth();
@@ -9,6 +10,12 @@ export function Settings() {
     <div className="max-w-lg mx-auto p-8">
       <h1 className="font-pixel text-xl text-cc-white tracking-wider mb-6">SETTINGS</h1>
       <div className="space-y-4">
+        {/* Setup guide */}
+        <div className="border-2 border-cc-border bg-cc-dark p-4">
+          <p className="font-pixel text-[10px] text-cc-muted tracking-wider mb-3">SETUP GUIDE</p>
+          <SetupGuide compact />
+        </div>
+
         <div className="border-2 border-cc-border bg-cc-dark p-4">
           <p className="font-pixel text-[10px] text-cc-muted tracking-wider mb-3">ENCRYPTION</p>
           <div className="flex items-center justify-between mb-2">
