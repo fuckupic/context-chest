@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../auth/context';
 import { useChest } from '../context/chest-context';
-import { MemoryDetail } from '../components/MemoryDetail';
+import { MemoryEditor } from '../components/MemoryEditor';
 import { EmptyState } from '../components/EmptyState';
 
 interface TreeEntry {
@@ -52,6 +52,7 @@ export function Memories() {
   const [searchResults, setSearchResults] = useState<TreeEntry[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
+  const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
     if (!client) { setLoading(false); return; }
@@ -64,6 +65,11 @@ export function Memories() {
       .catch(() => setTree([]))
       .finally(() => setLoading(false));
   }, [client, activeChest]);
+
+  const handleSelectMemory = (newUri: string) => {
+    if (isDirty && !confirm('You have unsaved changes. Discard them?')) return;
+    setSelectedUri(newUri);
+  };
 
   const handleSearch = async () => {
     if (!client || !searchQuery.trim()) { setSearchResults(null); return; }
@@ -103,7 +109,7 @@ export function Memories() {
         </div>
         <div className="flex-1 overflow-auto py-1">
           {displayTree.map((entry) => (
-            <TreeItem key={entry.uri} entry={entry} selectedUri={selectedUri} onSelect={setSelectedUri} />
+            <TreeItem key={entry.uri} entry={entry} selectedUri={selectedUri} onSelect={handleSelectMemory} />
           ))}
         </div>
       </div>
@@ -111,7 +117,12 @@ export function Memories() {
       {/* Detail */}
       <div className="flex-1 overflow-auto">
         {selectedEntry ? (
-          <MemoryDetail uri={selectedEntry.uri} l0={selectedEntry.l0} />
+          <MemoryEditor
+              key={selectedEntry.uri}
+              uri={selectedEntry.uri}
+              l0={selectedEntry.l0}
+              onDirtyChange={setIsDirty}
+            />
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-cc-muted">
             <img src="/logo.png" alt="" className="w-16 h-16 mb-4 opacity-10" style={{ imageRendering: 'auto' }} />
