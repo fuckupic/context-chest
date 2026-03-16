@@ -4,10 +4,21 @@ export const SETUP_CODE = `{
   "mcpServers": {
     "context-chest": {
       "command": "npx",
-      "args": ["context-chest-mcp"]
+      "args": ["-y", "context-chest-mcp"]
     }
   }
 }`;
+
+export const MCP_TERMINAL_CMD = `cat <<'EOF' > .mcp.json
+{
+  "mcpServers": {
+    "context-chest": {
+      "command": "npx",
+      "args": ["-y", "context-chest-mcp"]
+    }
+  }
+}
+EOF`;
 
 export const AGENT_INSTRUCTIONS = `## Context Chest — AI Agent Memory Protocol
 
@@ -107,12 +118,12 @@ export function SetupGuide({ compact = false }: { compact?: boolean }) {
             <span className="font-pixel text-sm text-cc-pink">02</span>
             <span className="font-pixel text-[10px] text-cc-white tracking-wider">ADD MCP CONFIG TO YOUR PROJECT</span>
           </div>
-          <CopyButton text={SETUP_CODE} label="COPY" />
+          <CopyButton text={MCP_TERMINAL_CMD} label="COPY" />
         </div>
         <div className="p-3 space-y-2">
-          <p className="text-[10px] text-cc-muted">Create a file called <span className="text-cc-white">.mcp.json</span> in your project root folder and paste this:</p>
-          <pre className="bg-cc-black border border-cc-border p-2.5 text-xs font-mono text-cc-pink overflow-x-auto leading-relaxed">{SETUP_CODE}</pre>
-          <p className="text-[10px] text-cc-muted italic">If .mcp.json already exists, add the "context-chest" block inside "mcpServers".</p>
+          <p className="text-[10px] text-cc-muted">Run this in your project folder (creates .mcp.json):</p>
+          <pre className="bg-cc-black border border-cc-border p-2.5 text-[11px] font-mono text-cc-sub overflow-x-auto leading-relaxed whitespace-pre">{MCP_TERMINAL_CMD}</pre>
+          <p className="text-[10px] text-cc-muted italic">If .mcp.json already exists, add the "context-chest" block inside "mcpServers" manually.</p>
         </div>
       </div>
 

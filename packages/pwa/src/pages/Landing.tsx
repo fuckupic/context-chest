@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/context';
-import { SETUP_CODE, AGENT_INSTRUCTIONS } from '../components/SetupGuide';
+import { SETUP_CODE, MCP_TERMINAL_CMD, AGENT_INSTRUCTIONS } from '../components/SetupGuide';
 
 function CopyButton({ text, label }: { text: string; label: string }) {
   const [copied, setCopied] = useState(false);
@@ -170,11 +170,11 @@ export function Landing() {
             <div className="p-4 space-y-4">
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <p className="text-xs text-cc-muted">Create <span className="text-cc-white">.mcp.json</span> in your project root folder:</p>
-                  <CopyButton text={SETUP_CODE} label="COPY CONFIG" />
+                  <p className="text-xs text-cc-muted">Run this in your project folder (creates .mcp.json):</p>
+                  <CopyButton text={MCP_TERMINAL_CMD} label="COPY" />
                 </div>
-                <pre className="bg-cc-black border border-cc-border p-3 text-sm font-mono text-cc-pink overflow-x-auto leading-relaxed">{SETUP_CODE}</pre>
-                <p className="text-[10px] text-cc-muted italic mt-1.5">If .mcp.json already exists, add the "context-chest" block inside "mcpServers".</p>
+                <pre className="bg-cc-black border border-cc-border p-3 text-[12px] font-mono text-cc-sub overflow-x-auto leading-relaxed whitespace-pre">{MCP_TERMINAL_CMD}</pre>
+                <p className="text-[10px] text-cc-muted italic mt-1.5">If .mcp.json already exists, add the "context-chest" block inside "mcpServers" manually.</p>
               </div>
               <div className="border-t border-cc-border pt-3">
                 <div className="flex items-center justify-between mb-1.5">
