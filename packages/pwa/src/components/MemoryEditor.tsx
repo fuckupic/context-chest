@@ -11,6 +11,7 @@ import { useChest } from '../context/chest-context';
 import { decryptL2FromBytes, encryptL2, sha256 } from '../crypto';
 import { decryptL2FromBytesLegacy } from '../crypto/legacy';
 import { EditorToolbar } from './EditorToolbar';
+import { exportMemoryAsMd } from '../lib/export';
 import './editor-styles.css';
 
 interface MemoryEditorProps {
@@ -117,6 +118,12 @@ export function MemoryEditor({ uri, l0, onDirtyChange }: MemoryEditorProps) {
     }
   }, [client, masterKey, editor, dirty, chestName, uri, onDirtyChange]);
 
+  const handleExport = useCallback(() => {
+    if (!editor) return;
+    const markdown = (editor.storage as unknown as { markdown: MarkdownStorage }).markdown.getMarkdown();
+    exportMemoryAsMd(markdown, uri, chestName);
+  }, [editor, uri, chestName]);
+
   // Cmd+S keyboard shortcut
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -142,6 +149,12 @@ export function MemoryEditor({ uri, l0, onDirtyChange }: MemoryEditorProps) {
         {dirty && <span className="w-2 h-2 rounded-full bg-cc-pink" title="Unsaved changes" />}
         {savedMessage && <span className="text-green-400 text-xs font-mono ml-2">Saved</span>}
         <div className="flex-1" />
+        <button
+          onClick={handleExport}
+          className="font-pixel text-[10px] text-cc-muted hover:text-cc-pink tracking-wider transition-colors"
+        >
+          EXPORT
+        </button>
         <span className="font-pixel text-[9px] text-cc-muted tracking-wider">{chestName}</span>
       </div>
 
