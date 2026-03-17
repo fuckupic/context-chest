@@ -1,9 +1,26 @@
-import { FastifyPluginAsync } from 'fastify';
+import { FastifyPluginAsync, FastifyRequest, FastifyReply } from 'fastify';
 import { PrismaClient } from '@prisma/client';
 import { hashSync, compareSync } from 'bcryptjs';
 import { createHash, randomBytes } from 'crypto';
+import { resolveApiKey } from './api-keys';
 
 const prisma = new PrismaClient();
+
+// Auth helper that supports both API keys and JWTs
+async function authenticateRequest(request: FastifyRequest, reply: FastifyReply): Promise<string | null> {
+  // Try API key first
+  const apiKeyUser = await resolveApiKey(prisma, request.headers.authorization);
+  if (apiKeyUser) return apiKeyUser.userId;
+
+  // Fall back to JWT
+  try {
+    await request.jwtVerify();
+    return (request.user as Record<string, unknown>).sub as string;
+  } catch {
+    reply.code(401).send({ code: 'UNAUTHORIZED', message: 'Invalid token' });
+    return null;
+  }
+}
 
 const REFRESH_TOKEN_EXPIRY_DAYS = 30;
 
@@ -92,9 +109,9 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
 
   // Store wrapped master key (409 if already set)
   fastify.put('/master-key', async (request, reply) => {
-    try { await request.jwtVerify(); } catch { return reply.code(401).send({ code: 'UNAUTHORIZED', message: 'Invalid token' }); }
+    const userId = await authenticateRequest(request, reply);
+    if (!userId) return;
 
-    const userId = (request.user as Record<string, unknown>).sub as string;
     const { encryptedMasterKey } = request.body as { encryptedMasterKey: string };
     const user = await prisma.user.findUnique({ where: { id: userId } });
 
@@ -107,9 +124,9 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
 
   // Retrieve wrapped master key
   fastify.get('/master-key', async (request, reply) => {
-    try { await request.jwtVerify(); } catch { return reply.code(401).send({ code: 'UNAUTHORIZED', message: 'Invalid token' }); }
+    const userId = await authenticateRequest(request, reply);
+    if (!userId) return;
 
-    const userId = (request.user as Record<string, unknown>).sub as string;
     const user = await prisma.user.findUnique({ where: { id: userId } });
 
     if (!user || !user.encryptedMasterKey) return reply.code(404).send({ code: 'MASTER_KEY_NOT_FOUND', message: 'No master key found.' });
@@ -118,9 +135,9 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
 
   // Rotate master key
   fastify.post('/master-key/rotate', async (request, reply) => {
-    try { await request.jwtVerify(); } catch { return reply.code(401).send({ code: 'UNAUTHORIZED', message: 'Invalid token' }); }
+    const userId = await authenticateRequest(request, reply);
+    if (!userId) return;
 
-    const userId = (request.user as Record<string, unknown>).sub as string;
     const { encryptedMasterKey } = request.body as { encryptedMasterKey: string };
     const user = await prisma.user.findUnique({ where: { id: userId } });
 
