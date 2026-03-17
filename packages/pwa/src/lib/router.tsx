@@ -9,6 +9,7 @@ import { Agents } from '../pages/Agents';
 import { Sessions } from '../pages/Sessions';
 import { Settings } from '../pages/Settings';
 import { Docs } from '../pages/Docs';
+import { Pricing } from '../pages/Pricing';
 import { Chests } from '../pages/Chests';
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
@@ -23,6 +24,7 @@ export function AppRouter() {
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/docs" element={<Docs />} />
+        <Route path="/pricing" element={<Pricing />} />
         <Route path="/login" element={<Login />} />
         <Route
           element={

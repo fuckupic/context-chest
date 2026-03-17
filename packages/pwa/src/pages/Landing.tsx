@@ -35,6 +35,7 @@ export function Landing() {
           <span className="font-pixel text-base text-cc-white tracking-wide">Context Chest</span>
         </div>
         <div className="flex gap-4">
+          <a href="/pricing" className="font-pixel text-xs text-cc-muted hover:text-cc-pink tracking-wider transition-colors">PRICING</a>
           <a href="https://github.com/fuckupic/context-chest" target="_blank" rel="noopener noreferrer" className="font-pixel text-xs text-cc-muted hover:text-cc-pink tracking-wider transition-colors">GITHUB</a>
           <button onClick={handleCTA} className="font-pixel text-xs text-cc-muted hover:text-cc-pink tracking-wider transition-colors">
             {isAuthenticated ? 'DASHBOARD' : 'SIGN IN'}
