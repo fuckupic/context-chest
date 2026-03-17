@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '../auth/context';
 import { useChest } from '../context/chest-context';
 import { MemoryEditor } from '../components/MemoryEditor';
-import { SetupGuide } from '../components/SetupGuide';
 
 interface TreeEntry {
   uri: string;

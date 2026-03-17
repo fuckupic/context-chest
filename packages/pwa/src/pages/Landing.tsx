@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/context';
-import { SETUP_CODE, MCP_TERMINAL_CMD, AGENT_INSTRUCTIONS } from '../components/SetupGuide';
+import { AGENT_INSTRUCTIONS } from '../components/SetupGuide';
 
 function CopyButton({ text, label }: { text: string; label: string }) {
   const [copied, setCopied] = useState(false);
@@ -122,84 +122,71 @@ export function Landing() {
 
       {/* Setup */}
       <section className="relative z-10 max-w-3xl mx-auto px-4 md:px-6 py-10 md:py-16">
-        <p className="font-pixel text-xs text-cc-muted tracking-[0.3em] mb-4 text-center">SETUP IN 4 STEPS</p>
+        <p className="font-pixel text-xs text-cc-muted tracking-[0.3em] mb-4 text-center">SETUP IN 3 STEPS</p>
 
         <div className="space-y-4">
           {/* Step 1: Create account */}
           <div className="border-2 border-cc-pink bg-cc-dark">
             <div className="flex items-center gap-3 px-4 py-3 border-b-2 border-cc-border">
               <span className="font-pixel text-lg text-cc-pink">01</span>
-              <span className="font-pixel text-xs text-cc-white tracking-wider">CREATE YOUR ENCRYPTED VAULT</span>
+              <span className="font-pixel text-xs text-cc-white tracking-wider">SIGN UP + GENERATE API KEY</span>
             </div>
-            <div className="p-4 flex items-center justify-between">
-              <p className="text-xs text-cc-sub font-mono">Sign up to generate your encryption keys. Takes 10 seconds.</p>
+            <div className="p-4">
+              <p className="text-xs text-cc-sub mb-3">Create an account, then go to Settings and click <span className="text-cc-pink">Generate API Key</span>. Copy the generated .mcp.json config.</p>
               <button
                 onClick={handleCTA}
-                className="shrink-0 ml-4 px-5 py-2 bg-cc-pink text-cc-black font-pixel text-xs tracking-wider hover:bg-cc-pink-dim transition-colors"
+                className="px-5 py-2 bg-cc-pink text-cc-black font-pixel text-xs tracking-wider hover:bg-cc-pink-dim transition-colors"
               >
                 {isAuthenticated ? 'DASHBOARD' : 'SIGN UP FREE'}
               </button>
             </div>
           </div>
 
-          {/* Step 2: Login from a separate terminal */}
+          {/* Step 2: Paste config */}
           <div className="border-2 border-cc-border bg-cc-dark">
             <div className="flex items-center gap-3 px-4 py-3 border-b-2 border-cc-border">
               <span className="font-pixel text-lg text-cc-pink">02</span>
-              <span className="font-pixel text-xs text-cc-white tracking-wider">LOGIN FROM A SEPARATE TERMINAL</span>
+              <span className="font-pixel text-xs text-cc-white tracking-wider">PASTE CONFIG INTO YOUR PROJECT</span>
             </div>
             <div className="p-4 space-y-3">
-              <p className="text-xs text-cc-muted">Open a regular terminal <span className="text-cc-white">(not Claude Code)</span>. Run this:</p>
-              <pre className="bg-cc-black border border-cc-border p-3 text-sm font-mono text-cc-sub overflow-x-auto">npx context-chest-mcp login</pre>
-              <p className="text-[10px] text-cc-muted mt-2">It will ask 3 things:</p>
-              <ul className="text-[10px] text-cc-muted space-y-0.5 ml-2 mt-1">
-                <li><span className="text-cc-white">API URL</span> → just press Enter (uses the default)</li>
-                <li><span className="text-cc-white">Email</span> → the email you signed up with</li>
-                <li><span className="text-cc-white">Password</span> → your password</li>
-              </ul>
-              <p className="text-[10px] text-cc-muted italic mt-2">Saves credentials locally. Only needed once.</p>
-            </div>
-          </div>
-
-          {/* Step 3: Add MCP config */}
-          <div className="border-2 border-cc-border bg-cc-dark">
-            <div className="flex items-center gap-3 px-4 py-3 border-b-2 border-cc-border">
-              <span className="font-pixel text-lg text-cc-pink">03</span>
-              <span className="font-pixel text-xs text-cc-white tracking-wider">ADD CONFIG FILES TO YOUR PROJECT</span>
-            </div>
-            <div className="p-4 space-y-4">
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <p className="text-xs text-cc-muted">Run this in your project folder (creates .mcp.json):</p>
-                  <CopyButton text={MCP_TERMINAL_CMD} label="COPY" />
-                </div>
-                <pre className="bg-cc-black border border-cc-border p-3 text-[12px] font-mono text-cc-sub overflow-x-auto leading-relaxed whitespace-pre">{MCP_TERMINAL_CMD}</pre>
-                <p className="text-[10px] text-cc-muted italic mt-1.5">If .mcp.json already exists, add the "context-chest" block inside "mcpServers" manually.</p>
-              </div>
+              <p className="text-xs text-cc-muted">Create <span className="text-cc-white">.mcp.json</span> in your project root and paste the config you copied. It looks like this:</p>
+              <pre className="bg-cc-black border border-cc-border p-3 text-[11px] font-mono text-cc-sub overflow-x-auto leading-relaxed whitespace-pre">{`{
+  "mcpServers": {
+    "context-chest": {
+      "command": "npx",
+      "args": ["-y", "context-chest-mcp"],
+      "env": {
+        "CONTEXT_CHEST_API_KEY": "cc_your_key_here",
+        "CONTEXT_CHEST_EXPORT_KEY": "your_export_key"
+      }
+    }
+  }
+}`}</pre>
+              <p className="text-[10px] text-cc-muted italic">No terminal login needed. Your API key handles authentication.</p>
               <div className="border-t border-cc-border pt-3">
                 <div className="flex items-center justify-between mb-1.5">
-                  <p className="text-xs text-cc-muted">Create <span className="text-cc-white">CLAUDE.md</span> in your project root folder:</p>
+                  <p className="text-xs text-cc-muted">Then paste agent instructions into <span className="text-cc-white">CLAUDE.md</span>:</p>
                   <CopyButton text={AGENT_INSTRUCTIONS} label="COPY INSTRUCTIONS" />
                 </div>
-                <p className="text-[10px] text-cc-muted italic">This teaches your AI to automatically extract context from conversations and sort it into chests.</p>
+                <p className="text-[10px] text-cc-muted italic">Teaches your AI to extract context from conversations automatically.</p>
               </div>
             </div>
           </div>
 
-          {/* Step 4: Restart */}
+          {/* Step 3: Restart */}
           <div className="border-2 border-cc-pink bg-cc-dark">
             <div className="flex items-center gap-3 px-4 py-3 border-b-2 border-cc-border">
-              <span className="font-pixel text-lg text-cc-pink">04</span>
+              <span className="font-pixel text-lg text-cc-pink">03</span>
               <span className="font-pixel text-xs text-cc-white tracking-wider">RESTART CLAUDE CODE</span>
             </div>
             <div className="p-4">
-              <p className="text-xs text-cc-muted">Type <span className="text-cc-white font-mono">/exit</span> in Claude Code, then relaunch it in the same project folder. The context-chest tools will load automatically.</p>
+              <p className="text-xs text-cc-muted">Type <span className="text-cc-white font-mono">/exit</span> in Claude Code, then relaunch it in the same project folder. Done.</p>
             </div>
           </div>
         </div>
 
         <p className="text-center text-xs text-cc-muted mt-4">
-          That's it. Your AI now has persistent encrypted memory across all sessions.
+          That's it. No terminal login. No password prompts. Your AI now has persistent encrypted memory.
         </p>
       </section>
 
