@@ -55,21 +55,28 @@ export async function handleRemember(
     }
   }
 
-  // Auto-sort: resolve path within the chest
+  // Auto-sort: resolve path within the chest using keywords (not generic summaries)
   let uri: string;
   if (input.path) {
     uri = input.path;
   } else {
-    const { l0: tempL0, l1: tempL1 } = await generateSummaries(input.content);
+    const keywords = extractKeywords(input.content);
+    const keywordL0 = keywords.slice(0, 5).join(' ');
+    const keywordL1 = keywords.join(' ');
     try {
-      const sortResult = await client.autoSort(tempL0, tempL1, activeChest);
+      const sortResult = await client.autoSort(keywordL0, keywordL1, activeChest);
       uri = sortResult.data.uri;
     } catch {
-      uri = `auto/${Date.now()}`;
+      // Fallback: generate a slug from keywords instead of timestamp
+      const slug = keywords.slice(0, 3).join('-') || `auto-${Date.now()}`;
+      uri = `entities/${slug}`;
     }
   }
 
-  const { l0, l1 } = await generateSummaries(input.content, uri);
+  // Generate content-aware summaries using keywords (not generic path-based labels)
+  const allKeywords = extractKeywords(input.content);
+  const l0 = allKeywords.slice(0, 5).join(' ') || uri.split('/').pop() || 'memory';
+  const l1 = allKeywords.join(' ') || input.content.slice(0, 200);
   const plaintext = Buffer.from(input.content, 'utf-8');
   const encryptedL2 = encryptL2(masterKey, activeChest, uri, plaintext);
   const hash = sha256(Buffer.from(encryptedL2, 'base64'));
