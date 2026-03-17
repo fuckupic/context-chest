@@ -88,9 +88,15 @@ export function Memories() {
         <div className="text-center mb-6">
           <img src="/chest.png" alt="" className="w-16 h-16 mx-auto mb-4 opacity-30" style={{ imageRendering: 'auto' }} />
           <h2 className="font-pixel text-lg text-cc-white tracking-wider mb-2">VAULT EMPTY</h2>
-          <p className="text-xs text-cc-muted">Connect an AI agent to start remembering. Follow these steps:</p>
+          <p className="text-xs text-cc-muted mb-4">Connect an AI agent to start remembering.</p>
+          <a
+            href="/settings"
+            className="inline-block px-6 py-2.5 bg-cc-pink text-cc-black font-pixel text-xs tracking-wider hover:bg-cc-pink-dim transition-colors"
+          >
+            GENERATE API KEY
+          </a>
+          <p className="text-[10px] text-cc-muted mt-3">Go to Settings to generate an API key — no terminal login needed.</p>
         </div>
-        <SetupGuide compact />
       </div>
     );
   }
