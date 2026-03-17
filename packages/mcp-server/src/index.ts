@@ -145,40 +145,82 @@ async function main() {
   const chestName = chestFlag ? chestFlag.split('=')[1] : 'default';
   process.stderr.write(`[context-chest] Chest: ${chestName}\n`);
 
-  const creds = loadCredentials();
+  // Priority 1: Environment variables (API key auth — no login needed)
+  const envApiKey = process.env.CONTEXT_CHEST_API_KEY;
+  const envExportKey = process.env.CONTEXT_CHEST_EXPORT_KEY;
+  const envApiUrl = process.env.CONTEXT_CHEST_API_URL || DEFAULT_API_URL;
 
-  if (creds) {
-    if (!isTokenExpired(creds.jwt)) {
-      // Token is still valid
-      client = new ContextChestClient({
-        baseUrl: creds.apiUrl || DEFAULT_API_URL,
-        token: creds.jwt,
-        refreshToken: creds.refreshToken,
-        chestName,
+  if (envApiKey && envExportKey) {
+    process.stderr.write('[context-chest] Using API key from environment\n');
+    client = new ContextChestClient({
+      baseUrl: envApiUrl,
+      token: envApiKey,
+      chestName,
+    });
+
+    // Unwrap master key using export key
+    try {
+      const wrappedMK = await client.getMasterKey();
+      const exportKeyBuf = Buffer.from(envExportKey, 'hex');
+      // We need userId to derive wrapping key — get it from a lightweight call
+      const browseRes = await client.browse('', 1);
+      // Extract userId from the API key auth (server resolves it)
+      // The master key endpoint already authenticated us, so we can use any endpoint
+      // to verify auth works. Now unwrap the master key.
+      // We need the userId — let's get it from the auth response or store it.
+      // Simpler: try all possible userId derivations. Actually, the export key
+      // is deterministic from email+password, so we need the userId for HKDF.
+      // Let's add a /v1/auth/me endpoint, or get userId from the master key endpoint.
+
+      // For now: use a dedicated endpoint to get userId
+      const meRes = await fetch(`${envApiUrl}/v1/auth/me`, {
+        headers: { Authorization: `Bearer ${envApiKey}` },
       });
-    } else if (creds.refreshToken) {
-      // JWT expired but we have a refresh token — try to refresh
-      const ok = await refreshAndInit(creds.apiUrl || DEFAULT_API_URL, creds.refreshToken, creds, chestName);
-      if (!ok) {
-        process.stderr.write('[context-chest] Could not refresh token. Run context-chest login.\n');
-      }
-    } else {
-      process.stderr.write('[context-chest] Token expired and no refresh token. Run context-chest login.\n');
-    }
-
-    // Unwrap master key if client is ready
-    if (client && creds.wrappedMasterKey && creds.exportKey && creds.userId) {
-      try {
-        const wrappedMK = await client.getMasterKey();
-        const exportKeyBuf = Buffer.from(creds.exportKey, 'hex');
-        const wrappingKey = deriveWrappingKey(exportKeyBuf, creds.userId);
+      if (meRes.ok) {
+        const { userId } = (await meRes.json()) as { userId: string };
+        const wrappingKey = deriveWrappingKey(exportKeyBuf, userId);
         masterKey = unwrapMasterKey(wrappedMK, wrappingKey);
-      } catch (err) {
-        process.stderr.write(`[context-chest] MK unwrap failed: ${(err as Error).message}\n`);
+        process.stderr.write('[context-chest] Master key unwrapped via API key\n');
+      } else {
+        process.stderr.write('[context-chest] Could not fetch user info for key derivation\n');
       }
+    } catch (err) {
+      process.stderr.write(`[context-chest] MK unwrap failed: ${(err as Error).message}\n`);
     }
   } else {
-    process.stderr.write('[context-chest] No credentials found. Run context-chest login first.\n');
+    // Priority 2: Credentials file (legacy login flow)
+    const creds = loadCredentials();
+
+    if (creds) {
+      if (!isTokenExpired(creds.jwt)) {
+        client = new ContextChestClient({
+          baseUrl: creds.apiUrl || DEFAULT_API_URL,
+          token: creds.jwt,
+          refreshToken: creds.refreshToken,
+          chestName,
+        });
+      } else if (creds.refreshToken) {
+        const ok = await refreshAndInit(creds.apiUrl || DEFAULT_API_URL, creds.refreshToken, creds, chestName);
+        if (!ok) {
+          process.stderr.write('[context-chest] Could not refresh token. Run context-chest login.\n');
+        }
+      } else {
+        process.stderr.write('[context-chest] Token expired and no refresh token. Run context-chest login.\n');
+      }
+
+      if (client && creds.wrappedMasterKey && creds.exportKey && creds.userId) {
+        try {
+          const wrappedMK = await client.getMasterKey();
+          const exportKeyBuf = Buffer.from(creds.exportKey, 'hex');
+          const wrappingKey = deriveWrappingKey(exportKeyBuf, creds.userId);
+          masterKey = unwrapMasterKey(wrappedMK, wrappingKey);
+        } catch (err) {
+          process.stderr.write(`[context-chest] MK unwrap failed: ${(err as Error).message}\n`);
+        }
+      }
+    } else {
+      process.stderr.write('[context-chest] No credentials found. Set CONTEXT_CHEST_API_KEY + CONTEXT_CHEST_EXPORT_KEY env vars, or run: npx context-chest-mcp login\n');
+    }
   }
 
   // Surface vault contents on startup so the AI has context immediately

@@ -1,9 +1,11 @@
 import fp from 'fastify-plugin';
 import { FastifyPluginAsync, FastifyRequest, FastifyReply } from 'fastify';
-import { Role } from '@prisma/client';
+import { PrismaClient, Role } from '@prisma/client';
 import { GrantService, Permission } from '../services/grant';
+import { resolveApiKey } from '../routes/api-keys';
 
 const grantService = new GrantService();
+const prisma = new PrismaClient();
 
 export function rolePermissions(role: Role): Permission[] {
   return grantService.permissionsForRole(role);
@@ -20,10 +22,19 @@ export function extractRoleFromToken(decoded: Record<string, unknown>): Role {
 
 export function requirePermission(permission: Permission) {
   return async (request: FastifyRequest, reply: FastifyReply) => {
+    // Try API key auth first (cc_... tokens)
+    const apiKeyUser = await resolveApiKey(prisma, request.headers.authorization);
+    if (apiKeyUser) {
+      // API keys get admin role (full access)
+      (request as unknown as Record<string, unknown>).userRole = 'admin';
+      (request as unknown as Record<string, unknown>).userId = apiKeyUser.userId;
+      return;
+    }
+
+    // Fall back to JWT auth
     try {
       await request.jwtVerify();
     } catch (err) {
-      console.error('[role-guard] jwtVerify failed:', (err as Error).message, 'auth header:', request.headers.authorization?.slice(0, 30));
       return reply.code(401).send({
         code: 'UNAUTHORIZED',
         message: 'Invalid or missing token',

@@ -44,6 +44,7 @@ model User {
   agentConnections    AgentConnection[]
   refreshTokens       RefreshToken[]
   chests              Chest[]
+  apiKeys             ApiKey[]
 
   @@map("users")
 }
@@ -178,6 +179,19 @@ model AgentConnection {
   @@unique([userId, agentName])
   @@index([userId, lastSeenAt])
   @@map("agent_connections")
+}
+
+model ApiKey {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  keyHash   String   @unique @map("key_hash")
+  prefix    String
+  name      String   @default("default")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([keyHash])
+  @@map("api_keys")
 }
 
 model Chest {

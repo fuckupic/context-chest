@@ -36,6 +36,7 @@ export function Login() {
         const wrappedMk = await wrapMasterKey(mk, wrappingKey);
         await api.putMasterKey(wrappedMk);
         localStorage.setItem('cc_wrapped_mk', wrappedMk);
+        localStorage.setItem('cc_export_key', result.exportKey);
 
         login(token, mk);
       } else {
@@ -48,6 +49,7 @@ export function Login() {
         const wrappedMk = await api.getMasterKey();
         const mk = await unwrapMasterKey(wrappedMk, wrappingKey);
         localStorage.setItem('cc_wrapped_mk', wrappedMk);
+        localStorage.setItem('cc_export_key', result.exportKey);
 
         login(token, mk);
       }

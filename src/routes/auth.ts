@@ -128,4 +128,11 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
     await prisma.user.update({ where: { id: userId }, data: { encryptedMasterKey: Buffer.from(encryptedMasterKey, 'base64') } });
     return { success: true };
   });
+
+  // Me — returns userId and email for the authenticated user (works with both JWT and API key)
+  fastify.get('/me', { preHandler: require('../plugins/role-guard').requirePermission('browse') }, async (request) => {
+    const userId = (request as unknown as Record<string, unknown>).userId as string;
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { id: true, email: true } });
+    return { userId: user?.id, email: user?.email };
+  });
 };
