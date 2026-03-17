@@ -5,14 +5,9 @@ import { AGENT_INSTRUCTIONS } from '../components/SetupGuide';
 
 function CopyButton({ text, label }: { text: string; label: string }) {
   const [copied, setCopied] = useState(false);
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
   return (
     <button
-      onClick={handleCopy}
+      onClick={async () => { await navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
       className="font-pixel text-[10px] tracking-wider px-3 py-1.5 border-2 border-cc-border text-cc-muted hover:border-cc-pink hover:text-cc-pink transition-colors"
     >
       {copied ? 'COPIED!' : label}
@@ -20,24 +15,17 @@ function CopyButton({ text, label }: { text: string; label: string }) {
   );
 }
 
-const FEATURES = [
-  { title: 'CROSS-AGENT', desc: 'Store in Claude Code, recall in Cursor. One memory, every tool.' },
-  { title: 'AUTO-SORTED', desc: 'Memories auto-route to chests: work, health, finance, personal.' },
-  { title: 'ENCRYPTED', desc: 'AES-256-GCM on your machine. Server never sees plaintext.' },
-  { title: 'EDITABLE', desc: 'Full markdown editor. Browse, search, edit, export your memories.' },
-  { title: 'SEARCHABLE', desc: 'Instant recall across all memories and chests.' },
-  { title: 'OPEN SOURCE', desc: 'MIT licensed. Self-host or use our cloud.' },
-];
+function Divider() {
+  return <div className="max-w-5xl mx-auto px-4 md:px-6"><div className="border-t-2 border-cc-border border-dashed" /></div>;
+}
 
 export function Landing() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
-
-  const handleCTA = () => navigate(isAuthenticated ? '/memories' : '/login');
+  const handleCTA = () => navigate(isAuthenticated ? '/settings' : '/login');
 
   return (
     <div className="min-h-screen bg-cc-black relative">
-      {/* Dither overlay */}
       <div className="fixed inset-0 dither-bg pointer-events-none" />
 
       {/* Nav */}
@@ -47,7 +35,7 @@ export function Landing() {
           <span className="font-pixel text-base text-cc-white tracking-wide">Context Chest</span>
         </div>
         <div className="flex gap-4">
-          <a href="/docs" className="font-pixel text-xs text-cc-muted hover:text-cc-pink tracking-wider transition-colors">DOCS</a>
+          <a href="https://github.com/fuckupic/context-chest" target="_blank" rel="noopener noreferrer" className="font-pixel text-xs text-cc-muted hover:text-cc-pink tracking-wider transition-colors">GITHUB</a>
           <button onClick={handleCTA} className="font-pixel text-xs text-cc-muted hover:text-cc-pink tracking-wider transition-colors">
             {isAuthenticated ? 'DASHBOARD' : 'SIGN IN'}
           </button>
@@ -57,57 +45,37 @@ export function Landing() {
       {/* Hero */}
       <section className="relative z-10 max-w-5xl mx-auto px-4 md:px-6 pt-10 md:pt-16 pb-12 md:pb-20">
         <div className="flex flex-col md:flex-row items-center gap-8 md:gap-12">
-          {/* Chest image with memory pills — hidden on small mobile, visible from sm+ */}
           <div className="opacity-0 animate-fade-in md:w-1/2 flex justify-center">
             <div className="relative py-4 px-2 md:py-6 md:px-4">
-              {/* Floating tool labels — showing cross-agent story */}
               <span className="hidden sm:block absolute top-[8%] left-[5%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-[#4a9eff] text-white font-pixel text-[10px] md:text-xs tracking-wider border-2 border-[#4a9eff] rotate-[-4deg] shadow-[3px_3px_0_0_rgba(0,0,0,0.3)]">CLAUDE CODE</span>
               <span className="hidden sm:block absolute top-[6%] right-[8%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-[#a855f7] text-white font-pixel text-[10px] md:text-xs tracking-wider border-2 border-[#a855f7] rotate-[3deg] shadow-[3px_3px_0_0_rgba(0,0,0,0.3)]">CURSOR</span>
-
-              <span className="hidden sm:block absolute top-[30%] left-[10%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-dark text-cc-white font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-border rotate-[-2deg] shadow-[3px_3px_0_0_#222]">TECH STACK</span>
-              <span className="hidden sm:block absolute top-[28%] right-[5%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-dark text-cc-white font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-border rotate-[4deg] shadow-[3px_3px_0_0_#222]">DECISIONS</span>
-              <span className="hidden sm:block absolute top-[48%] left-[20%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-pink text-cc-black font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-pink rotate-[1deg] shadow-[3px_3px_0_0_rgba(255,255,255,0.2)]">PREFERENCES</span>
-
+              <span className="hidden sm:block absolute top-[30%] left-[10%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-dark text-cc-white font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-border rotate-[-2deg] shadow-[3px_3px_0_0_#222]">PROJECT A</span>
+              <span className="hidden sm:block absolute top-[28%] right-[5%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-dark text-cc-white font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-border rotate-[4deg] shadow-[3px_3px_0_0_#222]">PROJECT B</span>
+              <span className="hidden sm:block absolute top-[48%] left-[20%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-pink text-cc-black font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-pink rotate-[1deg] shadow-[3px_3px_0_0_rgba(255,255,255,0.2)]">SECOND BRAIN</span>
               <span className="hidden sm:block absolute top-[62%] right-[8%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-[#22c55e] text-white font-pixel text-[10px] md:text-xs tracking-wider border-2 border-[#22c55e] rotate-[-3deg] shadow-[3px_3px_0_0_rgba(0,0,0,0.3)]">WINDSURF</span>
-              <span className="hidden sm:block absolute top-[72%] left-[8%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-dark text-cc-white font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-border rotate-[5deg] shadow-[3px_3px_0_0_#222]">TEAM</span>
+              <span className="hidden sm:block absolute top-[72%] left-[8%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-dark text-cc-white font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-border rotate-[5deg] shadow-[3px_3px_0_0_#222]">PROJECT C</span>
               <span className="hidden sm:block absolute top-[82%] right-[15%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-[#f97316] text-white font-pixel text-[10px] md:text-xs tracking-wider border-2 border-[#f97316] rotate-[-4deg] shadow-[3px_3px_0_0_rgba(0,0,0,0.3)]">ANY MCP</span>
               <span className="hidden sm:block absolute top-[88%] left-[22%] z-20 px-2 md:px-3 py-1 md:py-1.5 bg-cc-dark text-cc-muted font-pixel text-[10px] md:text-xs tracking-wider border-2 border-cc-border rotate-[2deg] shadow-[3px_3px_0_0_#222]">AES-256 ENCRYPTED</span>
-
-              <img
-                src="/logo.png"
-                alt="Context Chest"
-                className="w-48 sm:w-72 md:w-96 relative"
-                style={{ imageRendering: 'auto' }}
-              />
+              <img src="/logo.png" alt="Context Chest" className="w-48 sm:w-72 md:w-96 relative" style={{ imageRendering: 'auto' }} />
             </div>
           </div>
 
-          {/* Text */}
           <div className="md:w-1/2 text-center md:text-left">
-            <h1 className="opacity-0 animate-fade-up font-pixel text-3xl sm:text-4xl md:text-6xl text-cc-white leading-none mb-4 md:mb-6 tracking-wide">
-              One memory.<br />
-              <span className="text-cc-pink">Every</span> AI tool.<br />
-              Never repeat yourself.
+            <h1 className="opacity-0 animate-fade-up font-pixel text-3xl sm:text-4xl md:text-5xl text-cc-white leading-none mb-4 md:mb-6 tracking-wide">
+              Your second brain.<br />
+              For <span className="text-cc-pink">every</span> AI tool<br />
+              you use.
             </h1>
             <p className="opacity-0 animate-fade-up stagger-1 text-cc-sub text-xs sm:text-sm leading-relaxed mb-6 md:mb-8 max-w-sm mx-auto md:mx-0">
-              Stop re-explaining your tech stack, decisions, and preferences
-              to every AI tool. Context Chest gives Claude Code, Cursor, and
-              any MCP client a shared, encrypted memory that auto-organizes
-              by topic. Store once, recall everywhere.
+              You use Claude Code, Cursor, and Windsurf across 5 projects.
+              Each one forgets everything between sessions. Context Chest gives
+              them all a shared, encrypted memory that auto-organizes by topic.
             </p>
             <div className="opacity-0 animate-fade-up stagger-2 flex gap-3 justify-center md:justify-start">
-              <button
-                onClick={handleCTA}
-                className="px-5 md:px-6 py-2.5 bg-cc-pink text-cc-black font-pixel text-xs sm:text-sm tracking-wider hover:bg-cc-pink-dim transition-colors"
-              >
-                {isAuthenticated ? 'OPEN DASHBOARD' : 'GET STARTED'}
+              <button onClick={handleCTA} className="px-5 md:px-6 py-2.5 bg-cc-pink text-cc-black font-pixel text-xs sm:text-sm tracking-wider hover:bg-cc-pink-dim transition-colors">
+                {isAuthenticated ? 'OPEN DASHBOARD' : 'START FREE'}
               </button>
-              <a
-                href="https://github.com/fuckupic/context-chest"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-5 md:px-6 py-2.5 border-2 border-cc-border text-cc-muted font-pixel text-xs sm:text-sm tracking-wider hover:border-cc-pink hover:text-cc-pink transition-colors"
-              >
+              <a href="https://github.com/fuckupic/context-chest" target="_blank" rel="noopener noreferrer" className="px-5 md:px-6 py-2.5 border-2 border-cc-border text-cc-muted font-pixel text-xs sm:text-sm tracking-wider hover:border-cc-pink hover:text-cc-pink transition-colors">
                 GITHUB
               </a>
             </div>
@@ -115,192 +83,39 @@ export function Landing() {
         </div>
       </section>
 
-      {/* Divider */}
-      <div className="max-w-5xl mx-auto px-4 md:px-6">
-        <div className="border-t-2 border-cc-border border-dashed" />
-      </div>
+      <Divider />
 
-      {/* Setup */}
-      <section className="relative z-10 max-w-3xl mx-auto px-4 md:px-6 py-10 md:py-16">
-        <p className="font-pixel text-xs text-cc-muted tracking-[0.3em] mb-4 text-center">SETUP IN 3 STEPS</p>
-
-        <div className="space-y-4">
-          {/* Step 1: Create account */}
-          <div className="border-2 border-cc-pink bg-cc-dark">
-            <div className="flex items-center gap-3 px-4 py-3 border-b-2 border-cc-border">
-              <span className="font-pixel text-lg text-cc-pink">01</span>
-              <span className="font-pixel text-xs text-cc-white tracking-wider">SIGN UP + GENERATE API KEY</span>
-            </div>
-            <div className="p-4">
-              <p className="text-xs text-cc-sub mb-3">Create an account, then go to Settings and click <span className="text-cc-pink">Generate API Key</span>. Copy the generated .mcp.json config.</p>
-              <button
-                onClick={handleCTA}
-                className="px-5 py-2 bg-cc-pink text-cc-black font-pixel text-xs tracking-wider hover:bg-cc-pink-dim transition-colors"
-              >
-                {isAuthenticated ? 'DASHBOARD' : 'SIGN UP FREE'}
-              </button>
-            </div>
-          </div>
-
-          {/* Step 2: Paste config */}
-          <div className="border-2 border-cc-border bg-cc-dark">
-            <div className="flex items-center gap-3 px-4 py-3 border-b-2 border-cc-border">
-              <span className="font-pixel text-lg text-cc-pink">02</span>
-              <span className="font-pixel text-xs text-cc-white tracking-wider">PASTE CONFIG INTO YOUR PROJECT</span>
-            </div>
-            <div className="p-4 space-y-3">
-              <p className="text-xs text-cc-muted">Create <span className="text-cc-white">.mcp.json</span> in your project root and paste the config you copied. It looks like this:</p>
-              <pre className="bg-cc-black border border-cc-border p-3 text-[11px] font-mono text-cc-sub overflow-x-auto leading-relaxed whitespace-pre">{`{
-  "mcpServers": {
-    "context-chest": {
-      "command": "npx",
-      "args": ["-y", "context-chest-mcp"],
-      "env": {
-        "CONTEXT_CHEST_API_KEY": "cc_your_key_here",
-        "CONTEXT_CHEST_EXPORT_KEY": "your_export_key"
-      }
-    }
-  }
-}`}</pre>
-              <p className="text-[10px] text-cc-muted italic">No terminal login needed. Your API key handles authentication.</p>
-              <div className="border-t border-cc-border pt-3">
-                <div className="flex items-center justify-between mb-1.5">
-                  <p className="text-xs text-cc-muted">Then paste agent instructions into <span className="text-cc-white">CLAUDE.md</span>:</p>
-                  <CopyButton text={AGENT_INSTRUCTIONS} label="COPY INSTRUCTIONS" />
-                </div>
-                <p className="text-[10px] text-cc-muted italic">Teaches your AI to extract context from conversations automatically.</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Step 3: Restart */}
-          <div className="border-2 border-cc-pink bg-cc-dark">
-            <div className="flex items-center gap-3 px-4 py-3 border-b-2 border-cc-border">
-              <span className="font-pixel text-lg text-cc-pink">03</span>
-              <span className="font-pixel text-xs text-cc-white tracking-wider">RESTART CLAUDE CODE</span>
-            </div>
-            <div className="p-4">
-              <p className="text-xs text-cc-muted">Type <span className="text-cc-white font-mono">/exit</span> in Claude Code, then relaunch it in the same project folder. Done.</p>
-            </div>
-          </div>
-        </div>
-
-        <p className="text-center text-xs text-cc-muted mt-4">
-          That's it. No terminal login. No password prompts. Your AI now has persistent encrypted memory.
-        </p>
-      </section>
-
-      {/* Divider */}
-      <div className="max-w-5xl mx-auto px-4 md:px-6">
-        <div className="border-t-2 border-cc-border border-dashed" />
-      </div>
-
-      {/* Works with */}
+      {/* Sound Familiar? */}
       <section className="relative z-10 max-w-4xl mx-auto px-4 md:px-6 py-10 md:py-16">
-        <h2 className="font-pixel text-2xl md:text-3xl text-cc-white text-center mb-4 tracking-wide">
-          ONE VAULT. <span className="text-cc-pink">EVERY AGENT.</span>
-        </h2>
-        <p className="text-center text-[11px] md:text-xs text-cc-muted mb-10">
-          Store a memory from Claude Code. Recall it from Cursor. Browse it from OpenClaw. All encrypted.
-        </p>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-cc-border">
-          {[
-            { name: 'CLAUDE CODE', status: 'MCP server', supported: true },
-            { name: 'CURSOR', status: 'MCP server', supported: true },
-            { name: 'OPENCLAW', status: 'Plugin', supported: true },
-            { name: 'ANY REST API', status: 'HTTP client', supported: true },
-          ].map((agent) => (
-            <div key={agent.name} className="bg-cc-black p-5 text-center hover:bg-cc-surface transition-colors group">
-              <h3 className="font-pixel text-sm text-cc-white tracking-wider mb-1 group-hover:text-cc-pink transition-colors">{agent.name}</h3>
-              <p className="text-[10px] text-cc-muted font-mono">{agent.status}</p>
-            </div>
-          ))}
-        </div>
-        <div className="border-2 border-cc-border bg-cc-dark mt-6 p-4">
-          <p className="font-pixel text-[10px] text-cc-muted tracking-wider mb-3">HOW CROSS-AGENT MEMORY WORKS</p>
-          <pre className="text-[9px] sm:text-[11px] font-mono text-cc-sub leading-relaxed overflow-x-auto">{'Claude Code ──▶ Context Chest ◀── OpenClaw\n        │            │            │\n        │    ┌───────┴───────┐    │\n        │    │ Encrypted     │    │\n        │    │ Vault (AES)   │    │\n        │    │ ████████████  │    │\n        │    └───────┬───────┘    │\n        │            │            │\nCursor ─────▶ Same keys ◀─── REST API'}</pre>
-        </div>
-      </section>
-
-      {/* Divider */}
-      <div className="max-w-5xl mx-auto px-4 md:px-6">
-        <div className="border-t-2 border-cc-border border-dashed" />
-      </div>
-
-      {/* Features */}
-      <section className="relative z-10 max-w-5xl mx-auto px-4 md:px-6 py-10 md:py-16">
         <h2 className="font-pixel text-2xl md:text-3xl text-cc-white text-center mb-8 md:mb-12 tracking-wide">
-          WHAT'S IN THE <span className="text-cc-pink">CHEST</span>
+          SOUND <span className="text-cc-pink">FAMILIAR?</span>
         </h2>
-        <div className="grid md:grid-cols-3 gap-px bg-cc-border">
-          {FEATURES.map((f) => (
-            <div key={f.title} className="bg-cc-black p-6 hover:bg-cc-surface transition-colors group">
-              <h3 className="font-pixel text-base text-cc-white mb-2 tracking-wider group-hover:text-cc-pink transition-colors">
-                {f.title}
-              </h3>
-              <p className="text-xs text-cc-muted leading-relaxed">{f.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Divider */}
-      <div className="max-w-5xl mx-auto px-4 md:px-6">
-        <div className="border-t-2 border-cc-border border-dashed" />
-      </div>
-
-      {/* Use cases */}
-      <section className="relative z-10 max-w-5xl mx-auto px-4 md:px-6 py-10 md:py-16">
-        <h2 className="font-pixel text-2xl md:text-3xl text-cc-white text-center mb-8 md:mb-12 tracking-wide">
-          WHO IT'S <span className="text-cc-pink">FOR</span>
-        </h2>
-        <div className="grid md:grid-cols-2 gap-4">
+        <div className="grid md:grid-cols-3 gap-4">
           {[
-            {
-              who: 'DEVELOPERS',
-              what: 'Your AI remembers your stack, conventions, and past decisions. No more re-explaining your architecture every session.',
-              example: '"Remember: we use Fastify, not Express, and deploy to Fly.io"',
-            },
-            {
-              who: 'FOUNDERS & PMs',
-              what: 'You paste revenue numbers, hiring plans, and strategy into AI daily. Context Chest encrypts it before it leaves your machine.',
-              example: '"Remember: Q3 revenue $2.4M, targeting break-even by Q1 2027"',
-            },
-            {
-              who: 'FREELANCERS',
-              what: 'Juggle 5 client projects. Your AI switches context instantly. Client A\'s secrets never leak into client B\'s session.',
-              example: '"Remember: Acme Corp uses PostgreSQL, Widget Inc uses MongoDB"',
-            },
-            {
-              who: 'REGULATED INDUSTRIES',
-              what: 'Healthcare, finance, legal. AES-256-GCM, keys on your machine, server sees only ciphertext. Your compliance team can breathe.',
-              example: '"Remember: patient data schema uses field-level encryption"',
-            },
-          ].map((uc) => (
-            <div key={uc.who} className="border-2 border-cc-border bg-cc-dark p-5 hover:border-cc-pink-border transition-colors group">
-              <h3 className="font-pixel text-sm text-cc-white tracking-wider mb-2 group-hover:text-cc-pink transition-colors">{uc.who}</h3>
-              <p className="text-xs text-cc-sub leading-relaxed mb-3">{uc.what}</p>
-              <p className="text-[11px] text-cc-pink font-mono italic">{uc.example}</p>
+            { q: '"What framework are we using again?"', a: 'You\'ve told Claude your stack 50 times. New session? Start over.' },
+            { q: '"Wait, which project is this?"', a: 'You switch between 5 projects daily. Your AI has no idea which one it\'s looking at.' },
+            { q: '"I already told Cursor this yesterday"', a: 'You explained your architecture in Cursor. Now Claude asks the same question.' },
+          ].map((pain) => (
+            <div key={pain.q} className="border-2 border-cc-border bg-cc-dark p-5 hover:border-cc-pink-border transition-colors">
+              <p className="font-mono text-sm text-cc-pink mb-3 italic">{pain.q}</p>
+              <p className="text-xs text-cc-muted leading-relaxed">{pain.a}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Divider */}
-      <div className="max-w-5xl mx-auto px-4 md:px-6">
-        <div className="border-t-2 border-cc-border border-dashed" />
-      </div>
+      <Divider />
 
-      {/* How it works */}
+      {/* How It Works */}
       <section className="relative z-10 max-w-3xl mx-auto px-4 md:px-6 py-10 md:py-16">
         <h2 className="font-pixel text-2xl md:text-3xl text-cc-white text-center mb-8 md:mb-12 tracking-wide">
           HOW IT <span className="text-cc-pink">WORKS</span>
         </h2>
         <div className="space-y-6">
           {[
-            { n: '01', title: 'AI PROCESSES TEMPORARILY', desc: 'Your AI provider sees your data during a session. That\'s the deal you already made.' },
-            { n: '02', title: 'MEMORY PERSISTS FOREVER', desc: 'But a permanent database of all your secrets is a bigger target. Context Chest encrypts it client-side with AES-256-GCM.' },
-            { n: '03', title: 'BREACH REVEALS NOTHING', desc: 'Even if the server is compromised, attackers get ciphertext. Your keys stay on your machine. Self-host for full control.' },
+            { n: '01', title: 'YOU JUST WORK NORMALLY', desc: 'Talk to your AI about anything — tech stack, pricing decisions, team plans. You don\'t say "remember this." Context Chest extracts what matters automatically.' },
+            { n: '02', title: 'MEMORIES AUTO-SORT INTO ENCRYPTED CHESTS', desc: 'Work context goes to your Work chest. Health stuff to Health. Finance to Finance. Six auto-created categories, or create your own. Each one AES-256 encrypted.' },
+            { n: '03', title: 'EVERY AI TOOL RECALLS THE SAME MEMORY', desc: 'Store a decision in Claude Code. Recall it from Cursor. Browse it from Windsurf. One vault, every tool, every project.' },
           ].map((item) => (
             <div key={item.n} className="flex gap-5 items-start border-2 border-cc-border p-4 hover:border-cc-pink-border transition-colors">
               <span className="font-pixel text-2xl text-cc-pink shrink-0">{item.n}</span>
@@ -313,105 +128,174 @@ export function Landing() {
         </div>
       </section>
 
-      {/* Real examples */}
-      <div className="max-w-5xl mx-auto px-4 md:px-6">
-        <div className="border-t-2 border-cc-border border-dashed" />
-      </div>
+      <Divider />
+
+      {/* Tools */}
       <section className="relative z-10 max-w-4xl mx-auto px-4 md:px-6 py-10 md:py-16">
         <h2 className="font-pixel text-2xl md:text-3xl text-cc-white text-center mb-4 tracking-wide">
-          SEE IT IN <span className="text-cc-pink">ACTION</span>
+          ONE VAULT. <span className="text-cc-pink">EVERY TOOL.</span>
         </h2>
-        <p className="text-center text-xs text-cc-muted mb-12">Real conversations with Claude Code + Context Chest</p>
-
-        <div className="space-y-8">
-          {/* Example 1 */}
-          <div className="border-2 border-cc-border bg-cc-dark p-5">
-            <p className="font-pixel text-[10px] text-cc-muted tracking-wider mb-4">EXAMPLE 1 — REMEMBER PROJECT CONTEXT</p>
-            <div className="space-y-3">
-              <div className="flex gap-3">
-                <span className="font-pixel text-[10px] text-cc-pink shrink-0 w-12">YOU:</span>
-                <p className="text-sm text-cc-text">"Remember that this project uses Fastify with Prisma, deploys to Railway, and we always use Zod for validation"</p>
-              </div>
-              <div className="flex gap-3">
-                <span className="font-pixel text-[10px] text-cc-sub shrink-0 w-12">AI:</span>
-                <p className="text-sm text-cc-sub">Remembered at project/stack. Encrypted and stored.</p>
-              </div>
-              <div className="border-t border-cc-border my-2" />
-              <p className="text-[11px] text-cc-muted italic">Next session — different day, different conversation:</p>
-              <div className="flex gap-3">
-                <span className="font-pixel text-[10px] text-cc-pink shrink-0 w-12">YOU:</span>
-                <p className="text-sm text-cc-text">"Add a new endpoint for user profiles"</p>
-              </div>
-              <div className="flex gap-3">
-                <span className="font-pixel text-[10px] text-cc-sub shrink-0 w-12">AI:</span>
-                <p className="text-sm text-cc-sub">I see from your vault that you use Fastify + Prisma with Zod validation. I'll follow that pattern...</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Example 2 */}
-          <div className="border-2 border-cc-border bg-cc-dark p-5">
-            <p className="font-pixel text-[10px] text-cc-muted tracking-wider mb-4">EXAMPLE 2 — RECALL A PAST DECISION</p>
-            <div className="space-y-3">
-              <div className="flex gap-3">
-                <span className="font-pixel text-[10px] text-cc-pink shrink-0 w-12">YOU:</span>
-                <p className="text-sm text-cc-text">"Why did we choose Stripe over Paddle?"</p>
-              </div>
-              <div className="flex gap-3">
-                <span className="font-pixel text-[10px] text-cc-sub shrink-0 w-12">AI:</span>
-                <p className="text-sm text-cc-sub">Searching your vault... Found at decisions/payments: "Chose Stripe because Paddle doesn't support marketplace payouts for our multi-vendor model."</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Example 3 */}
-          <div className="border-2 border-cc-border bg-cc-dark p-5">
-            <p className="font-pixel text-[10px] text-cc-muted tracking-wider mb-4">EXAMPLE 3 — BROWSE YOUR VAULT</p>
-            <div className="space-y-3">
-              <div className="flex gap-3">
-                <span className="font-pixel text-[10px] text-cc-pink shrink-0 w-12">YOU:</span>
-                <p className="text-sm text-cc-text">"What's in my vault?"</p>
-              </div>
-              <div className="flex gap-3">
-                <span className="font-pixel text-[10px] text-cc-sub shrink-0 w-12">AI:</span>
-                <pre className="text-sm text-cc-sub font-mono">{'project/\n  stack\n  architecture\n  deploy-config\ndecisions/\n  payments\n  auth-provider\npreferences/\n  coding-style'}</pre>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Quick start guide */}
-      <div className="max-w-5xl mx-auto px-4 md:px-6">
-        <div className="border-t-2 border-cc-border border-dashed" />
-      </div>
-      <section className="relative z-10 max-w-3xl mx-auto px-4 md:px-6 py-10 md:py-16">
-        <h2 className="font-pixel text-2xl md:text-3xl text-cc-white text-center mb-8 md:mb-12 tracking-wide">
-          QUICK <span className="text-cc-pink">START</span>
-        </h2>
-        <div className="space-y-4">
+        <p className="text-center text-xs text-cc-muted mb-10">
+          Store a memory from Claude Code. Recall it from Cursor. Browse it from Windsurf. All encrypted.
+        </p>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-cc-border">
           {[
-            { n: '01', cmd: 'Create your account', code: 'contextchest.com → Sign up' },
-            { n: '02', cmd: 'Login from terminal', code: 'npm install -g context-chest-mcp && context-chest login' },
-            { n: '03', cmd: 'Add MCP config', code: '{ "mcpServers": { "context-chest": {\n  "command": "npx",\n  "args": ["context-chest-mcp"]\n}}}' },
-            { n: '04', cmd: 'Restart your AI tool', code: 'Claude Code: /exit → relaunch\nCursor: restart' },
-            { n: '05', cmd: 'Start remembering', code: '"Remember that I prefer TypeScript\n and always use Tailwind"' },
-          ].map((step) => (
-            <div key={step.n} className="flex gap-4 items-start">
-              <span className="font-pixel text-xl text-cc-pink shrink-0 w-8">{step.n}</span>
-              <div className="flex-1">
-                <p className="font-pixel text-xs text-cc-white tracking-wider mb-1.5">{step.cmd.toUpperCase()}</p>
-                <pre className="bg-cc-surface border border-cc-border p-3 text-[12px] font-mono text-cc-sub overflow-x-auto">{step.code}</pre>
-              </div>
+            { name: 'CLAUDE CODE', status: 'MCP server' },
+            { name: 'CURSOR', status: 'MCP server' },
+            { name: 'WINDSURF', status: 'MCP server' },
+            { name: 'ANY MCP TOOL', status: 'Works out of the box' },
+          ].map((agent) => (
+            <div key={agent.name} className="bg-cc-black p-5 text-center hover:bg-cc-surface transition-colors group">
+              <h3 className="font-pixel text-sm text-cc-white tracking-wider mb-1 group-hover:text-cc-pink transition-colors">{agent.name}</h3>
+              <p className="text-[10px] text-cc-muted font-mono">{agent.status}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Developer notes */}
-      <div className="max-w-5xl mx-auto px-4 md:px-6">
-        <div className="border-t-2 border-cc-border border-dashed" />
-      </div>
+      <Divider />
+
+      {/* Features */}
+      <section className="relative z-10 max-w-5xl mx-auto px-4 md:px-6 py-10 md:py-16">
+        <h2 className="font-pixel text-2xl md:text-3xl text-cc-white text-center mb-8 md:mb-12 tracking-wide">
+          WHAT'S IN THE <span className="text-cc-pink">CHEST</span>
+        </h2>
+        <div className="grid md:grid-cols-3 gap-px bg-cc-border">
+          {[
+            { title: 'CROSS-AGENT', desc: 'Store in Claude. Recall in Cursor. One memory across every tool you use.' },
+            { title: 'AUTO-SORTED', desc: 'Memories route to chests: work, health, finance, personal. No manual organizing.' },
+            { title: 'MULTI-PROJECT', desc: 'Different project? Different chest. One API key works everywhere.' },
+            { title: 'ENCRYPTED', desc: 'AES-256-GCM on your machine. The server stores ciphertext. Even we can\'t read it.' },
+            { title: 'FULL EDITOR', desc: 'Browse, search, edit, and export your memories. Markdown editor built in.' },
+            { title: 'OPEN SOURCE', desc: 'MIT licensed. Self-host it. Own your infrastructure and your keys.' },
+          ].map((f) => (
+            <div key={f.title} className="bg-cc-black p-6 hover:bg-cc-surface transition-colors group">
+              <h3 className="font-pixel text-base text-cc-white mb-2 tracking-wider group-hover:text-cc-pink transition-colors">{f.title}</h3>
+              <p className="text-xs text-cc-muted leading-relaxed">{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <Divider />
+
+      {/* Who It's For */}
+      <section className="relative z-10 max-w-5xl mx-auto px-4 md:px-6 py-10 md:py-16">
+        <h2 className="font-pixel text-2xl md:text-3xl text-cc-white text-center mb-8 md:mb-12 tracking-wide">
+          BUILT FOR DEVELOPERS WHO <span className="text-cc-pink">USE AI EVERY DAY</span>
+        </h2>
+        <div className="grid md:grid-cols-2 gap-4">
+          {[
+            {
+              who: 'THE MULTI-TOOL DEVELOPER',
+              what: 'You bounce between Claude Code for architecture, Cursor for quick edits, and Windsurf for prototyping. Context Chest means you explain your stack once. Every tool knows it.',
+            },
+            {
+              who: 'THE FREELANCER WITH 5 CLIENTS',
+              what: 'Acme Corp uses PostgreSQL. Widget Inc uses MongoDB. Your AI auto-separates them into different chests. Client A\'s secrets never leak into Client B\'s session.',
+            },
+            {
+              who: 'THE TECHNICAL FOUNDER',
+              what: 'Revenue numbers, hiring plans, investor deck notes — you paste sensitive context into AI daily. Context Chest encrypts it so a server breach reveals nothing.',
+            },
+            {
+              who: 'THE PRIVACY-CONSCIOUS ENGINEER',
+              what: 'In regulated industries, you can\'t have project context stored in plaintext on someone else\'s server. Self-host Context Chest. Your infra, your keys, your data.',
+            },
+          ].map((uc) => (
+            <div key={uc.who} className="border-2 border-cc-border bg-cc-dark p-5 hover:border-cc-pink-border transition-colors group">
+              <h3 className="font-pixel text-sm text-cc-white tracking-wider mb-2 group-hover:text-cc-pink transition-colors">{uc.who}</h3>
+              <p className="text-xs text-cc-sub leading-relaxed">{uc.what}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <Divider />
+
+      {/* Comparison */}
+      <section className="relative z-10 max-w-3xl mx-auto px-4 md:px-6 py-10 md:py-16">
+        <h2 className="font-pixel text-2xl md:text-3xl text-cc-white text-center mb-4 tracking-wide">
+          CLAUDE REMEMBERS.<br /><span className="text-cc-pink">BUT ONLY INSIDE CLAUDE.</span>
+        </h2>
+        <p className="text-center text-xs text-cc-muted mb-8">Why not just use Claude's built-in memory?</p>
+        <div className="border-2 border-cc-border bg-cc-dark overflow-hidden">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b-2 border-cc-border">
+                <th className="p-3 text-left font-pixel text-[10px] text-cc-muted tracking-wider"></th>
+                <th className="p-3 text-center font-pixel text-[10px] text-cc-muted tracking-wider">CLAUDE MEMORY</th>
+                <th className="p-3 text-center font-pixel text-[10px] text-cc-pink tracking-wider">CONTEXT CHEST</th>
+              </tr>
+            </thead>
+            <tbody className="font-mono">
+              {[
+                ['Works in Claude', true, true],
+                ['Works in Cursor', false, true],
+                ['Works in Windsurf', false, true],
+                ['E2E encrypted', false, true],
+                ['Auto-organized by topic', false, true],
+                ['Exportable (.md / .zip)', false, true],
+                ['Self-hostable', false, true],
+                ['Open source', false, true],
+              ].map(([label, claude, chest]) => (
+                <tr key={label as string} className="border-b border-cc-border">
+                  <td className="p-3 text-cc-sub">{label as string}</td>
+                  <td className="p-3 text-center">{claude ? <span className="text-green-400">Yes</span> : <span className="text-cc-muted">No</span>}</td>
+                  <td className="p-3 text-center">{chest ? <span className="text-cc-pink">Yes</span> : <span className="text-cc-muted">No</span>}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <Divider />
+
+      {/* Setup */}
+      <section className="relative z-10 max-w-3xl mx-auto px-4 md:px-6 py-10 md:py-16">
+        <p className="font-pixel text-xs text-cc-muted tracking-[0.3em] mb-4 text-center">SETUP IN 3 STEPS</p>
+        <div className="space-y-4">
+          <div className="border-2 border-cc-pink bg-cc-dark">
+            <div className="flex items-center gap-3 px-4 py-3 border-b-2 border-cc-border">
+              <span className="font-pixel text-lg text-cc-pink">01</span>
+              <span className="font-pixel text-xs text-cc-white tracking-wider">SIGN UP + GENERATE API KEY</span>
+            </div>
+            <div className="p-4">
+              <p className="text-xs text-cc-sub mb-3">Create an account, go to Settings, click <span className="text-cc-pink">Generate API Key</span>. Copy the .mcp.json config.</p>
+              <button onClick={handleCTA} className="px-5 py-2 bg-cc-pink text-cc-black font-pixel text-xs tracking-wider hover:bg-cc-pink-dim transition-colors">
+                {isAuthenticated ? 'DASHBOARD' : 'SIGN UP FREE'}
+              </button>
+            </div>
+          </div>
+          <div className="border-2 border-cc-border bg-cc-dark">
+            <div className="flex items-center justify-between px-4 py-3 border-b-2 border-cc-border">
+              <div className="flex items-center gap-3">
+                <span className="font-pixel text-lg text-cc-pink">02</span>
+                <span className="font-pixel text-xs text-cc-white tracking-wider">PASTE CONFIG + INSTRUCTIONS</span>
+              </div>
+              <CopyButton text={AGENT_INSTRUCTIONS} label="COPY CLAUDE.MD" />
+            </div>
+            <div className="p-4 space-y-2">
+              <p className="text-xs text-cc-muted">Paste the .mcp.json config into your project root. Then paste the CLAUDE.md instructions.</p>
+              <p className="text-[10px] text-cc-muted italic">No terminal login. No password prompts. API key handles everything.</p>
+            </div>
+          </div>
+          <div className="border-2 border-cc-pink bg-cc-dark">
+            <div className="flex items-center gap-3 px-4 py-3 border-b-2 border-cc-border">
+              <span className="font-pixel text-lg text-cc-pink">03</span>
+              <span className="font-pixel text-xs text-cc-white tracking-wider">RESTART CLAUDE CODE</span>
+            </div>
+            <div className="p-4">
+              <p className="text-xs text-cc-muted">Type <span className="text-cc-white font-mono">/exit</span>, relaunch. Done. 30 seconds total.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <Divider />
+
+      {/* Under the Hood */}
       <section className="relative z-10 max-w-4xl mx-auto px-4 md:px-6 py-10 md:py-16">
         <h2 className="font-pixel text-2xl md:text-3xl text-cc-white text-center mb-8 md:mb-12 tracking-wide">
           UNDER THE <span className="text-cc-pink">HOOD</span>
@@ -419,29 +303,16 @@ export function Landing() {
         <div className="grid md:grid-cols-2 gap-4">
           <div className="border-2 border-cc-border bg-cc-dark p-5">
             <h3 className="font-pixel text-sm text-cc-white tracking-wider mb-3">ENCRYPTION MODEL</h3>
-            <pre className="text-[11px] font-mono text-cc-sub leading-relaxed">{'Master Key (256-bit random)\n  │\n  ├─ HKDF(exportKey, userId)\n  │  → wrapping key\n  │  → wraps master key for storage\n  │\n  └─ HKDF(masterKey, memoryURI)\n     → per-item AES-256-GCM key\n     → encrypts content'}</pre>
+            <pre className="text-[11px] font-mono text-cc-sub leading-relaxed">{'Master Key (256-bit random)\n  │\n  ├─ HKDF(exportKey, userId)\n  │  → wrapping key\n  │  → wraps master key for storage\n  │\n  └─ HKDF(masterKey, chestName/URI)\n     → per-item AES-256-GCM key\n     → encrypts content'}</pre>
           </div>
           <div className="border-2 border-cc-border bg-cc-dark p-5">
             <h3 className="font-pixel text-sm text-cc-white tracking-wider mb-3">WHAT THE SERVER SEES</h3>
             <div className="space-y-2 text-[11px] font-mono">
-              <div className="flex justify-between">
-                <span className="text-cc-muted">URI path</span>
-                <span className="text-green-400">project/stack</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-cc-muted">Category label</span>
-                <span className="text-green-400">project: stack</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-cc-muted">Word count</span>
-                <span className="text-green-400">~24 words</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-cc-muted">Content</span>
-                <span className="text-cc-pink">████████████</span>
-              </div>
+              <div className="flex justify-between"><span className="text-cc-muted">Chest</span><span className="text-green-400">work</span></div>
+              <div className="flex justify-between"><span className="text-cc-muted">URI path</span><span className="text-green-400">project/stack</span></div>
+              <div className="flex justify-between"><span className="text-cc-muted">Content</span><span className="text-cc-pink">████████████</span></div>
               <div className="border-t border-cc-border my-1" />
-              <p className="text-cc-muted">Server stores ciphertext only. Category labels are derived from the path you choose — never from actual content.</p>
+              <p className="text-cc-muted">Server stores ciphertext only. Even we can't read your memories.</p>
             </div>
           </div>
           <div className="border-2 border-cc-border bg-cc-dark p-5">
@@ -449,36 +320,29 @@ export function Landing() {
             <div className="space-y-1.5 text-[11px] font-mono text-cc-sub">
               <p><span className="text-cc-pink">API</span> — Fastify + Prisma + PostgreSQL</p>
               <p><span className="text-cc-pink">MCP</span> — @modelcontextprotocol/sdk</p>
-              <p><span className="text-cc-pink">CRYPTO</span> — Node.js crypto (AES-256-GCM + HKDF)</p>
+              <p><span className="text-cc-pink">CRYPTO</span> — AES-256-GCM + HKDF per-chest keys</p>
               <p><span className="text-cc-pink">PWA</span> — React + Tailwind + Vite</p>
-              <p><span className="text-cc-pink">AUTH</span> — JWT + refresh token rotation</p>
               <p><span className="text-cc-pink">DEPLOY</span> — Railway (API) + Vercel (PWA)</p>
             </div>
           </div>
           <div className="border-2 border-cc-border bg-cc-dark p-5">
             <h3 className="font-pixel text-sm text-cc-white tracking-wider mb-3">SELF-HOST IT</h3>
-            <pre className="text-[11px] font-mono text-cc-sub leading-relaxed">{'git clone github.com/fuckupic/\n  context-chest\n\ndocker-compose up -d\nnpm install\ncp .env.example .env\nnpx prisma migrate dev\nnpm run dev'}</pre>
-            <p className="text-[11px] text-cc-muted mt-3">Full control. Your infra, your keys, your data. MIT licensed.</p>
+            <pre className="text-[11px] font-mono text-cc-sub leading-relaxed">{'git clone github.com/fuckupic/\n  context-chest\n\ndocker-compose up -d\nnpm install\nnpx prisma migrate dev\nnpm run dev'}</pre>
+            <p className="text-[11px] text-cc-muted mt-3">Full control. Your infra, your keys. MIT licensed.</p>
           </div>
         </div>
       </section>
 
-      {/* Divider */}
-      <div className="max-w-5xl mx-auto px-4 md:px-6">
-        <div className="border-t-2 border-cc-border border-dashed" />
-      </div>
+      <Divider />
 
       {/* CTA */}
       <section className="relative z-10 max-w-3xl mx-auto px-4 md:px-6 py-12 md:py-20 text-center">
         <h2 className="font-pixel text-2xl sm:text-4xl md:text-5xl text-cc-white mb-4 tracking-wide">
-          STOP RE-EXPLAINING.<br /><span className="text-cc-pink">START REMEMBERING.</span>
+          ONE SECOND BRAIN.<br /><span className="text-cc-pink">EVERY AI TOOL. EVERY PROJECT.</span>
         </h2>
-        <p className="text-cc-muted text-sm mb-8">One memory for all your AI tools. Encrypted. Open source. Self-hostable.</p>
-        <button
-          onClick={handleCTA}
-          className="px-8 py-3 bg-cc-pink text-cc-black font-pixel text-sm tracking-wider hover:bg-cc-pink-dim transition-colors"
-        >
-          {isAuthenticated ? 'OPEN DASHBOARD' : 'GET STARTED FREE'}
+        <p className="text-cc-muted text-sm mb-8">Free. Open source. Self-hostable. Your keys, your data.</p>
+        <button onClick={handleCTA} className="px-8 py-3 bg-cc-pink text-cc-black font-pixel text-sm tracking-wider hover:bg-cc-pink-dim transition-colors">
+          {isAuthenticated ? 'OPEN DASHBOARD' : 'START FREE'}
         </button>
       </section>
 
@@ -503,13 +367,9 @@ export function Landing() {
       <footer className="relative z-10 border-t-2 border-cc-border py-6 text-center">
         <p className="font-pixel text-[10px] text-cc-muted tracking-wider">
           CONTEXT CHEST &middot; MIT LICENSE &middot;{' '}
-          <a href="https://github.com/fuckupic/context-chest" className="text-cc-pink hover:underline" target="_blank" rel="noopener noreferrer">
-            GITHUB
-          </a>
+          <a href="https://github.com/fuckupic/context-chest" className="text-cc-pink hover:underline" target="_blank" rel="noopener noreferrer">GITHUB</a>
           {' '}&middot;{' '}
-          <a href="https://www.feedsea.com/submit/feedback/ad2ca0f3-23df-4362-8e95-5778ca3a85ac" className="text-cc-pink hover:underline" target="_blank" rel="noopener noreferrer">
-            FEEDBACK
-          </a>
+          <a href="https://www.feedsea.com/submit/feedback/ad2ca0f3-23df-4362-8e95-5778ca3a85ac" className="text-cc-pink hover:underline" target="_blank" rel="noopener noreferrer">FEEDBACK</a>
         </p>
       </footer>
     </div>
