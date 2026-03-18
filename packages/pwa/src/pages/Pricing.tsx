@@ -4,12 +4,12 @@ import { useAuth } from '../auth/context';
 
 const TIERS = [
   {
-    name: 'COMMUNITY',
+    name: 'FREE',
     price: 'Free',
     period: 'forever',
-    description: 'Self-host it. Own everything.',
-    cta: 'VIEW ON GITHUB',
-    ctaLink: 'https://github.com/fuckupic/context-chest',
+    description: 'Get started with AI memory.',
+    cta: 'GET STARTED',
+    ctaLink: null,
     highlight: false,
     features: [
       { text: 'Unlimited memories', included: true },
@@ -19,10 +19,9 @@ const TIERS = [
       { text: 'Markdown editor', included: true },
       { text: 'Export / Import', included: true },
       { text: 'E2E encryption', included: true },
-      { text: 'Self-hosted on your infra', included: true },
+      { text: 'Cloud hosted', included: true },
       { text: 'Unlimited chests', included: false },
       { text: 'Unlimited agents', included: false },
-      { text: 'Cloud hosting', included: false },
       { text: 'Priority support', included: false },
     ],
   },
@@ -133,7 +132,7 @@ export function Pricing() {
           SIMPLE <span className="text-cc-pink">PRICING</span>
         </h1>
         <p className="text-cc-sub text-sm max-w-lg mx-auto">
-          Free to self-host. Pay only if you want us to host it for you.
+          Free forever. Upgrade when you need more.
         </p>
       </section>
 
@@ -195,13 +194,13 @@ export function Pricing() {
                   >
                     {tier.cta}
                   </a>
-                ) : tier.name === 'PRO' && plan === 'pro' ? (
+                ) : (tier.name === 'PRO' && plan === 'pro') || (tier.name === 'FREE' && isAuthenticated && plan !== 'pro') ? (
                   <button disabled className="w-full py-2.5 font-pixel text-xs tracking-wider bg-cc-pink/30 text-cc-black cursor-not-allowed">
                     CURRENT PLAN
                   </button>
                 ) : (
                   <button
-                    onClick={tier.name === 'PRO' ? () => handleUpgrade() : () => navigate('/login')}
+                    onClick={tier.name === 'PRO' ? () => handleUpgrade() : () => navigate(isAuthenticated ? '/memories' : '/login')}
                     className={`w-full py-2.5 font-pixel text-xs tracking-wider transition-colors ${
                       tier.highlight
                         ? 'bg-cc-pink text-cc-black hover:bg-cc-pink-dim'
@@ -217,9 +216,10 @@ export function Pricing() {
         </div>
 
         <p className="text-center text-xs text-cc-muted mt-8">
-          All tiers include E2E encryption, auto-sort, and cross-agent memory.
+          All plans include E2E encryption, auto-sort, and cross-agent memory.
           <br />
-          Pro and Enterprise pricing coming soon. Free tier available now.
+          Free forever. Upgrade anytime. Also{' '}
+          <a href="https://github.com/fuckupic/context-chest" target="_blank" rel="noopener noreferrer" className="text-cc-pink hover:underline">open source on GitHub</a>.
         </p>
       </section>
 
@@ -232,7 +232,7 @@ export function Pricing() {
           {[
             {
               q: 'Is the free tier actually free forever?',
-              a: 'Yes. The Community tier is open source (MIT). Self-host it on your own infrastructure with no limits on memories. The 3-chest and 2-agent limits apply only to our hosted cloud version.',
+              a: 'Yes. Free includes 3 chests, 2 agents, and unlimited memories — forever. Want to self-host instead? The entire project is open source (MIT) on GitHub.',
             },
             {
               q: 'What happens to my data if I stop paying?',
