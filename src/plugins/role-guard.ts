@@ -3,6 +3,7 @@ import { FastifyPluginAsync, FastifyRequest, FastifyReply } from 'fastify';
 import { PrismaClient, Role } from '@prisma/client';
 import { GrantService, Permission } from '../services/grant';
 import { resolveApiKey } from '../routes/api-keys';
+import { getPlanLimits } from '../lib/plan-limits';
 
 const grantService = new GrantService();
 const prisma = new PrismaClient();
@@ -25,9 +26,16 @@ export function requirePermission(permission: Permission) {
     // Try API key auth first (cc_... tokens)
     const apiKeyUser = await resolveApiKey(prisma, request.headers.authorization);
     if (apiKeyUser) {
+      const userWithPlan = await prisma.user.findUnique({
+        where: { id: apiKeyUser.userId },
+        select: { stripePlan: true },
+      });
       // API keys get admin role (full access)
       (request as unknown as Record<string, unknown>).userRole = 'admin';
       (request as unknown as Record<string, unknown>).userId = apiKeyUser.userId;
+      (request as unknown as Record<string, unknown>).stripePlan = userWithPlan?.stripePlan ?? 'free';
+      const blocked = await checkAgentLimit(request, reply, apiKeyUser.userId, userWithPlan?.stripePlan ?? 'free');
+      if (blocked) return;
       return;
     }
 
@@ -54,7 +62,45 @@ export function requirePermission(permission: Permission) {
     // Attach role and userId to request for downstream use
     (request as unknown as Record<string, unknown>).userRole = role;
     (request as unknown as Record<string, unknown>).userId = decoded.sub;
+
+    const userWithPlan = await prisma.user.findUnique({
+      where: { id: decoded.sub as string },
+      select: { stripePlan: true },
+    });
+    (request as unknown as Record<string, unknown>).stripePlan = userWithPlan?.stripePlan ?? 'free';
+    const agentBlocked = await checkAgentLimit(request, reply, decoded.sub as string, userWithPlan?.stripePlan ?? 'free');
+    if (agentBlocked) return;
   };
+}
+
+async function checkAgentLimit(
+  request: FastifyRequest,
+  reply: FastifyReply,
+  userId: string,
+  plan: string
+): Promise<boolean> {
+  const agentName = request.headers['x-agent-name'] as string | undefined;
+  if (!agentName) return false;
+
+  const limits = getPlanLimits(plan);
+  if (limits.maxAgents === Infinity) return false;
+
+  const existing = await prisma.agentConnection.findUnique({
+    where: { userId_agentName: { userId, agentName } },
+  });
+  if (existing) return false;
+
+  const count = await prisma.agentConnection.count({ where: { userId } });
+  if (count >= limits.maxAgents) {
+    reply.code(402).send({
+      code: 'PLAN_LIMIT',
+      resource: 'agents',
+      limit: limits.maxAgents,
+      upgradeUrl: '/pricing',
+    });
+    return true;
+  }
+  return false;
 }
 
 const roleGuard: FastifyPluginAsync = async (_fastify) => {
