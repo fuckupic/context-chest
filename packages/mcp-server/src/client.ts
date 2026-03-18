@@ -140,6 +140,13 @@ export class ContextChestClient {
       return retry.json() as Promise<T>;
     }
 
+    if (response.status === 402) {
+      const error = await response.json().catch(() => ({ code: 'PLAN_LIMIT', resource: 'unknown' })) as Record<string, unknown>;
+      const resource = error.resource ?? 'resource';
+      const limit = error.limit ?? '?';
+      throw new Error(`Free plan limit reached (${limit} ${resource}). Upgrade at contextchest.com/pricing`);
+    }
+
     if (!response.ok) {
       const error = await response.json().catch(() => ({ code: 'UNKNOWN', message: `HTTP ${response.status}` }));
       throw new Error((error as Record<string, string>).code ?? `HTTP ${response.status}`);
