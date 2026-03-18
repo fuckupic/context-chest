@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth/context';
 
@@ -30,7 +31,7 @@ const TIERS = [
     price: '$9',
     period: '/month',
     description: 'We host it. You just use it.',
-    cta: 'JOIN WAITLIST',
+    cta: 'UPGRADE NOW',
     ctaLink: null,
     highlight: true,
     badge: 'MOST POPULAR',
@@ -76,12 +77,36 @@ export function Pricing() {
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
 
-  const handleWaitlist = () => {
-    const email = prompt('Enter your email to join the Pro waitlist:');
-    if (email) {
-      alert(`Thanks! We'll notify ${email} when Pro launches.`);
-      // TODO: store waitlist email
+  const [plan, setPlan] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const token = localStorage.getItem('cc_auth_token');
+    if (!token) return;
+    fetch(`${import.meta.env.VITE_API_URL ?? ''}/v1/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+      .then((r) => r.json())
+      .then((data) => setPlan(data.plan))
+      .catch(() => {});
+  }, [isAuthenticated]);
+
+  const handleUpgrade = async (interval: 'month' | 'year' = 'month') => {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
     }
+    const token = localStorage.getItem('cc_auth_token');
+    if (!token) return;
+    try {
+      const res = await fetch(`${import.meta.env.VITE_API_URL ?? ''}/v1/billing/checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ interval }),
+      });
+      const data = await res.json();
+      if (data.url) window.location.href = data.url;
+    } catch { /* */ }
   };
 
   return (
@@ -170,9 +195,13 @@ export function Pricing() {
                   >
                     {tier.cta}
                   </a>
+                ) : tier.name === 'PRO' && plan === 'pro' ? (
+                  <button disabled className="w-full py-2.5 font-pixel text-xs tracking-wider bg-cc-pink/30 text-cc-black cursor-not-allowed">
+                    CURRENT PLAN
+                  </button>
                 ) : (
                   <button
-                    onClick={tier.name === 'PRO' ? handleWaitlist : () => navigate('/login')}
+                    onClick={tier.name === 'PRO' ? () => handleUpgrade() : () => navigate('/login')}
                     className={`w-full py-2.5 font-pixel text-xs tracking-wider transition-colors ${
                       tier.highlight
                         ? 'bg-cc-pink text-cc-black hover:bg-cc-pink-dim'
