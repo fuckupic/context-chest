@@ -23,8 +23,10 @@ import { UsageService } from './services/usage';
 import { ChestService } from './services/chest';
 import { ChestRouter } from './services/chest-router';
 import { chestRoutes } from './routes/chests';
+import { billingRoutes } from './routes/billing';
 import roleGuard from './plugins/role-guard';
 import agentTracker from './plugins/agent-tracker';
+import rawBody from 'fastify-raw-body';
 
 const prisma = new PrismaClient();
 
@@ -66,7 +68,7 @@ app.register(cors, {
     /^chrome-extension:\/\/.*$/, // Chrome extensions
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-BLOB-SHA256', 'X-Agent-Name', 'X-Chest'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-BLOB-SHA256', 'X-Agent-Name', 'X-Chest', 'stripe-signature'],
   credentials: true,
   maxAge: 86400, // 24 hours
 });
@@ -99,6 +101,12 @@ app.register(audit);
 app.register(agentTracker);
 app.register(metrics);
 
+app.register(rawBody, {
+  field: 'rawBody',
+  global: false,
+  runFirst: true,
+});
+
 // Register routes
 app.register(authRoutes, { prefix: '/v1/auth' });
 app.register(vaultRoutes, { prefix: '/v1/vault' });
@@ -108,6 +116,7 @@ app.register(apiKeyRoutes(prisma), { prefix: '/v1/api-keys' });
 app.register(chestRoutes(chestService), { prefix: '/v1/chests' });
 app.register(memoryRoutes(memoryService, usageService, chestService, chestRouter), { prefix: '/v1/memory' });
 app.register(sessionRoutes(sessionService, usageService, chestService), { prefix: '/v1/sessions' });
+app.register(billingRoutes(prisma), { prefix: '/v1/billing' });
 
 // Admin stats (protected by secret)
 app.get('/admin/stats', async (request, reply) => {
