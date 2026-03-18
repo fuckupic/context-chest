@@ -53,7 +53,7 @@ async function generateL0(content: string, uri?: string): Promise<string> {
   return l0;
 }
 
-server.tool('context-chest_remember', 'Store a memory in your encrypted vault', rememberSchema.shape, async (params) => {
+server.tool('context-chest_remember', 'Store a memory in your encrypted vault. Always include a summary — a one-sentence description of what this memory contains. Good summaries dramatically improve search quality.', rememberSchema.shape, async (params) => {
   const ctx = ensureInitialized();
   const result = await handleRemember(params, ctx.client, ctx.masterKey, ctx.chestName, generateSummaries);
   return { content: [{ type: 'text' as const, text: result }] };

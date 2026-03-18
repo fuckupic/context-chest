@@ -4,6 +4,7 @@ import { encryptL2, sha256 } from '../crypto';
 
 export const rememberSchema = z.object({
   content: z.string().min(1).describe('The content to remember'),
+  summary: z.string().optional().describe('One-sentence summary of this memory (improves search quality). Example: "User prefers PostgreSQL over MySQL for new projects"'),
   path: z.string().optional().describe('Memory path (e.g., "preferences/editor")'),
   tags: z.array(z.string()).optional().describe('Tags for categorization'),
 });
@@ -73,10 +74,13 @@ export async function handleRemember(
     }
   }
 
-  // Generate content-aware summaries using keywords (not generic path-based labels)
-  const allKeywords = extractKeywords(input.content);
-  const l0 = allKeywords.slice(0, 5).join(' ') || uri.split('/').pop() || 'memory';
-  const l1 = allKeywords.join(' ') || input.content.slice(0, 200);
+  // Generate searchable metadata: prefer agent-provided summary, fall back to keywords
+  const l0 = input.summary
+    ? input.summary.slice(0, 500)
+    : extractKeywords(input.content).slice(0, 5).join(' ') || uri.split('/').pop() || 'memory';
+  const l1 = input.summary
+    ? input.content.slice(0, 2000).replace(/\n+/g, ' ').trim()
+    : extractKeywords(input.content).join(' ') || input.content.slice(0, 200);
   const plaintext = Buffer.from(input.content, 'utf-8');
   const encryptedL2 = encryptL2(masterKey, activeChest, uri, plaintext);
   const hash = sha256(Buffer.from(encryptedL2, 'base64'));
