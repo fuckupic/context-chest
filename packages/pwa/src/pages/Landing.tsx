@@ -90,7 +90,7 @@ export function Landing() {
           <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
             <iframe
               className="absolute inset-0 w-full h-full"
-              src="https://www.youtube.com/embed/RWfyKh7lqX8"
+              src="https://www.youtube.com/embed/RWfyKh7lqX8?controls=0&modestbranding=1&rel=0&showinfo=0"
               title="How Context Chest works"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
