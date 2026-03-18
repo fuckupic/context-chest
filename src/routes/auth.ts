@@ -149,7 +149,7 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
   // Me — returns userId and email for the authenticated user (works with both JWT and API key)
   fastify.get('/me', { preHandler: require('../plugins/role-guard').requirePermission('browse') }, async (request) => {
     const userId = (request as unknown as Record<string, unknown>).userId as string;
-    const user = await prisma.user.findUnique({ where: { id: userId }, select: { id: true, email: true } });
-    return { userId: user?.id, email: user?.email };
+    const user = await prisma.user.findUnique({ where: { id: userId }, select: { id: true, email: true, stripePlan: true } });
+    return { userId: user?.id, email: user?.email, plan: user?.stripePlan ?? 'free' };
   });
 };
