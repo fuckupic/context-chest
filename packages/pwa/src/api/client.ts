@@ -226,4 +226,17 @@ export class ApiClient {
       'GET', `/v1/sessions?${params}`
     );
   }
+
+  // Billing
+  async getMe() {
+    return this.request<{ userId: string; email: string; plan: string }>('GET', '/v1/auth/me');
+  }
+
+  async createCheckout(interval: 'month' | 'year') {
+    return this.request<{ url: string }>('POST', '/v1/billing/checkout', { interval });
+  }
+
+  async createPortal() {
+    return this.request<{ url: string }>('POST', '/v1/billing/portal');
+  }
 }

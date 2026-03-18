@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../auth/context';
 import { useNavigate } from 'react-router-dom';
 import { SetupGuide, SETUP_CODE, AGENT_INSTRUCTIONS } from '../components/SetupGuide';
@@ -12,6 +12,142 @@ function CopyButton({ text, label }: { text: string; label: string }) {
     >
       {copied ? 'COPIED!' : label}
     </button>
+  );
+}
+
+function PlanSection() {
+  const { client } = useAuth();
+  const [plan, setPlan] = useState<string>('free');
+  const [loading, setLoading] = useState(false);
+  const [interval, setInterval] = useState<'month' | 'year'>('month');
+  const [upgrading, setUpgrading] = useState(false);
+  const [timedOut, setTimedOut] = useState(false);
+
+  const params = new URLSearchParams(window.location.search);
+  const justUpgraded = params.get('upgraded') === 'true';
+
+  // Fetch current plan on mount
+  useEffect(() => {
+    if (!client) return;
+    (client as unknown as { request: <T>(m: string, p: string) => Promise<T> })
+      .request<{ plan: string }>('GET', '/v1/auth/me')
+      .then((res) => setPlan(res.plan))
+      .catch(() => {});
+  }, [client]);
+
+  // Poll for plan activation after checkout
+  useEffect(() => {
+    if (!justUpgraded || !client || plan === 'pro') return;
+    setUpgrading(true);
+    let attempts = 0;
+    const maxAttempts = 10;
+    const poll = async () => {
+      const res = await (client as unknown as { request: <T>(m: string, p: string) => Promise<T> })
+        .request<{ plan: string }>('GET', '/v1/auth/me')
+        .catch(() => null);
+      if (res?.plan === 'pro') {
+        setPlan('pro');
+        setUpgrading(false);
+        window.history.replaceState({}, '', '/settings');
+        return;
+      }
+      attempts++;
+      if (attempts >= maxAttempts) {
+        setUpgrading(false);
+        setTimedOut(true);
+        return;
+      }
+      setTimeout(poll, Math.min(1000 * Math.pow(2, attempts), 8000));
+    };
+    poll();
+  }, [justUpgraded, client, plan]);
+
+  const handleCheckout = async () => {
+    if (!client) return;
+    setLoading(true);
+    try {
+      const res = await (client as unknown as { request: <T>(m: string, p: string, b?: unknown) => Promise<T> })
+        .request<{ url: string }>('POST', '/v1/billing/checkout', { interval });
+      window.location.href = res.url;
+    } catch {
+      setLoading(false);
+    }
+  };
+
+  const handlePortal = async () => {
+    if (!client) return;
+    setLoading(true);
+    try {
+      const res = await (client as unknown as { request: <T>(m: string, p: string) => Promise<T> })
+        .request<{ url: string }>('POST', '/v1/billing/portal');
+      window.location.href = res.url;
+    } catch {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="border-2 border-cc-border bg-cc-dark p-4">
+      <p className="font-pixel text-[10px] text-cc-muted tracking-wider mb-3">PLAN</p>
+
+      {upgrading && (
+        <div className="border-2 border-cc-pink/30 bg-cc-pink/5 p-3 mb-3">
+          <p className="text-cc-pink text-xs font-pixel tracking-wider">ACTIVATING YOUR UPGRADE...</p>
+          <p className="text-[10px] text-cc-muted mt-1">This usually takes a few seconds.</p>
+        </div>
+      )}
+
+      {timedOut && (
+        <div className="border-2 border-cc-border bg-cc-dark p-3 mb-3">
+          <p className="text-cc-sub text-xs">Upgrade confirmed by Stripe. It may take a moment to activate. Refresh the page in a minute.</p>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-sm text-cc-sub">Current Plan</span>
+        <span className={`font-pixel text-xs tracking-wider ${plan === 'pro' ? 'text-cc-pink' : 'text-cc-muted'}`}>
+          {plan === 'pro' ? 'PRO' : 'FREE'}
+        </span>
+      </div>
+
+      {plan === 'pro' ? (
+        <button
+          onClick={handlePortal}
+          disabled={loading}
+          className="w-full py-2 font-pixel text-xs tracking-wider border-2 border-cc-border text-cc-muted hover:border-cc-pink hover:text-cc-pink transition-colors disabled:opacity-50"
+        >
+          {loading ? 'LOADING...' : 'MANAGE BILLING'}
+        </button>
+      ) : (
+        <div className="space-y-3">
+          <div className="flex gap-2">
+            <button
+              onClick={() => setInterval('month')}
+              className={`flex-1 py-1.5 font-pixel text-[10px] tracking-wider border-2 transition-colors ${
+                interval === 'month' ? 'border-cc-pink text-cc-pink' : 'border-cc-border text-cc-muted'
+              }`}
+            >
+              $9/MONTH
+            </button>
+            <button
+              onClick={() => setInterval('year')}
+              className={`flex-1 py-1.5 font-pixel text-[10px] tracking-wider border-2 transition-colors ${
+                interval === 'year' ? 'border-cc-pink text-cc-pink' : 'border-cc-border text-cc-muted'
+              }`}
+            >
+              $84/YEAR (SAVE 22%)
+            </button>
+          </div>
+          <button
+            onClick={handleCheckout}
+            disabled={loading}
+            className="w-full py-2.5 font-pixel text-xs tracking-wider bg-cc-pink text-cc-black hover:bg-cc-pink-dim transition-colors disabled:opacity-50"
+          >
+            {loading ? 'LOADING...' : 'UPGRADE TO PRO'}
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -127,6 +263,9 @@ export function Settings() {
     <div className="max-w-lg mx-auto p-8">
       <h1 className="font-pixel text-xl text-cc-white tracking-wider mb-6">SETTINGS</h1>
       <div className="space-y-4">
+        {/* Plan — upgrade / manage billing */}
+        <PlanSection />
+
         {/* API Key — fastest setup */}
         <ApiKeySection />
 
