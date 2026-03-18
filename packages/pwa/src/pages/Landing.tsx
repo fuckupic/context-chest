@@ -84,6 +84,22 @@ export function Landing() {
         </div>
       </section>
 
+      {/* Video */}
+      <section className="relative z-10 max-w-3xl mx-auto px-4 md:px-6 pb-8 md:pb-12">
+        <div className="border-2 border-cc-border bg-cc-dark p-1">
+          <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+            <iframe
+              className="absolute inset-0 w-full h-full"
+              src="https://www.youtube.com/embed/RWfyKh7lqX8"
+              title="How Context Chest works"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+            />
+          </div>
+        </div>
+        <p className="text-center text-[10px] text-cc-muted mt-3 font-pixel tracking-wider">SEE IT IN ACTION — 2 MIN DEMO</p>
+      </section>
+
       <Divider />
 
       {/* Sound Familiar? */}
@@ -341,7 +357,7 @@ export function Landing() {
         <h2 className="font-pixel text-2xl sm:text-4xl md:text-5xl text-cc-white mb-4 tracking-wide">
           ONE SECOND BRAIN.<br /><span className="text-cc-pink">EVERY AI TOOL. EVERY PROJECT.</span>
         </h2>
-        <p className="text-cc-muted text-sm mb-8">Free. Open source. Self-hostable. Your keys, your data.</p>
+        <p className="text-cc-muted text-sm mb-8">Free forever. $9/mo for unlimited. Zero-knowledge encrypted. Open source.</p>
         <button onClick={handleCTA} className="px-8 py-3 bg-cc-pink text-cc-black font-pixel text-sm tracking-wider hover:bg-cc-pink-dim transition-colors">
           {isAuthenticated ? 'OPEN DASHBOARD' : 'START FREE'}
         </button>
