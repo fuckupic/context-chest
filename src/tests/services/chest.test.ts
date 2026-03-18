@@ -8,6 +8,7 @@ const mockPrisma = {
     findFirst: jest.fn(),
     delete: jest.fn(),
     upsert: jest.fn(),
+    count: jest.fn().mockResolvedValue(0), // default: under limit
   },
   chestPermission: {
     upsert: jest.fn(),
@@ -22,6 +23,7 @@ describe('ChestService', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPrisma.chest.count.mockResolvedValue(0); // default: under limit
     service = new ChestService(mockPrisma as never);
   });
 
@@ -82,6 +84,11 @@ describe('ChestService', () => {
       expect(mockPrisma.chest.create).toHaveBeenCalledWith({
         data: expect.objectContaining({ isAutoCreated: false }),
       });
+    });
+
+    it('throws PlanLimitError when free user exceeds 3 chests', async () => {
+      mockPrisma.chest.count.mockResolvedValue(3);
+      await expect(service.create('user-1', { name: 'test' }, 'free')).rejects.toThrow('Plan limit reached');
     });
   });
 

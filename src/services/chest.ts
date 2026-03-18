@@ -1,4 +1,17 @@
 import { PrismaClient, Chest } from '@prisma/client';
+import { getPlanLimits } from '../lib/plan-limits';
+
+export class PlanLimitError extends Error {
+  readonly code = 'PLAN_LIMIT';
+  readonly resource: string;
+  readonly limit: number;
+
+  constructor(resource: string, limit: number) {
+    super(`Plan limit reached: ${resource} (max ${limit})`);
+    this.resource = resource;
+    this.limit = limit;
+  }
+}
 
 interface CreateChestInput {
   name: string;
@@ -16,7 +29,12 @@ interface PermissionInput {
 export class ChestService {
   constructor(private readonly prisma: PrismaClient) {}
 
-  async create(userId: string, input: CreateChestInput): Promise<Chest> {
+  async create(userId: string, input: CreateChestInput, plan?: string): Promise<Chest> {
+    const limits = getPlanLimits(plan);
+    const count = await this.prisma.chest.count({ where: { userId } });
+    if (count >= limits.maxChests) {
+      throw new PlanLimitError('chests', limits.maxChests);
+    }
     return this.prisma.chest.create({
       data: { userId, name: input.name, description: input.description, isPublic: input.isPublic ?? false, isAutoCreated: input.isAutoCreated ?? false },
     });

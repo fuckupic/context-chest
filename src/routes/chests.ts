@@ -1,7 +1,7 @@
 import { FastifyPluginAsync } from 'fastify';
 import { z } from 'zod';
 import { requirePermission } from '../plugins/role-guard';
-import { ChestService } from '../services/chest';
+import { ChestService, PlanLimitError } from '../services/chest';
 
 const createSchema = z.object({
   name: z.string().min(1).max(100).regex(/^[a-z0-9][a-z0-9-]*$/, 'Lowercase alphanumeric with hyphens'),
@@ -26,9 +26,14 @@ export function chestRoutes(chestService: ChestService): FastifyPluginAsync {
       const userId = (request as unknown as Record<string, unknown>).userId as string;
       const body = createSchema.parse(request.body);
       try {
-        const chest = await chestService.create(userId, body);
+        const plan = (request as unknown as Record<string, unknown>).stripePlan as string;
+        const chest = await chestService.create(userId, body, plan);
         reply.code(201).send({ success: true, data: chest });
       } catch (err) {
+        if (err instanceof PlanLimitError) {
+          reply.code(402).send({ code: err.code, resource: err.resource, limit: err.limit, upgradeUrl: '/pricing' });
+          return;
+        }
         const message = err instanceof Error ? err.message : 'Unknown error';
         if (message.includes('Unique constraint')) {
           reply.code(409).send({ code: 'CHEST_EXISTS', message: 'Chest with this name already exists' });

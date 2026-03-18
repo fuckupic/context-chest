@@ -6,6 +6,7 @@ import { ChestService } from '../services/chest';
 import { MemoryService } from '../services/memory';
 import { UsageService, UsageLimitError } from '../services/usage';
 import { ChestRouter } from '../services/chest-router';
+import { getPlanLimits } from '../lib/plan-limits';
 
 const rememberSchema = z.object({
   uri: z.string().min(1).max(500),
@@ -210,7 +211,9 @@ export function memoryRoutes(
         const body = z.object({
           keywords: z.array(z.string().max(100)).min(1).max(30),
         }).parse(request.body);
-        const result = await chestRouter.resolve(userId, body.keywords);
+        const plan = (request as unknown as Record<string, unknown>).stripePlan as string;
+        const limits = getPlanLimits(plan);
+        const result = await chestRouter.resolve(userId, body.keywords, limits.maxChests);
         return { success: true, data: result };
       }
     );

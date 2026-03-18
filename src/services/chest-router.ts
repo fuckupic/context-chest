@@ -31,7 +31,7 @@ export class ChestRouter {
     private readonly contextService: ContextService
   ) {}
 
-  async resolve(userId: string, keywords: string[]): Promise<ResolveResult> {
+  async resolve(userId: string, keywords: string[], maxChests: number = Infinity): Promise<ResolveResult> {
     const chests = await this.chestService.list(userId);
     const keywordText = keywords.join(' ').toLowerCase();
 
@@ -52,6 +52,10 @@ export class ChestRouter {
       if (existing) {
         return { chestName: existing.name, chestId: existing.id, isNew: false };
       }
+      if (chests.length >= maxChests) {
+        const defaultChest = await this.chestService.getOrCreateDefault(userId);
+        return { chestName: defaultChest.name, chestId: defaultChest.id, isNew: false };
+      }
       const created = await this.chestService.upsertByName(userId, {
         name: seedMatch,
         isPublic: true,
@@ -67,6 +71,10 @@ export class ChestRouter {
         const existing = chests.find((c) => c.name === slug);
         if (existing) {
           return { chestName: existing.name, chestId: existing.id, isNew: false };
+        }
+        if (chests.length >= maxChests) {
+          const defaultChest = await this.chestService.getOrCreateDefault(userId);
+          return { chestName: defaultChest.name, chestId: defaultChest.id, isNew: false };
         }
         const created = await this.chestService.upsertByName(userId, {
           name: slug,
