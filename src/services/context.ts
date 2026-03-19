@@ -98,6 +98,29 @@ export class ContextService {
     });
   }
 
+  // Write with single retry — logs on failure instead of swallowing silently
+  async writeWithRetry(userId: string, relativePath: string, payload: WritePayload, chestName: string = 'default'): Promise<void> {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        await this.write(userId, relativePath, payload, chestName);
+        return;
+      } catch (err) {
+        if (attempt === 0) continue;
+        throw new Error(`OpenViking write failed after retry: ${relativePath} — ${(err as Error).message}`);
+      }
+    }
+  }
+
+  // Check if OpenViking is reachable
+  async isHealthy(): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.baseUrl}/health`, { headers: this.authHeaders() });
+      return response.ok;
+    } catch {
+      return false;
+    }
+  }
+
   // Search using OpenViking's find endpoint
   async find(
     userId: string,

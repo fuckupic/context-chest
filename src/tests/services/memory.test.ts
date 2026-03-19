@@ -28,13 +28,14 @@ describe('MemoryService', () => {
     jest.clearAllMocks();
     mockStorage = new StorageService({} as never) as jest.Mocked<StorageService>;
     mockContext = new ContextService({} as never) as jest.Mocked<ContextService>;
+    mockContext.writeWithRetry = jest.fn().mockResolvedValue(undefined);
     service = new MemoryService(mockPrisma as never, mockStorage as never, mockContext);
   });
 
   describe('remember', () => {
     it('should store L2 in S3, metadata in OV (best-effort), record in Prisma', async () => {
       mockStorage.upload = jest.fn().mockResolvedValue(undefined);
-      mockContext.write = jest.fn().mockResolvedValue(undefined);
+      mockContext.writeWithRetry = jest.fn().mockResolvedValue(undefined);
       mockPrisma.memoryEntry.findFirst.mockResolvedValue(null);
       mockPrisma.memoryEntry.create.mockResolvedValue({
         id: 'mem-1',
@@ -66,7 +67,7 @@ describe('MemoryService', () => {
 
     it('should use per-chest S3 key path', async () => {
       mockStorage.upload = jest.fn().mockResolvedValue(undefined);
-      mockContext.write = jest.fn().mockResolvedValue(undefined);
+      mockContext.writeWithRetry = jest.fn().mockResolvedValue(undefined);
       mockPrisma.memoryEntry.findFirst.mockResolvedValue(null);
       mockPrisma.memoryEntry.create.mockResolvedValue({
         id: 'mem-1',
@@ -93,7 +94,7 @@ describe('MemoryService', () => {
 
     it('should continue if OpenViking write fails (best-effort)', async () => {
       mockStorage.upload = jest.fn().mockResolvedValue(undefined);
-      mockContext.write = jest.fn().mockRejectedValue(new Error('OV down'));
+      mockContext.writeWithRetry = jest.fn().mockRejectedValue(new Error('OV down'));
       mockPrisma.memoryEntry.findFirst.mockResolvedValue(null);
       mockPrisma.memoryEntry.create.mockResolvedValue({
         id: 'mem-1',
@@ -115,9 +116,9 @@ describe('MemoryService', () => {
       expect(mockPrisma.memoryEntry.create).toHaveBeenCalledTimes(1);
     });
 
-    it('should pass chestName to context.write', async () => {
+    it('should pass chestName to context.writeWithRetry', async () => {
       mockStorage.upload = jest.fn().mockResolvedValue(undefined);
-      mockContext.write = jest.fn().mockResolvedValue(undefined);
+      mockContext.writeWithRetry = jest.fn().mockResolvedValue(undefined);
       mockPrisma.memoryEntry.findFirst.mockResolvedValue(null);
       mockPrisma.memoryEntry.create.mockResolvedValue({
         id: 'mem-1',
@@ -135,7 +136,7 @@ describe('MemoryService', () => {
         sha256: 'abc',
       });
 
-      expect(mockContext.write).toHaveBeenCalledWith(
+      expect(mockContext.writeWithRetry).toHaveBeenCalledWith(
         'user-1',
         'prefs/theme',
         { l0: 'x', l1: 'y' },
@@ -384,14 +385,14 @@ describe('MemoryService', () => {
       });
     });
 
-    it('should call context.write when l0 and l1 are provided', async () => {
+    it('should call context.writeWithRetry when l0 and l1 are provided', async () => {
       mockPrisma.memoryEntry.findUnique.mockResolvedValue({
         id: 'mem-1',
         s3Key: 'user-1/chests/chest-1/memories/prefs/theme.enc',
       });
       mockStorage.upload = jest.fn().mockResolvedValue(undefined);
       mockPrisma.memoryEntry.update.mockResolvedValue({});
-      mockContext.write = jest.fn().mockResolvedValue(undefined);
+      mockContext.writeWithRetry = jest.fn().mockResolvedValue(undefined);
 
       await service.updateContent(
         'user-1', 'chest-1', 'my-chest', 'prefs/theme',
@@ -399,7 +400,7 @@ describe('MemoryService', () => {
         'Theme preference', '## Theme\n- Dark mode'
       );
 
-      expect(mockContext.write).toHaveBeenCalledWith(
+      expect(mockContext.writeWithRetry).toHaveBeenCalledWith(
         'user-1',
         'prefs/theme',
         { l0: 'Theme preference', l1: '## Theme\n- Dark mode' },
@@ -407,18 +408,18 @@ describe('MemoryService', () => {
       );
     });
 
-    it('should not call context.write when l0/l1 are omitted', async () => {
+    it('should not call context.writeWithRetry when l0/l1 are omitted', async () => {
       mockPrisma.memoryEntry.findUnique.mockResolvedValue({
         id: 'mem-1',
         s3Key: 'user-1/chests/chest-1/memories/prefs/theme.enc',
       });
       mockStorage.upload = jest.fn().mockResolvedValue(undefined);
       mockPrisma.memoryEntry.update.mockResolvedValue({});
-      mockContext.write = jest.fn().mockResolvedValue(undefined);
+      mockContext.writeWithRetry = jest.fn().mockResolvedValue(undefined);
 
       await service.updateContent('user-1', 'chest-1', 'default', 'prefs/theme', Buffer.from('x'), 'sha', 2);
 
-      expect(mockContext.write).not.toHaveBeenCalled();
+      expect(mockContext.writeWithRetry).not.toHaveBeenCalled();
     });
 
     it('should include l0 and l1 in Prisma update data when provided', async () => {
@@ -428,7 +429,7 @@ describe('MemoryService', () => {
       });
       mockStorage.upload = jest.fn().mockResolvedValue(undefined);
       mockPrisma.memoryEntry.update.mockResolvedValue({});
-      mockContext.write = jest.fn().mockResolvedValue(undefined);
+      mockContext.writeWithRetry = jest.fn().mockResolvedValue(undefined);
 
       await service.updateContent(
         'user-1', 'chest-1', 'my-chest', 'prefs/theme',

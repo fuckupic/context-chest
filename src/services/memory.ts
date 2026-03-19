@@ -51,7 +51,9 @@ export class MemoryService {
       await this.storage.upload(key, input.encryptedL2, input.sha256);
     }
 
-    await this.context.write(userId, input.uri, { l0: input.l0, l1: input.l1 }, input.chestName).catch(() => {});
+    await this.context.writeWithRetry(userId, input.uri, { l0: input.l0, l1: input.l1 }, input.chestName).catch((err) => {
+      console.error('[memory] OV write failed:', err.message);
+    });
 
     try {
       // Use findFirst + create/update instead of upsert to handle nullable chestId
@@ -282,7 +284,9 @@ export class MemoryService {
 
     // Update OpenViking index when summaries change
     if (l0 !== undefined && l1 !== undefined) {
-      await this.context.write(userId, uri, { l0, l1 }, chestName).catch(() => {});
+      await this.context.writeWithRetry(userId, uri, { l0, l1 }, chestName).catch((err) => {
+        console.error('[memory] OV index update failed:', err.message);
+      });
     }
   }
 
