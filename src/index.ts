@@ -12,6 +12,7 @@ import metrics from './plugins/metrics';
 import { authRoutes } from './routes/auth';
 import { vaultRoutes } from './routes/vault';
 import { connectRoutes } from './routes/connect';
+import { apiKeyRoutes } from './routes/api-keys';
 import { memoryRoutes } from './routes/memory';
 import { sessionRoutes } from './routes/sessions';
 import { MemoryService } from './services/memory';
@@ -19,8 +20,13 @@ import { SessionService } from './services/session';
 import { StorageService } from './services/storage';
 import { ContextService } from './services/context';
 import { UsageService } from './services/usage';
+import { ChestService } from './services/chest';
+import { ChestRouter } from './services/chest-router';
+import { chestRoutes } from './routes/chests';
+import { billingRoutes } from './routes/billing';
 import roleGuard from './plugins/role-guard';
 import agentTracker from './plugins/agent-tracker';
+import rawBody from 'fastify-raw-body';
 
 const prisma = new PrismaClient();
 
@@ -42,6 +48,8 @@ const contextService = new ContextService({
 
 const memoryService = new MemoryService(prisma, storageService, contextService);
 const usageService = new UsageService(prisma);
+const chestService = new ChestService(prisma);
+const chestRouter = new ChestRouter(chestService, contextService);
 const sessionService = new SessionService(prisma, memoryService, storageService, contextService);
 
 const app = Fastify({
@@ -60,7 +68,7 @@ app.register(cors, {
     /^chrome-extension:\/\/.*$/, // Chrome extensions
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-BLOB-SHA256', 'X-Agent-Name'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-BLOB-SHA256', 'X-Agent-Name', 'X-Chest', 'stripe-signature'],
   credentials: true,
   maxAge: 86400, // 24 hours
 });
@@ -93,13 +101,22 @@ app.register(audit);
 app.register(agentTracker);
 app.register(metrics);
 
+app.register(rawBody, {
+  field: 'rawBody',
+  global: false,
+  runFirst: true,
+});
+
 // Register routes
 app.register(authRoutes, { prefix: '/v1/auth' });
 app.register(vaultRoutes, { prefix: '/v1/vault' });
 app.register(connectRoutes, { prefix: '/v1/connect' });
 app.register(roleGuard);
-app.register(memoryRoutes(memoryService, usageService), { prefix: '/v1/memory' });
-app.register(sessionRoutes(sessionService, usageService), { prefix: '/v1/sessions' });
+app.register(apiKeyRoutes(prisma), { prefix: '/v1/api-keys' });
+app.register(chestRoutes(chestService), { prefix: '/v1/chests' });
+app.register(memoryRoutes(memoryService, usageService, chestService, chestRouter), { prefix: '/v1/memory' });
+app.register(sessionRoutes(sessionService, usageService, chestService), { prefix: '/v1/sessions' });
+app.register(billingRoutes(prisma), { prefix: '/v1/billing' });
 
 // Health check
 app.get('/health', async () => {
@@ -134,6 +151,13 @@ app.addHook('onSend', async (request, reply) => {
 const start = async () => {
   try {
     await app.listen({ port: parseInt(process.env.PORT ?? '3000'), host: '0.0.0.0' });
+
+    // Background: sync existing memories to OpenViking (non-blocking)
+    import('./services/ov-sync').then(({ syncMemoriesToOpenViking }) => {
+      syncMemoriesToOpenViking(prisma, contextService).catch((err) => {
+        app.log.error(err, '[ov-sync] Background sync failed');
+      });
+    });
   } catch (err) {
     app.log.error(err);
     process.exit(1);

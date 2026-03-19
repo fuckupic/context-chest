@@ -33,7 +33,7 @@ describe('ContextService', () => {
   });
 
   describe('write', () => {
-    it('should POST to OpenViking resources endpoint', async () => {
+    it('should POST to OpenViking resources endpoint (no chestName)', async () => {
       mockFetch.mockResolvedValueOnce(okResponse({ success: true }));
       await service.write('user-1', 'preferences/theme', {
         l0: 'Dark mode preference',
@@ -47,10 +47,18 @@ describe('ContextService', () => {
         }),
       );
     });
+
+    it('should include per-chest path when chestName is provided', async () => {
+      mockFetch.mockResolvedValueOnce(okResponse({ success: true }));
+      await service.write('user-1', 'preferences/theme', { l0: 'Dark mode', l1: 'details' }, 'work');
+      const call = JSON.parse(mockFetch.mock.calls[0][1].body as string);
+      expect(call.path).toContain('/chests/work/memories/');
+      expect(call.path).toContain('preferences/theme');
+    });
   });
 
   describe('find', () => {
-    it('should search within user namespace and return total', async () => {
+    it('should search within user namespace and return total (no chestName)', async () => {
       mockFetch.mockResolvedValueOnce(okResponse({
         results: [{ uri: 'preferences/theme', abstract: 'Dark mode', overview: '', score: 0.9 }],
         total: 42,
@@ -60,10 +68,31 @@ describe('ContextService', () => {
       expect(results[0].score).toBe(0.9);
       expect(total).toBe(42);
     });
+
+    it('should use per-chest target_uri when chestName is provided', async () => {
+      mockFetch.mockResolvedValueOnce(okResponse({ results: [], total: 0 }));
+      await service.find('user-1', 'query', 5, 0, 'work');
+      const call = JSON.parse(mockFetch.mock.calls[0][1].body as string);
+      expect(call.target_uri).toBe('viking://user/user-1/chests/work/memories');
+    });
+
+    it('should strip per-chest root prefix from result URIs', async () => {
+      mockFetch.mockResolvedValueOnce(okResponse({
+        results: [{
+          uri: 'viking://user/user-1/chests/work/memories/entities/project-x',
+          abstract: 'Project X',
+          overview: '',
+          score: 0.8,
+        }],
+        total: 1,
+      }));
+      const { results } = await service.find('user-1', 'project', 5, 0, 'work');
+      expect(results[0].uri).toBe('entities/project-x');
+    });
   });
 
   describe('delete', () => {
-    it('should delete from user namespace', async () => {
+    it('should delete from user namespace (no chestName)', async () => {
       mockFetch.mockResolvedValueOnce({ ok: true, status: 204, text: () => Promise.resolve('') });
       await service.delete('user-1', 'preferences/theme');
       expect(mockFetch).toHaveBeenCalledWith(
@@ -71,10 +100,17 @@ describe('ContextService', () => {
         expect.objectContaining({ method: 'DELETE' }),
       );
     });
+
+    it('should include per-chest path in URI when chestName is provided', async () => {
+      mockFetch.mockResolvedValueOnce({ ok: true, status: 204, text: () => Promise.resolve('') });
+      await service.delete('user-1', 'preferences/theme', 'work');
+      const url: string = mockFetch.mock.calls[0][0];
+      expect(decodeURIComponent(url)).toContain('/chests/work/memories/');
+    });
   });
 
   describe('list', () => {
-    it('should list directory contents', async () => {
+    it('should list directory contents (no chestName)', async () => {
       mockFetch.mockResolvedValueOnce(okResponse({
         entries: [{ uri: 'preferences/', type: 'directory', abstract: '' }],
       }));
@@ -91,6 +127,13 @@ describe('ContextService', () => {
       });
       const entries = await service.list('user-1', 'nonexistent', 2);
       expect(entries).toEqual([]);
+    });
+
+    it('should include per-chest path in URI when chestName is provided', async () => {
+      mockFetch.mockResolvedValueOnce(okResponse({ entries: [] }));
+      await service.list('user-1', 'entities/', 1, 'personal');
+      const url: string = mockFetch.mock.calls[0][0];
+      expect(decodeURIComponent(url)).toContain('/chests/personal/memories/');
     });
   });
 
@@ -129,6 +172,47 @@ describe('ContextService', () => {
       await expect(service.write('user-1', 'test', { l0: '', l1: '' })).rejects.toThrow(
         'OpenViking error: 500',
       );
+    });
+  });
+
+  describe('categorize', () => {
+    it('should use vector search result category when available', async () => {
+      mockFetch.mockResolvedValueOnce(okResponse({
+        results: [{
+          uri: 'viking://user/user-1/chests/default/memories/preferences/editor-config',
+          abstract: 'Editor config',
+          overview: '',
+          score: 0.95,
+        }],
+        total: 1,
+      }));
+      const path = await service.categorize('user-1', 'default', 'Editor config', 'Uses dark theme');
+      expect(path).toBe('preferences/editor-config');
+    });
+
+    it('should fall back to keyword heuristic when OpenViking fails', async () => {
+      mockFetch.mockRejectedValueOnce(new Error('Network error'));
+      const path = await service.categorize('user-1', 'default', 'Bug in login flow', '');
+      expect(path).toBe('cases/bug-in-login-flow');
+    });
+
+    it('should fall back to keyword heuristic when results are empty', async () => {
+      mockFetch.mockResolvedValueOnce(okResponse({ results: [], total: 0 }));
+      const path = await service.categorize('user-1', 'default', 'Meeting notes for sprint', '');
+      expect(path).toBe('events/meeting-notes-for-sprint');
+    });
+
+    it('should default to entities category for unknown topics', async () => {
+      mockFetch.mockResolvedValueOnce(okResponse({ results: [], total: 0 }));
+      const path = await service.categorize('user-1', 'default', 'Some random thing', '');
+      expect(path).toBe('entities/some-random-thing');
+    });
+
+    it('should use chestName in find call during categorize', async () => {
+      mockFetch.mockResolvedValueOnce(okResponse({ results: [], total: 0 }));
+      await service.categorize('user-1', 'work', 'Some topic', 'details');
+      const call = JSON.parse(mockFetch.mock.calls[0][1].body as string);
+      expect(call.target_uri).toBe('viking://user/user-1/chests/work/memories');
     });
   });
 });

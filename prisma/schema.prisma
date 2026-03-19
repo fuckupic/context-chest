@@ -28,6 +28,11 @@ enum UsageAction {
   browse
 }
 
+enum PlanTier {
+  free
+  pro
+}
+
 model User {
   id                  String        @id @default(uuid())
   email               String        @unique
@@ -43,6 +48,11 @@ model User {
   usageRecords        UsageRecord[]
   agentConnections    AgentConnection[]
   refreshTokens       RefreshToken[]
+  chests              Chest[]
+  apiKeys             ApiKey[]
+  stripeCustomerId  String?    @unique @map("stripe_customer_id")
+  stripePlan        PlanTier   @default(free) @map("stripe_plan")
+  planActivatedAt   DateTime?  @map("plan_activated_at")
 
   @@map("users")
 }
@@ -101,10 +111,12 @@ model AuditLog {
 }
 
 model MemoryEntry {
-  id        String   @id @default(uuid())
-  userId    String   @map("user_id")
-  uri       String
-  s3Key     String   @map("s3_key")
+  id                String   @id @default(uuid())
+  userId            String   @map("user_id")
+  chestId           String?  @map("chest_id")
+  encryptionVersion Int      @default(1) @map("encryption_version")
+  uri               String
+  s3Key             String   @map("s3_key")
   sha256    String
   sizeBytes Int      @map("size_bytes")
   l0        String   @default("")
@@ -113,8 +125,9 @@ model MemoryEntry {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
   user      User     @relation(fields: [userId], references: [id])
+  chest     Chest?   @relation(fields: [chestId], references: [id])
 
-  @@unique([userId, uri])
+  @@unique([userId, chestId, uri], map: "memory_entries_user_chest_uri")
   @@index([userId, createdAt])
   @@map("memory_entries")
 }
@@ -122,6 +135,7 @@ model MemoryEntry {
 model Session {
   id           String        @id @default(uuid())
   userId       String        @map("user_id")
+  chestId      String?       @map("chest_id")
   clientId     String?       @map("client_id")
   status       SessionStatus @default(active)
   messageCount       Int           @default(0) @map("message_count")
@@ -129,6 +143,7 @@ model Session {
   createdAt    DateTime      @default(now()) @map("created_at")
   closedAt     DateTime?     @map("closed_at")
   user         User          @relation(fields: [userId], references: [id])
+  chest        Chest?        @relation(fields: [chestId], references: [id])
 
   @@index([userId, status])
   @@map("sessions")
@@ -172,4 +187,46 @@ model AgentConnection {
   @@unique([userId, agentName])
   @@index([userId, lastSeenAt])
   @@map("agent_connections")
+}
+
+model ApiKey {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  keyHash   String   @unique @map("key_hash")
+  prefix    String
+  name      String   @default("default")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([keyHash])
+  @@map("api_keys")
+}
+
+model Chest {
+  id          String            @id @default(uuid())
+  userId      String            @map("user_id")
+  name        String
+  description String?
+  isPublic      Boolean           @default(false) @map("is_public")
+  isAutoCreated Boolean           @default(false) @map("is_auto_created")
+  createdAt     DateTime          @default(now()) @map("created_at")
+  user        User              @relation(fields: [userId], references: [id])
+  memories    MemoryEntry[]
+  sessions    Session[]
+  permissions ChestPermission[]
+
+  @@unique([userId, name])
+  @@map("chests")
+}
+
+model ChestPermission {
+  id        String  @id @default(uuid())
+  chestId   String  @map("chest_id")
+  agentName String  @map("agent_name")
+  canRead   Boolean @default(true) @map("can_read")
+  canWrite  Boolean @default(true) @map("can_write")
+  chest     Chest   @relation(fields: [chestId], references: [id], onDelete: Cascade)
+
+  @@unique([chestId, agentName])
+  @@map("chest_permissions")
 }

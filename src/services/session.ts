@@ -28,10 +28,11 @@ export class SessionService {
 
   async create(
     userId: string,
+    chestId: string,
     clientId?: string
   ): Promise<{ id: string; status: string; createdAt: Date }> {
     const session = await this.prisma.session.create({
-      data: { userId, clientId },
+      data: { userId, chestId, clientId },
     });
 
     await this.context.startSession(userId, session.id);
@@ -102,6 +103,8 @@ export class SessionService {
   async close(
     userId: string,
     sessionId: string,
+    chestId: string,
+    chestName: string,
     extractedMemories: ExtractedMemory[]
   ): Promise<{ memoriesExtracted: number }> {
     if (extractedMemories.length > 50) {
@@ -123,6 +126,8 @@ export class SessionService {
     for (const mem of extractedMemories) {
       await this.memory.remember(userId, {
         uri: mem.uri,
+        chestId,
+        chestName,
         l0: mem.l0,
         l1: mem.l1,
         encryptedL2: mem.encryptedL2,
@@ -145,11 +150,14 @@ export class SessionService {
 
   async list(
     userId: string,
-    options: { status?: string; page: number; limit: number }
+    options: { status?: string; page: number; limit: number; chestId?: string }
   ) {
     const where: Record<string, unknown> = { userId };
     if (options.status === 'active' || options.status === 'closed') {
       where.status = options.status;
+    }
+    if (options.chestId) {
+      where.chestId = options.chestId;
     }
 
     const [sessions, total] = await Promise.all([

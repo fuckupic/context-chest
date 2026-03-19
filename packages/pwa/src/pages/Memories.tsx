@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../auth/context';
-import { MemoryDetail } from '../components/MemoryDetail';
-import { EmptyState } from '../components/EmptyState';
+import { useChest } from '../context/chest-context';
+import { MemoryEditor } from '../components/MemoryEditor';
 
 interface TreeEntry {
   uri: string;
@@ -44,20 +44,31 @@ function TreeItem({ entry, selectedUri, onSelect, depth = 0 }: {
 
 export function Memories() {
   const { client } = useAuth();
+  const { activeChest } = useChest();
   const [tree, setTree] = useState<TreeEntry[]>([]);
   const [selectedUri, setSelectedUri] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<TreeEntry[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [totalCount, setTotalCount] = useState(0);
+  const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
     if (!client) { setLoading(false); return; }
+    setLoading(true);
+    setSelectedUri(null);
+    setSearchResults(null);
+    setSearchQuery('');
     client.browse('', 2)
       .then((r) => { setTree(r.data.tree); setTotalCount(r.meta.total); })
       .catch(() => setTree([]))
       .finally(() => setLoading(false));
-  }, [client]);
+  }, [client, activeChest]);
+
+  const handleSelectMemory = (newUri: string) => {
+    if (isDirty && !confirm('You have unsaved changes. Discard them?')) return;
+    setSelectedUri(newUri);
+  };
 
   const handleSearch = async () => {
     if (!client || !searchQuery.trim()) { setSearchResults(null); return; }
@@ -71,7 +82,22 @@ export function Memories() {
   if (loading) return <div className="flex items-center justify-center h-full text-cc-muted font-pixel text-sm">LOADING...</div>;
 
   if (tree.length === 0 && !searchResults) {
-    return <EmptyState message="Vault empty. Connect an AI agent to start." actionLabel="CONNECT AGENT" actionTo="/agents" />;
+    return (
+      <div className="max-w-lg mx-auto p-8">
+        <div className="text-center mb-6">
+          <img src="/chest.png" alt="" className="w-16 h-16 mx-auto mb-4 opacity-30" style={{ imageRendering: 'auto' }} />
+          <h2 className="font-pixel text-lg text-cc-white tracking-wider mb-2">VAULT EMPTY</h2>
+          <p className="text-xs text-cc-muted mb-4">Connect an AI agent to start remembering.</p>
+          <a
+            href="/settings"
+            className="inline-block px-6 py-2.5 bg-cc-pink text-cc-black font-pixel text-xs tracking-wider hover:bg-cc-pink-dim transition-colors"
+          >
+            GENERATE API KEY
+          </a>
+          <p className="text-[10px] text-cc-muted mt-3">Go to Settings to generate an API key — no terminal login needed.</p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -97,7 +123,7 @@ export function Memories() {
         </div>
         <div className="flex-1 overflow-auto py-1">
           {displayTree.map((entry) => (
-            <TreeItem key={entry.uri} entry={entry} selectedUri={selectedUri} onSelect={setSelectedUri} />
+            <TreeItem key={entry.uri} entry={entry} selectedUri={selectedUri} onSelect={handleSelectMemory} />
           ))}
         </div>
       </div>
@@ -105,7 +131,12 @@ export function Memories() {
       {/* Detail */}
       <div className="flex-1 overflow-auto">
         {selectedEntry ? (
-          <MemoryDetail uri={selectedEntry.uri} l0={selectedEntry.l0} />
+          <MemoryEditor
+              key={selectedEntry.uri}
+              uri={selectedEntry.uri}
+              l0={selectedEntry.l0}
+              onDirtyChange={setIsDirty}
+            />
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-cc-muted">
             <img src="/logo.png" alt="" className="w-16 h-16 mb-4 opacity-10" style={{ imageRendering: 'auto' }} />

@@ -4,6 +4,7 @@ interface ClientConfig {
   baseUrl: string;
   token: string;
   refreshToken?: string;
+  chestName?: string;
 }
 
 interface RememberInput {
@@ -12,6 +13,7 @@ interface RememberInput {
   l1: string;
   encryptedL2: string;
   sha256: string;
+  chest?: string;
 }
 
 interface RecallResult {
@@ -34,11 +36,13 @@ export class ContextChestClient {
   private token: string;
   private refreshToken: string | undefined;
   private refreshing: Promise<void> | null = null;
+  private readonly chestName: string;
 
   constructor(config: ClientConfig) {
     this.baseUrl = config.baseUrl;
     this.token = config.token;
     this.refreshToken = config.refreshToken;
+    this.chestName = config.chestName ?? 'default';
   }
 
   setToken(token: string): void {
@@ -54,6 +58,7 @@ export class ContextChestClient {
       'Content-Type': 'application/json',
       Authorization: `Bearer ${this.token}`,
       'X-Agent-Name': 'Claude Code',
+      'X-Chest': this.chestName,
     };
   }
 
@@ -135,6 +140,13 @@ export class ContextChestClient {
       return retry.json() as Promise<T>;
     }
 
+    if (response.status === 402) {
+      const error = await response.json().catch(() => ({ code: 'PLAN_LIMIT', resource: 'unknown' })) as Record<string, unknown>;
+      const resource = error.resource ?? 'resource';
+      const limit = error.limit ?? '?';
+      throw new Error(`Free plan limit reached (${limit} ${resource}). Upgrade at contextchest.com/pricing`);
+    }
+
     if (!response.ok) {
       const error = await response.json().catch(() => ({ code: 'UNKNOWN', message: `HTTP ${response.status}` }));
       throw new Error((error as Record<string, string>).code ?? `HTTP ${response.status}`);
@@ -152,7 +164,7 @@ export class ContextChestClient {
 
     const response = await fetch(`${this.baseUrl}${path}`, {
       method: 'GET',
-      headers: { Authorization: `Bearer ${this.token}`, 'X-Agent-Name': 'Claude Code' },
+      headers: { Authorization: `Bearer ${this.token}`, 'X-Agent-Name': 'Claude Code', 'X-Chest': this.chestName },
     });
 
     if (!response.ok) {
@@ -165,8 +177,9 @@ export class ContextChestClient {
   }
 
   async remember(input: RememberInput) {
+    const qs = input.chest ? `?chest=${encodeURIComponent(input.chest)}` : '';
     return this.request<{ success: boolean; data: { uri: string; createdAt: string } }>(
-      'POST', '/v1/memory/remember', input
+      'POST', `/v1/memory/remember${qs}`, { uri: input.uri, l0: input.l0, l1: input.l1, encryptedL2: input.encryptedL2, sha256: input.sha256 }
     );
   }
 
@@ -215,5 +228,32 @@ export class ContextChestClient {
   async getMasterKey(): Promise<string> {
     const result = await this.request<{ encryptedMasterKey: string }>('GET', '/v1/auth/master-key');
     return result.encryptedMasterKey;
+  }
+
+  getChestName(): string {
+    return this.chestName;
+  }
+
+  async listMemories(page: number = 1, limit: number = 100) {
+    return this.request<{
+      success: boolean;
+      data: Array<{ uri: string; sha256: string; sizeBytes: number; createdAt: string; encryptionVersion?: number }>;
+      meta: { total: number };
+    }>('GET', `/v1/memory/list?page=${page}&limit=${limit}`);
+  }
+
+  async updateContent(uri: string, encryptedL2: string, sha256: string, encryptionVersion: number) {
+    return this.request<{ success: boolean }>('PUT', `/v1/memory/content/${uri}`, { encryptedL2, sha256, encryptionVersion });
+  }
+
+  async autoSort(l0: string, l1: string, chest?: string) {
+    const qs = chest ? `?chest=${encodeURIComponent(chest)}` : '';
+    return this.request<{ success: boolean; data: { uri: string } }>('POST', `/v1/memory/auto-sort${qs}`, { l0, l1 });
+  }
+
+  async autoChest(keywords: string[]) {
+    return this.request<{ success: boolean; data: { chestName: string; chestId: string; isNew: boolean } }>(
+      'POST', '/v1/memory/auto-chest', { keywords }
+    );
   }
 }

@@ -33,9 +33,10 @@ export async function deriveWrappingKey(
 
 export async function deriveItemKey(
   masterKey: Uint8Array,
+  chestName: string,
   uri: string
 ): Promise<CryptoKey> {
-  const salt = new TextEncoder().encode(uri);
+  const salt = new TextEncoder().encode(`${chestName}/${uri}`);
   const info = new TextEncoder().encode('context-chest-l2');
   return deriveAesKey(masterKey, salt, info);
 }
@@ -77,10 +78,11 @@ export async function unwrapMasterKey(
 
 export async function encryptL2(
   masterKey: Uint8Array,
+  chestName: string,
   uri: string,
   plaintext: Uint8Array
 ): Promise<string> {
-  const key = await deriveItemKey(masterKey, uri);
+  const key = await deriveItemKey(masterKey, chestName, uri);
   const iv = crypto.getRandomValues(new Uint8Array(IV_LENGTH));
   const ciphertext = await crypto.subtle.encrypt(
     { name: 'AES-GCM', iv, tagLength: TAG_LENGTH },
@@ -95,10 +97,11 @@ export async function encryptL2(
 
 export async function decryptL2FromBytes(
   masterKey: Uint8Array,
+  chestName: string,
   uri: string,
   encryptedBytes: ArrayBuffer
 ): Promise<Uint8Array> {
-  const key = await deriveItemKey(masterKey, uri);
+  const key = await deriveItemKey(masterKey, chestName, uri);
   const data = new Uint8Array(encryptedBytes);
   const iv = data.slice(0, IV_LENGTH);
   const ciphertext = data.slice(IV_LENGTH);

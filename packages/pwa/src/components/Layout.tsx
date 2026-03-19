@@ -1,9 +1,11 @@
 import { NavLink, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../auth/context';
+import { ChestSwitcher } from './ChestSwitcher';
 
 const navItems = [
   { to: '/memories', label: 'MEMORIES' },
   { to: '/agents', label: 'AGENTS' },
+  { to: '/chests', label: 'CHESTS' },
   { to: '/sessions', label: 'SESSIONS' },
   { to: '/settings', label: 'SETTINGS' },
 ];
@@ -23,6 +25,8 @@ export function Layout() {
             <span className="font-pixel text-lg text-cc-white tracking-wide">Context Chest</span>
           </div>
         </div>
+
+        <ChestSwitcher />
 
         {/* Nav */}
         <nav className="flex-1 py-2">
@@ -46,7 +50,7 @@ export function Layout() {
 
         {/* Footer */}
         <div className="px-4 py-3 border-t-2 border-cc-border flex items-center justify-between">
-          <span className="font-pixel text-[10px] text-cc-muted tracking-wider">V0.1.0</span>
+          <span className="font-pixel text-[10px] text-cc-muted tracking-wider">V0.2.0</span>
           <button
             onClick={logout}
             className="font-pixel text-[10px] text-cc-muted hover:text-cc-pink tracking-wider transition-colors"

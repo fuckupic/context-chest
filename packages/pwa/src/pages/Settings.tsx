@@ -1,5 +1,259 @@
+import { useState, useEffect } from 'react';
 import { useAuth } from '../auth/context';
 import { useNavigate } from 'react-router-dom';
+import { SetupGuide, SETUP_CODE, AGENT_INSTRUCTIONS } from '../components/SetupGuide';
+
+function CopyButton({ text, label }: { text: string; label: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      onClick={async () => { await navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
+      className="font-pixel text-[10px] tracking-wider px-2 py-1 border border-cc-border text-cc-muted hover:border-cc-pink hover:text-cc-pink transition-colors"
+    >
+      {copied ? 'COPIED!' : label}
+    </button>
+  );
+}
+
+function PlanSection() {
+  const { client } = useAuth();
+  const [plan, setPlan] = useState<string>('free');
+  const [loading, setLoading] = useState(false);
+  const [interval, setInterval] = useState<'month' | 'year'>('month');
+  const [upgrading, setUpgrading] = useState(false);
+  const [timedOut, setTimedOut] = useState(false);
+
+  const params = new URLSearchParams(window.location.search);
+  const justUpgraded = params.get('upgraded') === 'true';
+
+  // Fetch current plan on mount
+  useEffect(() => {
+    if (!client) return;
+    (client as unknown as { request: <T>(m: string, p: string) => Promise<T> })
+      .request<{ plan: string }>('GET', '/v1/auth/me')
+      .then((res) => setPlan(res.plan))
+      .catch(() => {});
+  }, [client]);
+
+  // Poll for plan activation after checkout
+  useEffect(() => {
+    if (!justUpgraded || !client || plan === 'pro') return;
+    setUpgrading(true);
+    let attempts = 0;
+    const maxAttempts = 10;
+    const poll = async () => {
+      const res = await (client as unknown as { request: <T>(m: string, p: string) => Promise<T> })
+        .request<{ plan: string }>('GET', '/v1/auth/me')
+        .catch(() => null);
+      if (res?.plan === 'pro') {
+        setPlan('pro');
+        setUpgrading(false);
+        window.history.replaceState({}, '', '/settings');
+        return;
+      }
+      attempts++;
+      if (attempts >= maxAttempts) {
+        setUpgrading(false);
+        setTimedOut(true);
+        return;
+      }
+      setTimeout(poll, Math.min(1000 * Math.pow(2, attempts), 8000));
+    };
+    poll();
+  }, [justUpgraded, client, plan]);
+
+  const handleCheckout = async () => {
+    if (!client) return;
+    setLoading(true);
+    try {
+      const res = await (client as unknown as { request: <T>(m: string, p: string, b?: unknown) => Promise<T> })
+        .request<{ url: string }>('POST', '/v1/billing/checkout', { interval });
+      window.location.href = res.url;
+    } catch {
+      setLoading(false);
+    }
+  };
+
+  const handlePortal = async () => {
+    if (!client) return;
+    setLoading(true);
+    try {
+      const res = await (client as unknown as { request: <T>(m: string, p: string) => Promise<T> })
+        .request<{ url: string }>('POST', '/v1/billing/portal');
+      window.location.href = res.url;
+    } catch {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="border-2 border-cc-border bg-cc-dark p-4">
+      <p className="font-pixel text-[10px] text-cc-muted tracking-wider mb-3">PLAN</p>
+
+      {upgrading && (
+        <div className="border-2 border-cc-pink/30 bg-cc-pink/5 p-3 mb-3">
+          <p className="text-cc-pink text-xs font-pixel tracking-wider">ACTIVATING YOUR UPGRADE...</p>
+          <p className="text-[10px] text-cc-muted mt-1">This usually takes a few seconds.</p>
+        </div>
+      )}
+
+      {timedOut && (
+        <div className="border-2 border-cc-border bg-cc-dark p-3 mb-3">
+          <p className="text-cc-sub text-xs">Upgrade confirmed by Stripe. It may take a moment to activate. Refresh the page in a minute.</p>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between mb-3">
+        <span className="text-sm text-cc-sub">Current Plan</span>
+        <span className={`font-pixel text-xs tracking-wider ${plan === 'pro' ? 'text-cc-pink' : 'text-cc-muted'}`}>
+          {plan === 'pro' ? 'PRO' : 'FREE'}
+        </span>
+      </div>
+
+      {plan === 'pro' ? (
+        <button
+          onClick={handlePortal}
+          disabled={loading}
+          className="w-full py-2 font-pixel text-xs tracking-wider border-2 border-cc-border text-cc-muted hover:border-cc-pink hover:text-cc-pink transition-colors disabled:opacity-50"
+        >
+          {loading ? 'LOADING...' : 'MANAGE BILLING'}
+        </button>
+      ) : (
+        <div className="space-y-3">
+          <div className="flex gap-2">
+            <button
+              onClick={() => setInterval('month')}
+              className={`flex-1 py-1.5 font-pixel text-[10px] tracking-wider border-2 transition-colors ${
+                interval === 'month' ? 'border-cc-pink text-cc-pink' : 'border-cc-border text-cc-muted'
+              }`}
+            >
+              $9/MONTH
+            </button>
+            <button
+              onClick={() => setInterval('year')}
+              className={`flex-1 py-1.5 font-pixel text-[10px] tracking-wider border-2 transition-colors ${
+                interval === 'year' ? 'border-cc-pink text-cc-pink' : 'border-cc-border text-cc-muted'
+              }`}
+            >
+              $84/YEAR (SAVE 22%)
+            </button>
+          </div>
+          <button
+            onClick={handleCheckout}
+            disabled={loading}
+            className="w-full py-2.5 font-pixel text-xs tracking-wider bg-cc-pink text-cc-black hover:bg-cc-pink-dim transition-colors disabled:opacity-50"
+          >
+            {loading ? 'LOADING...' : 'UPGRADE TO PRO'}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ApiKeySection() {
+  const { client } = useAuth();
+  const [generating, setGenerating] = useState(false);
+  const [generatedKey, setGeneratedKey] = useState<{ apiKey: string; exportKey: string; encryptedMasterKey: string } | null>(null);
+  const [keys, setKeys] = useState<Array<{ id: string; prefix: string; name: string; createdAt: string }>>([]);
+  const [loaded, setLoaded] = useState(false);
+
+  const loadKeys = async () => {
+    if (!client || loaded) return;
+    try {
+      const res = await (client as unknown as { request: <T>(m: string, p: string) => Promise<T> }).request<{ data: typeof keys }>('GET', '/v1/api-keys');
+      setKeys(res.data);
+    } catch { /* */ }
+    setLoaded(true);
+  };
+
+  const handleGenerate = async () => {
+    if (!client) return;
+    setGenerating(true);
+    try {
+      const res = await (client as unknown as { request: <T>(m: string, p: string, b?: unknown) => Promise<T> }).request<{
+        data: { apiKey: string; exportKey: string; encryptedMasterKey: string; prefix: string };
+      }>('POST', '/v1/api-keys', { name: 'default' });
+      setGeneratedKey({
+        apiKey: res.data.apiKey,
+        exportKey: localStorage.getItem('cc_export_key') ?? '',
+        encryptedMasterKey: res.data.encryptedMasterKey ?? '',
+      });
+      loadKeys();
+    } catch { /* */ }
+    setGenerating(false);
+  };
+
+  const handleRevoke = async (id: string) => {
+    if (!client || !confirm('Revoke this API key?')) return;
+    try {
+      await (client as unknown as { request: <T>(m: string, p: string) => Promise<T> }).request<void>('DELETE', `/v1/api-keys/${id}`);
+      setKeys((prev) => prev.filter((k) => k.id !== id));
+    } catch { /* */ }
+  };
+
+  // Load on first render
+  if (!loaded) loadKeys();
+
+  const mcpConfig = generatedKey ? `{
+  "mcpServers": {
+    "context-chest": {
+      "command": "npx",
+      "args": ["-y", "context-chest-mcp"],
+      "env": {
+        "CONTEXT_CHEST_API_KEY": "${generatedKey.apiKey}",
+        "CONTEXT_CHEST_EXPORT_KEY": "${generatedKey.exportKey}"
+      }
+    }
+  }
+}` : null;
+
+  return (
+    <div className="border-2 border-cc-pink bg-cc-dark p-4">
+      <p className="font-pixel text-[10px] text-cc-muted tracking-wider mb-3">API KEY — FASTEST SETUP</p>
+
+      {!generatedKey && (
+        <>
+          <p className="text-xs text-cc-sub mb-3">Generate an API key to skip the login step. Just paste the config into .mcp.json.</p>
+          <button
+            onClick={handleGenerate}
+            disabled={generating}
+            className="font-pixel text-xs tracking-wider px-4 py-2 bg-cc-pink text-cc-black hover:bg-cc-pink-dim transition-colors disabled:opacity-50"
+          >
+            {generating ? 'GENERATING...' : 'GENERATE API KEY'}
+          </button>
+        </>
+      )}
+
+      {generatedKey && mcpConfig && (
+        <div className="space-y-3">
+          <div className="border-2 border-green-500/30 bg-green-500/5 p-3">
+            <p className="text-green-400 text-xs font-pixel tracking-wider mb-2">KEY GENERATED — COPY NOW</p>
+            <p className="text-[10px] text-cc-muted">This key will not be shown again. Create <span className="text-cc-white">.mcp.json</span> in your project folder with this:</p>
+          </div>
+          <div className="flex items-center justify-between mb-1">
+            <span className="text-[10px] text-cc-muted font-pixel tracking-wider">.mcp.json</span>
+            <CopyButton text={mcpConfig} label="COPY CONFIG" />
+          </div>
+          <pre className="bg-cc-black border border-cc-border p-3 text-[11px] font-mono text-cc-sub overflow-x-auto leading-relaxed whitespace-pre">{mcpConfig}</pre>
+          <p className="text-[10px] text-cc-muted italic">No login command needed. Just paste and restart Claude Code.</p>
+        </div>
+      )}
+
+      {keys.length > 0 && (
+        <div className="mt-4 pt-3 border-t border-cc-border">
+          <p className="text-[10px] text-cc-muted font-pixel tracking-wider mb-2">ACTIVE KEYS</p>
+          {keys.map((k) => (
+            <div key={k.id} className="flex items-center justify-between py-1">
+              <span className="font-mono text-xs text-cc-sub">{k.prefix}...</span>
+              <button onClick={() => handleRevoke(k.id)} className="font-pixel text-[9px] text-cc-muted hover:text-red-400 tracking-wider">REVOKE</button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export function Settings() {
   const { logout } = useAuth();
@@ -9,6 +263,18 @@ export function Settings() {
     <div className="max-w-lg mx-auto p-8">
       <h1 className="font-pixel text-xl text-cc-white tracking-wider mb-6">SETTINGS</h1>
       <div className="space-y-4">
+        {/* Plan — upgrade / manage billing */}
+        <PlanSection />
+
+        {/* API Key — fastest setup */}
+        <ApiKeySection />
+
+        {/* Manual setup guide */}
+        <div className="border-2 border-cc-border bg-cc-dark p-4">
+          <p className="font-pixel text-[10px] text-cc-muted tracking-wider mb-3">MANUAL SETUP (ALTERNATIVE)</p>
+          <SetupGuide compact />
+        </div>
+
         <div className="border-2 border-cc-border bg-cc-dark p-4">
           <p className="font-pixel text-[10px] text-cc-muted tracking-wider mb-3">ENCRYPTION</p>
           <div className="flex items-center justify-between mb-2">
@@ -28,7 +294,7 @@ export function Settings() {
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-cc-muted">Version</span>
-              <span className="font-mono text-[11px] text-cc-sub">0.1.0</span>
+              <span className="font-mono text-[11px] text-cc-sub">0.2.0</span>
             </div>
             <div className="flex justify-between">
               <span className="text-cc-muted">License</span>

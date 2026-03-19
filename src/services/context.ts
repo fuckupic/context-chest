@@ -31,12 +31,12 @@ export class ContextService {
     this.apiKey = config.apiKey;
   }
 
-  private userRoot(userId: string): string {
-    return `viking://user/${userId}/memories`;
+  private userRoot(userId: string, chestName: string = 'default'): string {
+    return `viking://user/${userId}/chests/${chestName}/memories`;
   }
 
-  private fullUri(userId: string, relativePath: string): string {
-    return `${this.userRoot(userId)}/${relativePath}`;
+  private fullUri(userId: string, relativePath: string, chestName: string = 'default'): string {
+    return `${this.userRoot(userId, chestName)}/${relativePath}`;
   }
 
   private authHeaders(): Record<string, string> {
@@ -88,10 +88,8 @@ export class ContextService {
   }
 
   // Write content as a resource to OpenViking
-  async write(userId: string, relativePath: string, payload: WritePayload): Promise<void> {
-    const uri = this.fullUri(userId, relativePath);
-    // Use the resources endpoint to add content
-    // OpenViking treats resources as files that get indexed
+  async write(userId: string, relativePath: string, payload: WritePayload, chestName: string = 'default'): Promise<void> {
+    const uri = this.fullUri(userId, relativePath, chestName);
     await this.postJson('/api/v1/resources', {
       path: uri,
       reason: payload.l0,
@@ -100,21 +98,46 @@ export class ContextService {
     });
   }
 
+  // Write with single retry — logs on failure instead of swallowing silently
+  async writeWithRetry(userId: string, relativePath: string, payload: WritePayload, chestName: string = 'default'): Promise<void> {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        await this.write(userId, relativePath, payload, chestName);
+        return;
+      } catch (err) {
+        if (attempt === 0) continue;
+        throw new Error(`OpenViking write failed after retry: ${relativePath} — ${(err as Error).message}`);
+      }
+    }
+  }
+
+  // Check if OpenViking is reachable
+  async isHealthy(): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.baseUrl}/health`, { headers: this.authHeaders() });
+      return response.ok;
+    } catch {
+      return false;
+    }
+  }
+
   // Search using OpenViking's find endpoint
   async find(
     userId: string,
     query: string,
     limit: number,
     offset: number = 0,
+    chestName: string = 'default',
   ): Promise<{ results: SearchResult[]; total: number }> {
+    const root = this.userRoot(userId, chestName);
     const data = (await this.postJson('/api/v1/search/find', {
       query,
-      target_uri: this.userRoot(userId),
+      target_uri: root,
       limit,
     })) as { results?: Array<{ uri?: string; abstract?: string; overview?: string; score?: number }>; total?: number };
 
     const results: SearchResult[] = (data.results ?? []).map((r) => ({
-      uri: (r.uri ?? '').replace(this.userRoot(userId) + '/', ''),
+      uri: (r.uri ?? '').replace(root + '/', ''),
       l0: r.abstract ?? '',
       l1: r.overview ?? '',
       score: r.score ?? 0,
@@ -124,8 +147,8 @@ export class ContextService {
   }
 
   // Read content metadata
-  async read(userId: string, relativePath: string): Promise<{ l0: string; l1: string }> {
-    const uri = this.fullUri(userId, relativePath);
+  async read(userId: string, relativePath: string, chestName: string = 'default'): Promise<{ l0: string; l1: string }> {
+    const uri = this.fullUri(userId, relativePath, chestName);
     const data = (await this.getJson('/api/v1/content/read', { uri })) as {
       content?: string;
       abstract?: string;
@@ -135,14 +158,15 @@ export class ContextService {
   }
 
   // Delete a resource
-  async delete(userId: string, relativePath: string): Promise<void> {
-    const uri = this.fullUri(userId, relativePath);
+  async delete(userId: string, relativePath: string, chestName: string = 'default'): Promise<void> {
+    const uri = this.fullUri(userId, relativePath, chestName);
     await this.deleteRequest('/api/v1/fs', { uri, recursive: 'true' });
   }
 
   // List directory contents
-  async list(userId: string, path: string, depth: number): Promise<DirectoryEntry[]> {
-    const uri = this.fullUri(userId, path);
+  async list(userId: string, path: string, depth: number, chestName: string = 'default'): Promise<DirectoryEntry[]> {
+    const uri = this.fullUri(userId, path, chestName);
+    const root = this.userRoot(userId, chestName);
     let data: { entries?: Array<{ uri?: string; name?: string; type?: string; abstract?: string }> };
     try {
       data = (await this.getJson('/api/v1/fs/ls', {
@@ -159,10 +183,39 @@ export class ContextService {
     }
 
     return (data.entries ?? []).map((e) => ({
-      uri: (e.uri ?? e.name ?? '').replace(this.userRoot(userId) + '/', ''),
+      uri: (e.uri ?? e.name ?? '').replace(root + '/', ''),
       l0: e.abstract ?? '',
       type: (e.type === 'directory' ? 'directory' : 'file') as 'file' | 'directory',
     }));
+  }
+
+  // Categorize a memory path using vector search with keyword fallback
+  async categorize(userId: string, chestName: string, l0: string, l1: string): Promise<string> {
+    const categories = ['profile', 'preferences', 'entities', 'events', 'cases', 'patterns'];
+
+    try {
+      const { results } = await this.find(userId, `${l0} ${l1}`, 5, 0, chestName);
+      if (results.length > 0) {
+        const topCategory = results[0].uri.split('/')[0];
+        if (categories.includes(topCategory)) {
+          const slug = l0.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 50);
+          return `${topCategory}/${slug}`;
+        }
+      }
+    } catch {
+      // OpenViking unavailable — fall through to keyword heuristic
+    }
+
+    const lower = l0.toLowerCase();
+    let category = 'entities';
+    if (lower.includes('prefer') || lower.includes('setting')) category = 'preferences';
+    else if (lower.includes('profile') || lower.includes('role')) category = 'profile';
+    else if (lower.includes('event') || lower.includes('meeting')) category = 'events';
+    else if (lower.includes('pattern') || lower.includes('rule')) category = 'patterns';
+    else if (lower.includes('bug') || lower.includes('issue')) category = 'cases';
+
+    const slug = l0.toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 50);
+    return `${category}/${slug}`;
   }
 
   // Session operations

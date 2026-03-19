@@ -17,19 +17,19 @@ import { sessionSaveSchema, handleSessionSave } from './tools/session-save';
 
 const server = new McpServer({
   name: 'context-chest',
-  version: '0.1.0',
+  version: '0.2.0',
 });
 
 let client: ContextChestClient | null = null;
 let masterKey: Buffer | null = null;
 
-function ensureInitialized(): { client: ContextChestClient; masterKey: Buffer } {
+function ensureInitialized(): { client: ContextChestClient; masterKey: Buffer; chestName: string } {
   if (!client || !masterKey) {
     throw new Error(
       'Not authenticated. Run `context-chest login` first, or set credentials in ~/.context-chest/credentials.json'
     );
   }
-  return { client, masterKey };
+  return { client, masterKey, chestName: client.getChestName() };
 }
 
 async function generateSummaries(content: string, uri?: string): Promise<{ l0: string; l1: string }> {
@@ -52,9 +52,9 @@ async function generateL0(content: string, uri?: string): Promise<string> {
   return l0;
 }
 
-server.tool('context-chest_remember', 'Store a memory in your encrypted vault', rememberSchema.shape, async (params) => {
+server.tool('context-chest_remember', 'Store a memory in your encrypted vault. Always include a summary — a one-sentence description of what this memory contains. Good summaries dramatically improve search quality.', rememberSchema.shape, async (params) => {
   const ctx = ensureInitialized();
-  const result = await handleRemember(params, ctx.client, ctx.masterKey, generateSummaries);
+  const result = await handleRemember(params, ctx.client, ctx.masterKey, ctx.chestName, generateSummaries);
   return { content: [{ type: 'text' as const, text: result }] };
 });
 
@@ -66,7 +66,7 @@ server.tool('context-chest_recall', 'Search your memories', recallSchema.shape, 
 
 server.tool('context-chest_read', 'Read full content of a memory', readSchema.shape, async (params) => {
   const ctx = ensureInitialized();
-  const result = await handleRead(params, ctx.client, ctx.masterKey);
+  const result = await handleRead(params, ctx.client, ctx.masterKey, ctx.chestName);
   return { content: [{ type: 'text' as const, text: result }] };
 });
 
@@ -90,17 +90,17 @@ server.tool('context-chest_session-start', 'Start tracking this conversation', {
 
 server.tool('context-chest_session-append', 'Add a message to current session', sessionAppendSchema.shape, async (params) => {
   const ctx = ensureInitialized();
-  const result = await handleSessionAppend(params, ctx.client, ctx.masterKey, generateL0);
+  const result = await handleSessionAppend(params, ctx.client, ctx.masterKey, ctx.chestName, generateL0);
   return { content: [{ type: 'text' as const, text: result }] };
 });
 
 server.tool('context-chest_session-save', 'Extract memories and close session', sessionSaveSchema.shape, async (params) => {
   const ctx = ensureInitialized();
-  const result = await handleSessionSave(params, ctx.client, ctx.masterKey, generateSummaries);
+  const result = await handleSessionSave(params, ctx.client, ctx.masterKey, ctx.chestName, generateSummaries);
   return { content: [{ type: 'text' as const, text: result }] };
 });
 
-async function refreshAndInit(apiUrl: string, refreshToken: string, creds: ReturnType<typeof loadCredentials>): Promise<boolean> {
+async function refreshAndInit(apiUrl: string, refreshToken: string, creds: ReturnType<typeof loadCredentials>, chestName: string): Promise<boolean> {
   try {
     const response = await fetch(`${apiUrl}/v1/auth/refresh`, {
       method: 'POST',
@@ -128,6 +128,7 @@ async function refreshAndInit(apiUrl: string, refreshToken: string, creds: Retur
       baseUrl: apiUrl,
       token: data.token,
       refreshToken: data.refreshToken,
+      chestName,
     });
 
     process.stderr.write('[context-chest] Token refreshed on startup\n');
@@ -139,8 +140,11 @@ async function refreshAndInit(apiUrl: string, refreshToken: string, creds: Retur
 }
 
 async function main() {
-  const creds = loadCredentials();
+  const chestFlag = process.argv.find(arg => arg.startsWith('--chest='));
+  const chestName = chestFlag ? chestFlag.split('=')[1] : 'default';
+  process.stderr.write(`[context-chest] Chest: ${chestName}\n`);
 
+<<<<<<< HEAD
   if (creds) {
     if (!isTokenExpired(creds.jwt)) {
       // Token is still valid
@@ -165,17 +169,97 @@ async function main() {
         const wrappedMK = await client.getMasterKey();
         const exportKeyBuf = Buffer.from(creds.exportKey, 'hex');
         const wrappingKey = deriveWrappingKey(exportKeyBuf, creds.userId);
+=======
+  // Priority 1: Environment variables (API key auth — no login needed)
+  const envApiKey = process.env.CONTEXT_CHEST_API_KEY;
+  const envExportKey = process.env.CONTEXT_CHEST_EXPORT_KEY;
+  const envApiUrl = process.env.CONTEXT_CHEST_API_URL || DEFAULT_API_URL;
+
+  if (envApiKey && envExportKey) {
+    process.stderr.write('[context-chest] Using API key from environment\n');
+    client = new ContextChestClient({
+      baseUrl: envApiUrl,
+      token: envApiKey,
+      chestName,
+    });
+
+    // Unwrap master key using export key
+    try {
+      const wrappedMK = await client.getMasterKey();
+      const exportKeyBuf = Buffer.from(envExportKey, 'hex');
+      // We need userId to derive wrapping key — get it from a lightweight call
+      const browseRes = await client.browse('', 1);
+      // Extract userId from the API key auth (server resolves it)
+      // The master key endpoint already authenticated us, so we can use any endpoint
+      // to verify auth works. Now unwrap the master key.
+      // We need the userId — let's get it from the auth response or store it.
+      // Simpler: try all possible userId derivations. Actually, the export key
+      // is deterministic from email+password, so we need the userId for HKDF.
+      // Let's add a /v1/auth/me endpoint, or get userId from the master key endpoint.
+
+      // For now: use a dedicated endpoint to get userId
+      const meRes = await fetch(`${envApiUrl}/v1/auth/me`, {
+        headers: { Authorization: `Bearer ${envApiKey}` },
+      });
+      if (meRes.ok) {
+        const { userId } = (await meRes.json()) as { userId: string };
+        const wrappingKey = deriveWrappingKey(exportKeyBuf, userId);
+>>>>>>> feat/encrypted-agent-memory
         masterKey = unwrapMasterKey(wrappedMK, wrappingKey);
-      } catch (err) {
-        process.stderr.write(`[context-chest] MK unwrap failed: ${(err as Error).message}\n`);
+        process.stderr.write('[context-chest] Master key unwrapped via API key\n');
+      } else {
+        process.stderr.write('[context-chest] Could not fetch user info for key derivation\n');
       }
+    } catch (err) {
+      process.stderr.write(`[context-chest] MK unwrap failed: ${(err as Error).message}\n`);
     }
   } else {
-    process.stderr.write('[context-chest] No credentials found. Run context-chest login first.\n');
+    // Priority 2: Credentials file (legacy login flow)
+    const creds = loadCredentials();
+
+    if (creds) {
+      if (!isTokenExpired(creds.jwt)) {
+        client = new ContextChestClient({
+          baseUrl: creds.apiUrl || DEFAULT_API_URL,
+          token: creds.jwt,
+          refreshToken: creds.refreshToken,
+          chestName,
+        });
+      } else if (creds.refreshToken) {
+        const ok = await refreshAndInit(creds.apiUrl || DEFAULT_API_URL, creds.refreshToken, creds, chestName);
+        if (!ok) {
+          process.stderr.write('[context-chest] Could not refresh token. Run context-chest login.\n');
+        }
+      } else {
+        process.stderr.write('[context-chest] Token expired and no refresh token. Run context-chest login.\n');
+      }
+
+      if (client && creds.wrappedMasterKey && creds.exportKey && creds.userId) {
+        try {
+          const wrappedMK = await client.getMasterKey();
+          const exportKeyBuf = Buffer.from(creds.exportKey, 'hex');
+          const wrappingKey = deriveWrappingKey(exportKeyBuf, creds.userId);
+          masterKey = unwrapMasterKey(wrappedMK, wrappingKey);
+        } catch (err) {
+          process.stderr.write(`[context-chest] MK unwrap failed: ${(err as Error).message}\n`);
+        }
+      }
+    } else {
+      process.stderr.write('[context-chest] No credentials found. Set CONTEXT_CHEST_API_KEY + CONTEXT_CHEST_EXPORT_KEY env vars, or run: npx context-chest-mcp login\n');
+    }
   }
 
   const transport = new StdioServerTransport();
   await server.connect(transport);
 }
 
+<<<<<<< HEAD
 main().catch(console.error);
+=======
+// If called with "login" or "migrate-v2" argument, run CLI instead of MCP server
+if (process.argv.includes('login') || process.argv.includes('migrate-v2')) {
+  import('./cli').catch(console.error);
+} else {
+  main().catch(console.error);
+}
+>>>>>>> feat/encrypted-agent-memory

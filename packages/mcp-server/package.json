@@ -1,6 +1,11 @@
 {
+<<<<<<< HEAD
   "name": "@context-chest/mcp-server",
   "version": "0.1.0",
+=======
+  "name": "context-chest-mcp",
+  "version": "0.2.4",
+>>>>>>> feat/encrypted-agent-memory
   "description": "MCP server for encrypted AI agent memory — remember, recall, browse across sessions",
   "main": "dist/index.js",
   "bin": {

@@ -1,144 +1,195 @@
 # Context Chest
 
-**Encrypted memory for AI agents.** Give your coding agents persistent, searchable memory that only you can read.
+**Your second brain for every AI tool you use.**
 
-Context Chest is an open-source MCP server that lets AI agents remember things across sessions -- project conventions, decisions, debugging notes, anything worth keeping. All content is encrypted client-side with AES-256-GCM before it ever leaves your machine. The server never sees plaintext.
+You use Claude Code, Cursor, and Windsurf across multiple projects. Each one forgets everything between sessions. Context Chest gives them all a shared, encrypted memory that auto-organizes by topic.
 
-## Quick Start
+Store in Claude. Recall in Cursor. Browse from Windsurf. One vault, every tool.
 
-Install the MCP server and add it to your agent's config:
+**[contextchest.com](https://contextchest.com)** · **[Pricing](https://contextchest.com/pricing)**
 
+<<<<<<< HEAD
 ```bash
 npm install -g @context-chest/mcp-server
 context-chest login
 ```
+=======
+---
+>>>>>>> feat/encrypted-agent-memory
 
-Then add to your MCP config (`claude_desktop_config.json`, `.cursor/mcp.json`, etc.):
+## Why Context Chest?
+
+Every AI memory tool out there solves "Claude forgets" — for Claude only. If you use multiple tools, you're out of luck.
+
+| | memory-mcp | MemCP | Knowledge Graph | **Context Chest** |
+|---|---|---|---|---|
+| Works in Claude | Yes | Yes | Yes | **Yes** |
+| Works in Cursor | No | No | No | **Yes** |
+| Works in Windsurf | No | No | No | **Yes** |
+| E2E encrypted | No | No | No | **Yes (AES-256)** |
+| Auto-sorted by topic | No | No | No | **Yes** |
+| Web dashboard | No | No | No | **Yes** |
+| Export / Import | No | No | No | **Yes (.md / .zip)** |
+
+## Quick Start (30 seconds)
+
+### 1. Sign up + generate API key
+
+Go to [contextchest.com](https://contextchest.com), create an account, then go to **Settings → Generate API Key**.
+
+### 2. Add config to your project
+
+Create `.mcp.json` in your project root:
 
 ```json
 {
   "mcpServers": {
     "context-chest": {
-      "command": "context-chest-mcp",
-      "args": []
+      "command": "npx",
+      "args": ["-y", "context-chest-mcp@latest"],
+      "env": {
+        "CONTEXT_CHEST_API_KEY": "cc_your_key_here",
+        "CONTEXT_CHEST_EXPORT_KEY": "your_export_key_here"
+      }
     }
   }
 }
 ```
 
-That's it. Your agent now has 8 tools for persistent, encrypted memory.
+### 3. Restart Claude Code / Cursor
+
+Type `/exit` and relaunch. Done. No terminal login, no password prompts.
+
+### 4. (Optional) Add agent instructions
+
+Paste Context Chest instructions into your `CLAUDE.md` to enable passive context extraction — your AI will automatically extract and remember context from conversations without you saying "remember this."
+
+Copy the instructions from [contextchest.com/settings](https://contextchest.com/settings).
+
+---
+
+## How It Works
+
+### Auto-Sort Into Chests
+
+Talk to your AI naturally. Context Chest extracts what matters and sorts it automatically:
+
+- Talk about your tech stack → **Work** chest (blue)
+- Mention a dentist appointment → **Health** chest (green)
+- Discuss pricing strategy → **Finance** chest (yellow)
+- Personal notes → **Personal** chest (purple)
+- Tool configs → **Tools** chest (orange)
+- Learning goals → **Learning** chest (cyan)
+
+No manual organizing. No "remember this" commands. Just work.
+
+### Cross-Agent Memory
+
+```
+Claude Code ──▶ Context Chest ◀── Windsurf
+      │              │              │
+      │    ┌─────────┴─────────┐   │
+      │    │ Encrypted Vault   │   │
+      │    │ ████████████████  │   │
+      │    └─────────┬─────────┘   │
+      │              │              │
+Cursor ──────▶ Same keys ◀─── Any MCP
+```
+
+Store a decision in Claude Code. Recall it from Cursor. Browse it from Windsurf. One vault, every tool, every project.
+
+### End-to-End Encryption
+
+```
+Master Key (256-bit random)
+  │
+  ├─ HKDF(exportKey, userId) → wrapping key
+  │
+  └─ HKDF(masterKey, chestName/URI) → per-item AES-256-GCM key
+```
+
+Everything is encrypted on your device before it leaves your machine. The server stores ciphertext only. Even we can't read your memories.
 
 ## Tools
 
 | Tool | Description |
 |------|-------------|
-| `remember` | Store a memory with a path and tags |
-| `recall` | Search memories by keyword or semantic query |
-| `read` | Decrypt and return the full content of a memory |
+| `remember` | Store a memory — auto-routes to the right chest |
+| `recall` | Search memories by keyword |
+| `read` | Decrypt and read full content |
 | `forget` | Delete a memory |
-| `browse` | List memories in a directory-like structure |
-| `session-start` | Begin tracking the current conversation |
+| `browse` | List memories as a directory tree |
+| `session-start` | Begin tracking a conversation |
 | `session-append` | Add a message to the active session |
-| `session-save` | Extract memories from the session and close it |
+| `session-save` | Extract memories and close session |
 
 ## Features
 
-- **End-to-end encrypted** -- AES-256-GCM with per-item keys derived via HKDF. The server stores ciphertext only.
-- **Works everywhere** -- Claude Code, Cursor, Windsurf, or any MCP-compatible client.
-- **PWA dashboard** -- Browse memories, view connected agents, and manage sessions from a web UI.
-- **Session capture** -- Record full conversations and extract structured memories from them.
-- **Vector search** -- Optional semantic recall via OpenViking. Works without it too (falls back to text search).
-- **Self-hosted** -- Run on your own infrastructure. Docker Compose for local dev, deploy anywhere.
+- **Cross-agent** — One memory across Claude Code, Cursor, Windsurf, any MCP client
+- **Auto-sorted** — Memories route to chests by topic (work, health, finance, personal, tools, learning)
+- **E2E encrypted** — AES-256-GCM with per-chest HKDF key derivation. Server sees only ciphertext.
+- **Multi-project** — Different project? Different chest. One API key works everywhere.
+- **Web dashboard** — Browse, edit (Tiptap WYSIWYG), search, and manage from [contextchest.com](https://contextchest.com)
+- **Export / Import** — Download memories as .md files or full chest as .zip. Import from .md or .zip.
+- **Self-hostable** — Run on your own infrastructure. Docker Compose included. MIT licensed.
 
-## Use Cases
+## Who It's For
 
-**Developers** — Your AI remembers your stack, conventions, and past decisions across sessions. No more re-explaining your architecture every time. Encrypted, so proprietary code context stays private.
+**The Multi-Tool Developer** — You bounce between Claude Code, Cursor, and Windsurf. Explain your stack once. Every tool knows it.
 
-**Founders & PMs** — You paste revenue numbers, hiring plans, and investor decks into AI daily. Context Chest encrypts it all client-side. The server never sees your burn rate.
+**The Freelancer** — 5 clients, 5 projects. Auto-separated into chests. Client A's secrets never leak into Client B's session.
 
-**Freelancers** — Juggle 5 client projects without cross-contamination. Your AI switches context instantly, and client A's secrets never leak into client B's session.
+**The Technical Founder** — Revenue numbers, hiring plans, investor notes. Encrypted so a server breach reveals nothing.
 
-**Regulated industries** — Healthcare, finance, legal. Your compliance team would lose it if they knew what you paste into AI. AES-256-GCM, keys on your machine, server sees only ciphertext.
+**The Privacy-Conscious Engineer** — Regulated industry? Self-host it. Your infra, your keys, your data.
 
-**Teams** — Multiple developers connect to the same vault. Architecture decisions, review guidelines, runbooks — stored once, available to every agent.
+## Pricing
 
-### Example
+| Community | Pro | Enterprise |
+|---|---|---|
+| Free forever | $9/month | Custom |
+| Self-hosted | Cloud hosted | Dedicated infra |
+| 3 chests, 2 agents | Unlimited | Unlimited + teams |
+| [GitHub](https://github.com/fuckupic/context-chest) | [Waitlist](https://contextchest.com/pricing) | [Contact us](mailto:tady@uhumdrum.com) |
 
-```
-You:  "Remember that we chose Stripe over Paddle because of marketplace support"
-      → Stored at decisions/payments, encrypted
-
-You:  "Recall everything about payments"
-      → Returns the decision, instantly, in any future session
-```
-
-## How It Works
-
-Context Chest uses a three-layer encryption model:
-
-```
-Master Key (random 256-bit)
-  |
-  |-- wrapped with HKDF(exportKey, userId) --> stored on server
-  |
-  +-- HKDF(masterKey, memoryURI) --> per-item key
-        |
-        +-- AES-256-GCM encrypt --> ciphertext stored on server
-```
-
-1. On registration, a random master key is generated client-side
-2. The master key is wrapped using a key derived from your credentials and stored server-side
-3. Each memory gets its own encryption key derived from the master key + the memory's URI
-4. Only the MCP server (running on your machine) can decrypt -- the API server never sees plaintext
-
-## Development
-
-### Prerequisites
-
-- Node.js 20+
-- Docker and Docker Compose
-
-### Setup
+## Self-Hosting
 
 ```bash
 git clone https://github.com/fuckupic/context-chest.git
 cd context-chest
-
-# Start Postgres, MinIO, and supporting services
 docker-compose up -d
-
-# Install dependencies
 npm install
-
-# Configure environment
 cp .env.example .env
-
-# Run database migrations
 npx prisma migrate dev
-
-# Start the API server
 npm run dev
 ```
 
-The API server runs on `http://localhost:3002`. The PWA dev server runs on `http://localhost:5173`.
+API server: `http://localhost:3002`
+PWA dashboard: `http://localhost:5173`
 
-### Project Structure
+## Project Structure
 
 ```
 context-chest/
   packages/
-    mcp-server/     # MCP server (installed by agents)
+    mcp-server/     # MCP server (npm: context-chest-mcp)
+    pwa/            # React PWA dashboard
   src/              # API server (Fastify + Prisma)
-  prisma/           # Database schema and migrations
+  prisma/           # Database schema + migrations
   docker-compose.yml
 ```
 
-### Running Tests
+## Running Tests
 
 ```bash
-npm test
+npm test                    # API server tests
+cd packages/mcp-server && npm test  # MCP server tests
 ```
 
 ## License
 
 MIT
+
+---
+
+Built by [Tady](https://github.com/fuckupic) & Luky

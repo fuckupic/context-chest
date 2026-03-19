@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../auth/context';
+import { useChest } from '../context/chest-context';
 import { EmptyState } from '../components/EmptyState';
 
 interface Session { id: string; status: string; messageCount: number; memoriesExtracted: number; clientId: string | null; createdAt: string; closedAt: string | null; }
 
 export function Sessions() {
   const { client } = useAuth();
+  const { activeChest } = useChest();
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -15,7 +17,7 @@ export function Sessions() {
       .then((r) => setSessions(r.data))
       .catch(() => setSessions([]))
       .finally(() => setLoading(false));
-  }, [client]);
+  }, [client, activeChest]);
 
   if (loading) return <div className="flex items-center justify-center h-full text-cc-muted font-pixel text-sm">LOADING...</div>;
   if (sessions.length === 0) return <EmptyState message="No sessions yet. Sessions are tracked when agents use session tools." actionLabel="CONNECT AGENT" actionTo="/agents" />;

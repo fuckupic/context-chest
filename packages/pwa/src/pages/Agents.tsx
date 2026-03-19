@@ -7,14 +7,7 @@ import { EmptyState } from '../components/EmptyState';
 interface Grant { id: string; clientName: string; clientId: string; role: string; createdAt: string; expiresAt: string; }
 interface Agent { id: string; agentName: string; firstSeenAt: string; lastSeenAt: string; requestCount: number; }
 
-const MCP_CONFIG = `{
-  "mcpServers": {
-    "context-chest": {
-      "command": "npx",
-      "args": ["@context-chest/mcp-server"]
-    }
-  }
-}`;
+// Removed — setup config is now in Settings via API key
 
 export function Agents() {
   const { client } = useAuth();
@@ -23,7 +16,6 @@ export function Agents() {
   const [loading, setLoading] = useState(true);
   const [revokingId, setRevokingId] = useState<string | null>(null);
   const [disconnectingId, setDisconnectingId] = useState<string | null>(null);
-  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!client) return;
@@ -75,21 +67,12 @@ export function Agents() {
         <EmptyState message="No agents connected. Add Context Chest to your AI tool." />
       )}
 
-      <div className="mt-8">
+      <div className="mt-8 border-2 border-cc-border bg-cc-dark p-4 text-center">
         <p className="font-pixel text-[10px] text-cc-muted tracking-wider mb-3">CONNECT NEW AGENT</p>
-        <p className="text-cc-muted text-xs mb-3">Add to Claude Code or Cursor MCP config:</p>
-        <div className="relative border-2 border-cc-border bg-cc-dark">
-          <div className="flex items-center px-3 py-1.5 border-b-2 border-cc-border">
-            <span className="font-pixel text-[10px] text-cc-muted tracking-wider">.mcp.json</span>
-          </div>
-          <pre className="p-4 text-xs font-mono text-cc-pink overflow-x-auto">{MCP_CONFIG}</pre>
-          <button
-            onClick={() => { navigator.clipboard.writeText(MCP_CONFIG); setCopied(true); setTimeout(() => setCopied(false), 2000); }}
-            className="absolute top-1.5 right-2 px-2 py-0.5 border border-cc-border font-pixel text-[9px] text-cc-muted tracking-wider hover:text-cc-pink hover:border-cc-pink-border transition-colors"
-          >
-            {copied ? 'COPIED' : 'COPY'}
-          </button>
-        </div>
+        <p className="text-cc-muted text-xs mb-3">Generate an API key in Settings — no terminal login needed.</p>
+        <a href="/settings" className="inline-block px-5 py-2 bg-cc-pink text-cc-black font-pixel text-xs tracking-wider hover:bg-cc-pink-dim transition-colors">
+          GO TO SETTINGS
+        </a>
       </div>
     </div>
   );

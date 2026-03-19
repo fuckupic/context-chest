@@ -1,0 +1,9 @@
+{
+  "buildCommand": "cd packages/pwa && npm run build",
+  "outputDirectory": "packages/pwa/dist",
+  "installCommand": "npm install",
+  "framework": "vite",
+  "rewrites": [
+    { "source": "/((?!assets/).*)", "destination": "/index.html" }
+  ]
+}

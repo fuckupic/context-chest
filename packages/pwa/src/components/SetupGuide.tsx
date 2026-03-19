@@ -1,0 +1,163 @@
+import { useState } from 'react';
+
+export const SETUP_CODE = `{
+  "mcpServers": {
+    "context-chest": {
+      "command": "npx",
+      "args": ["-y", "context-chest-mcp"]
+    }
+  }
+}`;
+
+export const MCP_TERMINAL_CMD = `cat <<'EOF' > .mcp.json
+{
+  "mcpServers": {
+    "context-chest": {
+      "command": "npx",
+      "args": ["-y", "context-chest-mcp"]
+    }
+  }
+}
+EOF`;
+
+export const AGENT_INSTRUCTIONS = `Please create a CLAUDE.md file in my current directory and put this text in it:
+
+## Context Chest — AI Agent Memory Protocol
+
+You have access to Context Chest, an encrypted persistent memory vault via MCP. Your job is to BUILD CONTEXT AUTOMATICALLY — don't wait for "remember this" commands.
+
+### CRITICAL: Passive Context Extraction
+
+As you work with the user, PROACTIVELY extract and store important context you learn from the conversation. You don't need to be asked. Examples:
+
+- User asks to "help with our landing page for Context Chest" → store: business name, what the product does, who it's for
+- User mentions "we use Fastify and Prisma" → store: tech stack
+- User says "we chose Stripe over Paddle because..." → store: the decision and reasoning
+- User discusses pricing at "$20/month for pro tier" → store: pricing model
+- User mentions "my co-founder Luky handles design" → store: team structure
+
+**Extract facts, decisions, preferences, and context — even when the user doesn't explicitly ask you to remember.**
+
+Do NOT store every message verbatim. Extract the MEANING — the facts, decisions, and context that would be useful in a future conversation.
+
+### Before Every Response
+1. Call \`context-chest_recall\` with keywords relevant to the current request
+2. Use recalled context to give better, more informed responses
+3. If you have no vault context yet, call \`context-chest_browse\` once to see what's there
+
+### What to Extract and Store (automatically, without being asked)
+- **Business context**: what the product/company does, target market, competitors, positioning
+- **Technical decisions**: tech stack, architecture choices, deployment setup, conventions
+- **People & roles**: team members, their responsibilities, stakeholders
+- **Preferences**: coding style, communication preferences, tools they like
+- **Key decisions**: what was chosen, what was rejected, and WHY
+- **Project state**: current priorities, deadlines, blockers, milestones
+- **Domain knowledge**: industry terms, client details, regulatory requirements
+
+### How to Store
+- Call \`context-chest_remember\` with ONLY the \`content\` field. Do NOT provide a \`path\` or \`tags\` — auto-routing handles organization automatically.
+- Write context as clear, factual statements — not conversation transcripts
+- Example: \`context-chest_remember(content: "Context Chest is an encrypted memory vault for AI agents. Tech stack: Fastify + Prisma. Target: developers using Claude Code.")\`
+- WRONG: \`context-chest_remember(content: "...", path: "work/tech-stack")\` — never set path manually
+
+### Available Tools
+- \`context-chest_remember\` — Store context (auto-routes to the right chest based on content)
+- \`context-chest_recall\` — Search memories by keyword — ALWAYS check before asking the user to repeat themselves
+- \`context-chest_read\` — Read full content of a specific memory
+- \`context-chest_forget\` — Delete outdated context
+- \`context-chest_browse\` — Browse the vault tree
+
+### Rules
+- Recall before re-asking — the user may have told you (or a different AI) before
+- Store decisions with reasoning: "Chose X because Y" not just "X"
+- Update stale context — if something changed, store the new version
+- Don't over-store — 2-3 meaningful extractions per conversation is plenty
+- Memories are encrypted end-to-end — the server never sees plaintext`;
+
+function CopyButton({ text, label }: { text: string; label: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = async () => {
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+  return (
+    <button
+      onClick={handleCopy}
+      className="font-pixel text-[10px] tracking-wider px-3 py-1.5 border-2 border-cc-border text-cc-muted hover:border-cc-pink hover:text-cc-pink transition-colors"
+    >
+      {copied ? 'COPIED!' : label}
+    </button>
+  );
+}
+
+export function SetupGuide({ compact = false }: { compact?: boolean }) {
+  return (
+    <div className={compact ? 'space-y-3' : 'space-y-4'}>
+      {/* Terminal login */}
+      <div className="border-2 border-cc-border bg-cc-dark">
+        <div className="flex items-center gap-3 px-3 py-2 border-b-2 border-cc-border">
+          <span className="font-pixel text-sm text-cc-pink">01</span>
+          <span className="font-pixel text-[10px] text-cc-white tracking-wider">LOGIN FROM A SEPARATE TERMINAL</span>
+        </div>
+        <div className="p-3 space-y-2">
+          <p className="text-[10px] text-cc-muted">Open a regular terminal (not Claude Code). Run this:</p>
+          <pre className="bg-cc-black border border-cc-border p-2.5 text-xs font-mono text-cc-sub overflow-x-auto">npx context-chest-mcp login</pre>
+          <p className="text-[10px] text-cc-muted mt-1.5">It will ask 3 things:</p>
+          <ul className="text-[10px] text-cc-muted space-y-0.5 ml-2">
+            <li><span className="text-cc-white">API URL</span> → just press Enter (uses the default)</li>
+            <li><span className="text-cc-white">Email</span> → the email you signed up with</li>
+            <li><span className="text-cc-white">Password</span> → your password</li>
+          </ul>
+          <p className="text-[10px] text-cc-muted italic mt-1.5">Saves credentials locally. Only needed once.</p>
+        </div>
+      </div>
+
+      {/* MCP Config */}
+      <div className="border-2 border-cc-border bg-cc-dark">
+        <div className="flex items-center justify-between px-3 py-2 border-b-2 border-cc-border">
+          <div className="flex items-center gap-3">
+            <span className="font-pixel text-sm text-cc-pink">02</span>
+            <span className="font-pixel text-[10px] text-cc-white tracking-wider">ADD MCP CONFIG TO YOUR PROJECT</span>
+          </div>
+          <CopyButton text={MCP_TERMINAL_CMD} label="COPY" />
+        </div>
+        <div className="p-3 space-y-2">
+          <p className="text-[10px] text-cc-muted">Run this in your project folder (creates .mcp.json):</p>
+          <pre className="bg-cc-black border border-cc-border p-2.5 text-[11px] font-mono text-cc-sub overflow-x-auto leading-relaxed whitespace-pre">{MCP_TERMINAL_CMD}</pre>
+          <p className="text-[10px] text-cc-muted italic">If .mcp.json already exists, add the "context-chest" block inside "mcpServers" manually.</p>
+        </div>
+      </div>
+
+      {/* Agent Instructions */}
+      <div className="border-2 border-cc-border bg-cc-dark">
+        <div className="flex items-center justify-between px-3 py-2 border-b-2 border-cc-border">
+          <div className="flex items-center gap-3">
+            <span className="font-pixel text-sm text-cc-pink">03</span>
+            <span className="font-pixel text-[10px] text-cc-white tracking-wider">ADD INSTRUCTIONS TO CLAUDE.md</span>
+          </div>
+          <CopyButton text={AGENT_INSTRUCTIONS} label="COPY INSTRUCTIONS" />
+        </div>
+        <div className="p-3 space-y-2">
+          <p className="text-[10px] text-cc-muted">Create or open <span className="text-cc-white">CLAUDE.md</span> in your project root folder. Paste the copied instructions there.</p>
+          <p className="text-[10px] text-cc-muted italic">This teaches your AI to automatically extract and remember context from conversations.</p>
+        </div>
+      </div>
+
+      {/* Restart */}
+      <div className="border-2 border-cc-pink bg-cc-dark">
+        <div className="flex items-center gap-3 px-3 py-2 border-b-2 border-cc-border">
+          <span className="font-pixel text-sm text-cc-pink">04</span>
+          <span className="font-pixel text-[10px] text-cc-white tracking-wider">RESTART CLAUDE CODE</span>
+        </div>
+        <div className="p-3">
+          <p className="text-[10px] text-cc-muted">Type <span className="text-cc-white font-mono">/exit</span> in Claude Code, then relaunch it in the same project folder. The MCP tools will load automatically.</p>
+        </div>
+      </div>
+
+      <p className="text-[10px] text-cc-muted font-mono text-center">
+        Restart Claude Code or Cursor after setup.
+      </p>
+    </div>
+  );
+}
